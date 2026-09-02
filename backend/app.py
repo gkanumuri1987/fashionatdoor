@@ -23,9 +23,13 @@ logger = logging.getLogger("fashionatdoor")
 
 app = FastAPI(title="FashionAtDoor Jyotish API", version=ENGINE_VERSION)
 
+import os as _os
+
+_cors = [o.strip() for o in
+         _os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=_cors,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
