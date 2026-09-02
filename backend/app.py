@@ -10,12 +10,13 @@ import logging
 from datetime import date as _date
 from datetime import datetime, time as _time, timezone
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 
 from jyotish import ENGINE_VERSION
 from jyotish.chart import compute_chart, transit_report
+from jyotish.milan import match as milan_match
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("fashionatdoor")
@@ -135,6 +136,33 @@ def geocode(q: str):
     return results
 
 
+class MatchRequest(BaseModel):
+    boy: ChartRequest
+    girl: ChartRequest
+
+
+@app.post("/api/match")
+def match_endpoint(body: MatchRequest):
+    def _chart(r: ChartRequest) -> dict:
+        return compute_chart(
+            _date.fromisoformat(r.date), _time.fromisoformat(r.time),
+            lat=r.lat, lng=r.lng, tz_name=r.tz, ayanamsa=r.ayanamsa,
+            house_system=r.house_system, node_type=r.node_type,
+            time_accuracy=r.time_accuracy,
+        )
+    try:
+        boy, girl = _chart(body.boy), _chart(body.girl)
+        result = milan_match(boy, girl)
+        result["boy_chart"] = boy
+        result["girl_chart"] = girl
+        return result
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:  # pragma: no cover
+        logger.error("match failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Match computation failed")
+
+
 class TransitRequest(BaseModel):
     chart: dict
     as_of: str | None = None  # ISO datetime, UTC assumed if naive
@@ -151,3 +179,82 @@ def transits(body: TransitRequest):
         return transit_report(body.chart, as_of)
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=f"Invalid chart payload: {exc}")
+
+
+# ── AI readings (interpretation only — never computes) ───────────────────────
+
+class ReadingRequest(BaseModel):
+    chart: dict
+    section: str = Field(pattern="^(personality|career|wealth|relationships|health|dharma|dasha_outlook|remedies)$")
+    language: str = Field(default="en", pattern="^(en|te|hi)$")
+
+
+@app.post("/api/reading")
+def reading(body: ReadingRequest):
+    from ai.reading import generate_reading
+    result = generate_reading(body.chart, body.section, body.language)
+    if result.get("_error"):
+        raise HTTPException(status_code=502, detail=result["_error_message"])
+    return result
+
+
+class MatchNarrativeRequest(BaseModel):
+    milan: dict
+    language: str = Field(default="en", pattern="^(en|te|hi)$")
+
+
+@app.post("/api/match/narrative")
+def match_narrative(body: MatchNarrativeRequest):
+    from ai.reading import generate_match_narrative
+    result = generate_match_narrative(body.milan, body.language)
+    if result.get("_error"):
+        raise HTTPException(status_code=502, detail=result["_error_message"])
+    return result
+
+
+# ── Palmistry sessions (tokenized shareable link) ────────────────────────────
+
+@app.post("/api/palm/sessions")
+def palm_create():
+    from store import palm_sessions
+    s = palm_sessions.create_session()
+    return {"token": s["token"], "path": f"/palm/{s['token']}",
+            "expires_at": s["expires_at"]}
+
+
+@app.get("/api/palm/sessions/{token}")
+def palm_get(token: str):
+    from store import palm_sessions
+    s = palm_sessions.get_session(token)
+    if s is None:
+        raise HTTPException(status_code=404, detail="Session not found or expired")
+    return s
+
+
+@app.post("/api/palm/sessions/{token}/upload")
+async def palm_upload(token: str, request: Request,
+                      language: str = "en"):
+    """Accepts multipart images (fields named photo/photo2 or any files).
+    RETENTION: image bytes live only in memory for this request — analyzed,
+    then discarded. Only derived JSON is stored."""
+    from store import palm_sessions
+    if palm_sessions.get_session(token) is None:
+        raise HTTPException(status_code=404, detail="Session not found or expired")
+    form = await request.form()
+    images: list[bytes] = []
+    for value in form.values():
+        if hasattr(value, "read"):
+            raw = await value.read()
+            if raw and len(raw) <= 12 * 1024 * 1024:
+                images.append(raw)
+    if not images:
+        raise HTTPException(status_code=400, detail="No photo received")
+    if language not in ("en", "te", "hi"):
+        language = "en"
+
+    from ai.palm import analyze_palm
+    result = analyze_palm(images[:2], language=language)
+    if result.get("_error"):
+        raise HTTPException(status_code=502, detail=result["_error_message"])
+    s = palm_sessions.save_result(token, result)
+    return s

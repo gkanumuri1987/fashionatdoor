@@ -1,0 +1,15 @@
+# Lagna (ascendant sign) dictums — paraphrased from classical descriptions
+# (BPHS ch. on Rasi characteristics; Brihat Jataka; Phaladeepika). Keyed by sign index.
+
+0:  {sign: Aries,       source: "BJ 1; Phaladeepika", dictum: "Mars-ruled lagna: initiative, directness, a pioneer's impatience; acts first and refines later; health tied to heat and head."}
+1:  {sign: Taurus,      source: "BJ 1; Phaladeepika", dictum: "Venus-ruled lagna: steadiness, sensory refinement, loyalty to the familiar; builds slowly and holds; comfort can harden into inertia."}
+2:  {sign: Gemini,      source: "BJ 1; Phaladeepika", dictum: "Mercury-ruled lagna: curiosity, wit, duality of interests; learns by conversation; scattered attention is the tax on versatility."}
+3:  {sign: Cancer,      source: "BJ 1; Phaladeepika", dictum: "Moon-ruled lagna: feeling-first nature, memory, care for one's people; home is the center of gravity; moods steer more than logic."}
+4:  {sign: Leo,         source: "BJ 1; Phaladeepika", dictum: "Sun-ruled lagna: dignity, warmth, the need to matter; leads naturally; pride is both engine and blind spot."}
+5:  {sign: Virgo,       source: "BJ 1; Phaladeepika", dictum: "Mercury-ruled lagna: analysis, service, craft; improves everything it touches; self-criticism is the shadow of the skill."}
+6:  {sign: Libra,       source: "BJ 1; Phaladeepika", dictum: "Venus-ruled lagna: balance, partnership, aesthetic judgment; decides through others; harmony sought can delay hard choices."}
+7:  {sign: Scorpio,     source: "BJ 1; Phaladeepika", dictum: "Mars-ruled lagna: intensity, privacy, penetrating will; transforms through crises; trust is given rarely and totally."}
+8:  {sign: Sagittarius, source: "BJ 1; Phaladeepika", dictum: "Jupiter-ruled lagna: conviction, optimism, love of the far horizon; teaches and preaches; overreach is the habitual risk."}
+9:  {sign: Capricorn,   source: "BJ 1; Phaladeepika", dictum: "Saturn-ruled lagna: endurance, ambition with patience, respect for structure; late bloom is the classical promise; duty can eclipse joy."}
+10: {sign: Aquarius,    source: "BJ 1; Phaladeepika", dictum: "Saturn-ruled lagna: principle, detachment, concern for the collective; unconventional by instinct; distance can read as coldness."}
+11: {sign: Pisces,      source: "BJ 1; Phaladeepika", dictum: "Jupiter-ruled lagna: empathy, imagination, porous boundaries; feels the whole room; needs a shore or the tide takes it."}

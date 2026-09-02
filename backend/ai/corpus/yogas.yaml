@@ -1,0 +1,16 @@
+# Yoga dictums — keyed by the exact yoga keys emitted by jyotish/yogas.py
+# (prefix keys like mahapurusha_* and neecha_bhanga_* are matched by prefix).
+
+mahapurusha_ruchaka: {source: "BPHS 75", dictum: "Ruchaka (Mars mahapurusha): courage as character — a commander's frame, wins through direct action; must guard against ruling by force at home."}
+mahapurusha_bhadra:  {source: "BPHS 75", dictum: "Bhadra (Mercury mahapurusha): intellect as character — eloquent, long-remembered for words and wit; the mind is the fortune."}
+mahapurusha_hamsa:   {source: "BPHS 75", dictum: "Hamsa (Jupiter mahapurusha): wisdom as character — respected as a guide, swan-like discrimination between milk and water."}
+mahapurusha_malavya: {source: "BPHS 75", dictum: "Malavya (Venus mahapurusha): grace as character — beauty, comfort, artistic power, magnetic ease; pleasure must not become the master."}
+mahapurusha_sasa:    {source: "BPHS 75", dictum: "Sasa (Saturn mahapurusha): discipline as character — authority over structures and people, rises through patience to command."}
+gajakesari:          {source: "BPHS 36", dictum: "Gajakesari (Jupiter in kendra from Moon): the elephant-lion pairing — intelligence with emotional strength; reputation endures and grows in later life."}
+budhaditya:          {source: "Standard nabhasa texts", dictum: "Budhaditya (Sun-Mercury union): the illuminated intellect — administrative and scholarly skill; combustion distance decides its purity."}
+chandra_mangala:     {source: "Classical dhana texts", dictum: "Chandra-Mangala: feeling fused with drive — earning power and enterprise, with a temper the wallet must forgive."}
+kemadruma:           {source: "BPHS 36", dictum: "Kemadruma (unsupported Moon): emotional self-reliance learned the hard way; classical hardship of loneliness, softened by kendra support and devotion — a call toward inner anchoring."}
+raja_kendra_trikona: {source: "BPHS 39", dictum: "Raja yoga (kendra-trikona lords united): duty and fortune shake hands — position, influence, and responsibility rise together."}
+vipareeta_raja:      {source: "BPHS 39; Phaladeepika 6", dictum: "Vipareeta Raja (dusthana lords in dusthana): gains born from others' crises and from what collapses — success arrives through reversals that would break others."}
+dhana_2_11:          {source: "Classical dhana yoga texts", dictum: "Dhana yoga (2nd-11th lords united): the earning and the keeping cooperate — wealth accumulates once effort is consistent."}
+neecha_bhanga:       {source: "Phaladeepika 7", dictum: "Neecha Bhanga: the fallen planet raised — early weakness in this graha's domain converts to unusual strength; the classical rags-to-honor signature."}

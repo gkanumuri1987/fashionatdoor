@@ -1,0 +1,30 @@
+# Moon-nakshatra dictums — one disciplined line each (classical nakshatra lore:
+# deity, symbol, temperament). Keyed by nakshatra index 0-26.
+
+0:  {name: Ashwini,           dictum: "Ashwini (the healers' horses): quick to start, quick to heal, youthful momentum; impatience is the tax on speed."}
+1:  {name: Bharani,           dictum: "Bharani (Yama's womb): bears what others cannot — birth, endings, responsibility; restraint learned makes it regal."}
+2:  {name: Krittika,          dictum: "Krittika (Agni's blade): cutting clarity, nurturing fire — criticism that cooks rather than burns is its mastery."}
+3:  {name: Rohini,            dictum: "Rohini (the red one, Moon's beloved): fertile charm, beauty, growth; possessiveness shadows abundance."}
+4:  {name: Mrigashira,        dictum: "Mrigashira (the deer's search): gentle seeking, curiosity, wandering; the search itself is home."}
+5:  {name: Ardra,             dictum: "Ardra (Rudra's teardrop): storm and renewal; feels destruction keenly and rebuilds greener."}
+6:  {name: Punarvasu,         dictum: "Punarvasu (Aditi's return of light): recovery, second chances, generosity; the bow restrung after every loss."}
+7:  {name: Pushya,            dictum: "Pushya (Brihaspati's nourishment): the most nourishing star — caretaking, piety, dependable growth."}
+8:  {name: Ashlesha,          dictum: "Ashlesha (the serpent's coil): penetrating insight, hypnotic depth; power over others must first be power over self."}
+9:  {name: Magha,             dictum: "Magha (the ancestors' throne): lineage pride, ceremony, natural authority; serves the throne best who remembers whose it was."}
+10: {name: "Purva Phalguni",  dictum: "Purva Phalguni (Bhaga's couch): pleasure, art, romance, rest; creativity flowers when comfort is earned not assumed."}
+11: {name: "Uttara Phalguni", dictum: "Uttara Phalguni (Aryaman's pact): loyal alliance, patronage, contracts kept; kindness with a spine."}
+12: {name: Hasta,             dictum: "Hasta (Savitar's hand): skill in the palm — craft, wit, sleight and service; what the hands practice, prospers."}
+13: {name: Chitra,            dictum: "Chitra (Tvashtar's jewel): the architect's eye — design, brilliance, love of the well-made; vanity is the loose thread."}
+14: {name: Swati,             dictum: "Swati (Vayu's single blade of grass): independence, balance in the wind, trade; roots chosen, not inherited."}
+15: {name: Vishakha,          dictum: "Vishakha (Indra-Agni's arch): forked determination — pursues the goal through either gate; triumph needs a worthy aim."}
+16: {name: Anuradha,          dictum: "Anuradha (Mitra's friendship): devotion in alliance, success far from home, the lotus in mud — friendship as sadhana."}
+17: {name: Jyeshtha,          dictum: "Jyeshtha (Indra's seniority): the eldest's burden — protectiveness, authority, and the loneliness of rank."}
+18: {name: Mula,              dictum: "Mula (Nirriti's root): digs to the root even when the tree falls — radical truth, research, sacred destruction."}
+19: {name: "Purva Ashadha",   dictum: "Purva Ashadha (Apas' invincibility): early victory, declaration, buoyant pride; wins the argument, must still win the peace."}
+20: {name: "Uttara Ashadha",  dictum: "Uttara Ashadha (Vishvadevas' final victory): the later, lasting win — universal principles, endurance to the summit."}
+21: {name: Shravana,          dictum: "Shravana (Vishnu's ear): learning by listening, tradition carried, counsel trusted; the sacred is heard before it is seen."}
+22: {name: Dhanishta,         dictum: "Dhanishta (the Vasus' drum): rhythm, wealth, group timing; performs best in ensemble, hollow when playing alone."}
+23: {name: Shatabhisha,       dictum: "Shatabhisha (Varuna's hundred healers): the secret cure — solitude, research, unconventional medicine; the veil protects the work."}
+24: {name: "Purva Bhadrapada",dictum: "Purva Bhadrapada (Aja Ekapada's fire): intensity of purpose, austerity, the burning funeral-front of transformation."}
+25: {name: "Uttara Bhadrapada",dictum: "Uttara Bhadrapada (Ahirbudhnya's depth): the serpent of the deep — stability, wisdom in stillness, kindness that asks nothing."}
+26: {name: Revati,            dictum: "Revati (Pushan's safe passage): the shepherd star — protection of travelers and endings, sweetness, prosperity that shares itself."}

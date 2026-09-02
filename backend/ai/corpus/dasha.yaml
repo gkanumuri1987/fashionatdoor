@@ -1,0 +1,13 @@
+# Dasha lord flavors — what each Vimshottari period classically foregrounds
+# (BPHS dasha-phala chapters). Applied to maha and antar lords; the reading must
+# tie these to the lord's actual dignity/house in THIS chart.
+
+sun:     {source: "BPHS dasha-phala", dictum: "Sun periods foreground visibility, authority, father, government dealings, and the question of who you are when seen."}
+moon:    {source: "BPHS dasha-phala", dictum: "Moon periods foreground home, mother, emotional tides, public contact, and the need for rest and nourishment."}
+mars:    {source: "BPHS dasha-phala", dictum: "Mars periods foreground action, property, brothers, contests, and heat — energy that must be aimed or it burns the holder."}
+mercury: {source: "BPHS dasha-phala", dictum: "Mercury periods foreground learning, trade, writing, networks, and nerves — harvest of the mind's habits."}
+jupiter: {source: "BPHS dasha-phala", dictum: "Jupiter periods foreground growth, children, teachers, dharma, and expansion of whatever the chart's Jupiter has promised."}
+venus:   {source: "BPHS dasha-phala", dictum: "Venus periods foreground relationship, comfort, art, vehicles, and the sweetness or excess of pleasures."}
+saturn:  {source: "BPHS dasha-phala", dictum: "Saturn periods foreground work, endurance, delays that structure, separations that mature, and rewards that arrive late but stay."}
+rahu:    {source: "BPHS dasha-phala", dictum: "Rahu periods foreground ambition, foreign elements, sudden elevation, and the fog of wanting — extraordinary motion needing an ethical rudder."}
+ketu:    {source: "BPHS dasha-phala", dictum: "Ketu periods foreground endings, spiritualization, dispersal of what is finished, and insight that arrives once grasping stops."}

@@ -1,0 +1,128 @@
+# Puranic / epic archetypes for each graha — the narrative voice of readings.
+# Each entry: the presiding deity, a paraphrased story lesson from the Puranas/epics,
+# the epic figure who embodies the graha's lesson, and traditional remedial measures.
+# All text freshly paraphrased; citations point to the source, never quote translations.
+
+sun:
+  deity: Surya Narayana
+  source: "Markandeya Purana (Surya's glory); Ramayana (Ikshvaku solar line)"
+  story: >
+    The Puranas describe Surya as the visible witness of all deeds, whose light no
+    secret survives. Rama of the solar dynasty embodies the Sun's lesson: authority
+    is carried as duty, not privilege — the king serves the kingdom, never himself.
+  epic_figure: "Rama (Ramayana) — dignity, duty, the burden of leadership"
+  shadow: "Pride of position; the father-wound; authority turned to ego"
+  remedies:
+    - "Surya Namaskara at sunrise; offering water to the rising sun (arghya)"
+    - "Aditya Hridayam recitation (Ramayana, Yuddha Kanda)"
+    - "Respect toward father and father-figures as living remedy"
+
+moon:
+  deity: Chandra (Soma)
+  source: "Skanda Purana (Soma's waxing curse and release); Mahabharata"
+  story: >
+    Chandra's Puranic story is the waxing and waning itself — cursed to wither, he
+    was granted recovery in cycles. The Moon teaches that feeling ebbs and returns;
+    a mind that accepts its tides finds peace where a mind that fights them drowns.
+  epic_figure: "Bharata (Ramayana) — devotion carried through separation and longing"
+  shadow: "Moodiness mistaken for truth; clinging to comfort; the mother-wound"
+  remedies:
+    - "Monday fasting or light sattvic food; Shiva abhisheka with milk"
+    - "Chandra mantra on Mondays; time near water in moonlight"
+    - "Care of the mother and of one's own emotional rest"
+
+mars:
+  deity: Kartikeya (Subrahmanya / Murugan)
+  source: "Skanda Purana (Kartikeya's birth and generalship)"
+  story: >
+    Born of Shiva's fire to defeat what no one else could, Kartikeya commands the
+    army of the gods while still a youth. Mars's lesson from his story: courage is
+    holy when it protects, poisonous when it merely wants to win.
+  epic_figure: "Lakshmana (Ramayana) — fierce loyalty, strength in service"
+  shadow: "Anger without an enemy worth fighting; haste; harshness with kin"
+  remedies:
+    - "Hanuman Chalisa on Tuesdays; physical discipline given a protective purpose"
+    - "Subrahmanya darshan; channeling heat into seva (service)"
+
+mercury:
+  deity: Vishnu as Budha's guide; Ganesha as lord of intellect
+  source: "Vishnu Purana (Budha's lineage); Mahabharata (Ganesha the scribe)"
+  story: >
+    When Vyasa needed the Mahabharata written, Ganesha agreed on one condition —
+    the verses must never pause — and Vyasa countered: Ganesha must understand each
+    verse before writing it. Mercury's lesson: speed of mind is a gift only when
+    comprehension keeps pace with cleverness.
+  epic_figure: "Ganesha the scribe — intellect in service of wisdom"
+  shadow: "Cleverness without depth; scattered study; word games over truth"
+  remedies:
+    - "Ganesha upasana on Wednesdays; green gram daan"
+    - "One subject studied deeply rather than ten skimmed"
+
+jupiter:
+  deity: Brihaspati, guru of the devas; Dakshinamurthy as silent teacher
+  source: "Rig Veda hymns to Brihaspati; Shiva Purana (Dakshinamurthy)"
+  story: >
+    Dakshinamurthy teaches in silence beneath the banyan — the highest knowledge
+    passes without a word to those ready to receive it. Jupiter's lesson: wisdom
+    expands whoever it touches; a true guru makes disciples into teachers.
+  epic_figure: "Vidura (Mahabharata) — counsel that stays honest when kings will not hear it"
+  shadow: "Preaching without practice; complacent optimism; over-expansion"
+  remedies:
+    - "Guruvara (Thursday) fasting; service to teachers and elders"
+    - "Chana dal / turmeric daan; study of one sacred text with commitment"
+
+venus:
+  deity: Shukracharya, guru of the asuras; Lakshmi as grace of abundance
+  source: "Bhagavata Purana (Shukra's sanjivani vidya; Lakshmi's emergence at the churning)"
+  story: >
+    Shukracharya alone held the knowledge to revive the dead, and taught the side
+    everyone else abandoned. Venus's lesson: love and beauty are real powers —
+    they revive what the world gives up on — and they demand discernment in whom
+    and what one devotes them to.
+  epic_figure: "Savitri (Mahabharata, Vana Parva) — love so resolute it argued Yama himself around"
+  shadow: "Pleasure as escape; charm without commitment; luxury as identity"
+  remedies:
+    - "Shukravara devi upasana; white flowers, cleanliness, rasa in moderation"
+    - "Creating beauty for others (art, hospitality) as offering"
+
+saturn:
+  deity: Shani Deva; Hanuman as the protector from Shani's severity
+  source: "Skanda Purana (Shani); Ramayana (Hanuman freeing Shani from Ravana)"
+  story: >
+    When Hanuman freed Shani from Ravana's captivity, Shani offered a boon —
+    and Hanuman asked only that Shani spare those who remember him. Saturn's
+    lesson: time tests everyone equally; discipline, humility and service are the
+    only currencies Shani accepts, and they buy what nothing else can — endurance.
+  epic_figure: "Yudhishthira (Mahabharata) — patience through exile, integrity under pressure"
+  shadow: "Despair mistaken for realism; rigidity; delay read as denial"
+  remedies:
+    - "Hanuman Chalisa on Saturdays; til (sesame) and oil daan to those in need"
+    - "Serving workers, elders, the disabled — Shani's own people"
+    - "Steady labor without demanding early reward"
+
+rahu:
+  deity: Rahu — the shadow of desire
+  source: "Bhagavata Purana (the churning of the ocean; Svarbhanu severed)"
+  story: >
+    Rahu tasted amrita by disguise and was severed for it — yet the head lives on,
+    forever hungry. Rahu's lesson: obsession achieves extraordinary things and can
+    never feel finished; only awareness of the hunger itself turns it into fuel
+    instead of a master.
+  epic_figure: "Karna (Mahabharata) — brilliance and generosity shadowed by the need to be seen"
+  shadow: "Foreign glitter; shortcuts; identity built on others' applause"
+  remedies:
+    - "Durga upasana; discipline around intoxicants and screens"
+    - "Naming the craving honestly — the classical first step against Rahu"
+
+ketu:
+  deity: Ketu — the headless body; Ganesha as remover of attachment
+  source: "Bhagavata Purana (the severed asura); Ganesha Purana"
+  story: >
+    Ketu is the body without the craving head — what remains when wanting stops.
+    His lesson: detachment is not loss but completion; what Ketu takes away was
+    finished, and what he points toward (moksha) cannot be grasped, only allowed.
+  epic_figure: "Vibhishana (Ramayana) — walking away from everything for dharma"
+  shadow: "Dissociation posing as detachment; abandoning what still needs tending"
+  remedies:
+    - "Ganesha upasana; seva done anonymously"
+    - "Meditation and pilgrimage; simplifying possessions"
