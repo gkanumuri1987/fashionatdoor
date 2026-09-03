@@ -17,6 +17,7 @@ const ITEMS: { href: string; key: string; icon: string }[] = [
   { href: "/calendar", key: "nav_calendar", icon: "🗓" },
   { href: "/palmistry", key: "nav_palm", icon: "✋" },
   { href: "/subscription", key: "nav_subscription", icon: "✦" },
+  { href: "/profile", key: "nav_profile", icon: "👤" },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
