@@ -157,6 +157,7 @@ export default function Home() {
         <nav className="mt-3 flex items-center justify-center gap-4 text-sm">
           <span className="font-semibold text-[#c9a227]">{t("nav_kundli")}</span>
           <Link href="/match" className="text-[#cbbfa4] hover:text-[#c9a227]">{t("nav_milan")}</Link>
+          <Link href="/vastu" className="text-[#cbbfa4] hover:text-[#c9a227]">{t("nav_vastu")}</Link>
           <button onClick={mintPalmLink} className="text-[#cbbfa4] hover:text-[#c9a227]">
 {t("nav_palm")}</button>
         </nav>

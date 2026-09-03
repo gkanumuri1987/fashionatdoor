@@ -117,19 +117,34 @@ def houses(jd_ut: float, lat: float, lng: float, ayanamsa: str = "lahiri",
     High-latitude note: Placidus degenerates above the polar circles; swisseph
     falls back internally (Porphyry) — we surface the system actually used.
     """
-    hsys = _HOUSE_SYSTEMS[system]
+    # The ascendant/MC (ascmc) are house-system-independent; Placidus cusps
+    # degenerate above the polar circles and swisseph RAISES there. Fallback
+    # chain: requested system → Porphyry ('O', defined at all latitudes where
+    # an ascendant exists). The system actually used is reported.
+    requested = _HOUSE_SYSTEMS[system]
+    attempts = [(system, requested if system != "whole_sign" else b"P")]
+    if requested != b"O":
+        attempts.append((f"{system}→porphyry_fallback", b"O"))
+    last_exc: Exception | None = None
     with _LOCK:
         swe.set_sid_mode(AYANAMSAS[ayanamsa], 0, 0)
-        cusps, ascmc = swe.houses_ex(jd_ut, lat, lng, hsys if system != "whole_sign" else b"P",
-                                     swe.FLG_SIDEREAL)
+        for used_label, hsys in attempts:
+            try:
+                cusps, ascmc = swe.houses_ex(jd_ut, lat, lng, hsys, swe.FLG_SIDEREAL)
+                break
+            except Exception as exc:  # polar degeneracy
+                last_exc = exc
+        else:
+            raise ValueError(f"House computation failed at lat={lat}: {last_exc}")
     asc = ascmc[0] % 360.0
     mc = ascmc[1] % 360.0
     if system == "whole_sign":
         lagna_sign = int(asc // 30)
         cusp_list = [((lagna_sign + i) % 12) * 30.0 for i in range(12)]
+        used_label = "whole_sign"
     else:
         cusp_list = [c % 360.0 for c in cusps[:12]]
-    return {"ascendant": asc, "mc": mc, "cusps": cusp_list, "system": system}
+    return {"ascendant": asc, "mc": mc, "cusps": cusp_list, "system": used_label}
 
 
 def sunrise_sunset(jd_ut: float, lat: float, lng: float) -> tuple[float | None, float | None]:

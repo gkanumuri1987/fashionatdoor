@@ -260,3 +260,20 @@ def test_chart_v12_jaimini_kp_chalita(chart):
     for g, e in kp["planets"].items():
         assert e["star_lord"] and e["sub_lord"] and e["sub_sub_lord"]
     assert chart["use_chandra_lagna"] is False
+
+
+def test_lagna_sensitivity_bands():
+    exact = compute_chart(date(1990, 5, 15), time(10, 30),
+                          lat=17.385, lng=78.4867, tz_name="Asia/Kolkata")
+    assert exact["lagna_sensitivity"] is None
+    approx = compute_chart(date(1990, 5, 15), time(10, 30),
+                           lat=17.385, lng=78.4867, tz_name="Asia/Kolkata",
+                           time_accuracy="approximate")
+    ls = approx["lagna_sensitivity"]
+    assert ls["band_minutes"] == 30 and len(ls["lagna_signs_across_band"]) == 3
+    unknown = compute_chart(date(1990, 5, 15), time(10, 30),
+                            lat=17.385, lng=78.4867, tz_name="Asia/Kolkata",
+                            time_accuracy="unknown")
+    assert unknown["lagna_sensitivity"]["band_minutes"] == 180
+    # ±3h from 10:30 IST sweeps several signs — must flag instability.
+    assert not unknown["lagna_sensitivity"]["stable"]

@@ -313,3 +313,70 @@ def muhurta(body: MuhurtaRequest):
                               natal_moon_nak=body.natal_moon_nakshatra,
                               natal_moon_sign=body.natal_moon_sign,
                               ayanamsa=body.ayanamsa)}
+
+
+# ── Tier-2: Vastu floor-plan analysis ───────────────────────────────────────
+
+from fastapi import File, Form, UploadFile
+
+_VASTU_DIRECTIONS = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+                     "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"}
+
+
+@app.post("/api/vastu")
+async def vastu_analyze(plan: UploadFile = File(...),
+                        top_direction: str = Form("N"),
+                        language: str = Form("en")):
+    """Floor plan photo + which compass direction the image's TOP faces.
+    The image is analyzed in memory and never stored."""
+    if top_direction not in _VASTU_DIRECTIONS:
+        raise HTTPException(status_code=400, detail="top_direction must be a compass point (N, NE, …)")
+    if language not in ("en", "te", "hi"):
+        language = "en"
+    raw = await plan.read()
+    if not raw or len(raw) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Plan image missing or over 15 MB")
+    from ai.vastu import analyze_floor_plan
+    mime = plan.content_type or "image/jpeg"
+    if not mime.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Upload an image of the floor plan")
+    result = analyze_floor_plan(raw, top_direction, language=language, mime_type=mime)
+    if result.get("_error"):
+        raise HTTPException(status_code=502, detail=result["_error_message"])
+    return result
+
+
+# ── Tier-2: Western tropical chart ──────────────────────────────────────────
+
+@app.post("/api/western")
+def western(body: ChartRequest):
+    from jyotish.western import western_chart
+    try:
+        return western_chart(
+            _date.fromisoformat(body.date), _time.fromisoformat(body.time),
+            lat=body.lat, lng=body.lng, tz_name=body.tz,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:  # pragma: no cover
+        logger.error("western chart failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Western chart computation failed")
+
+
+# ── Tier-2: Varshaphal (Tajika annual chart) ────────────────────────────────
+
+class VarshaphalRequest(BaseModel):
+    chart: dict
+    year_number: int = Field(ge=1, le=120)
+
+
+@app.post("/api/varshaphal")
+def varshaphal_endpoint(body: VarshaphalRequest):
+    from jyotish.varshaphal import varshaphal
+    try:
+        return varshaphal(body.chart, body.year_number)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid chart payload: {exc}")
+    except Exception as exc:  # pragma: no cover
+        logger.error("varshaphal failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Varshaphal computation failed")

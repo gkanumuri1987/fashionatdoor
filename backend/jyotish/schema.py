@@ -120,5 +120,6 @@ class ChartV1(BaseModel):
     bhava_chalita: Optional[dict] = None
     use_chandra_lagna: Optional[bool] = None
     kp: Optional[dict] = None
+    lagna_sensitivity: Optional[dict] = None
 
     model_config = {"populate_by_name": True}

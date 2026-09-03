@@ -253,9 +253,41 @@ def compute_chart(birth_date: date, birth_time: time, lat: float, lng: float,
         "jaimini": jaimini_block,
         "bhava_chalita": chalita,
         "kp": kp_block,
+        "lagna_sensitivity": _lagna_sensitivity(jd, lat, lng, ayanamsa, time_accuracy),
         # Unknown birth time → the Chandra-lagna view (houses from the Moon)
         # is the honest fallback; the flag tells the AI layer to judge from it.
         "use_chandra_lagna": time_accuracy == "unknown",
+    }
+
+
+def _lagna_sensitivity(jd: float, lat: float, lng: float, ayanamsa: str,
+                       time_accuracy: str) -> dict | None:
+    """Rectification honesty for inexact birth times: how far the lagna moves
+    across the stated uncertainty band (±30 min approximate, ±3 h unknown).
+    If the lagna sign CHANGES inside the band, every lagna-dependent result
+    (houses, functional lords, dasha flavour) is uncertain — the report says
+    exactly that instead of pretending precision."""
+    if time_accuracy == "exact":
+        return None
+    band_min = 30 if time_accuracy == "approximate" else 180
+    offsets = (-band_min, 0, band_min)
+    signs = []
+    for m in offsets:
+        try:
+            h = houses(jd + m / 1440.0, lat, lng, ayanamsa=ayanamsa, system="whole_sign")
+            signs.append(int(h["ascendant"] // 30))
+        except Exception:  # pragma: no cover
+            return None
+    stable = len(set(signs)) == 1
+    return {
+        "band_minutes": band_min,
+        "lagna_signs_across_band": [SIGNS[s]["en"] for s in signs],
+        "stable": stable,
+        "note": ("Lagna holds the same sign across the uncertainty band — "
+                 "house-based results are dependable despite the inexact time."
+                 if stable else
+                 "Lagna CHANGES sign within the uncertainty band — treat "
+                 "house-based results as tentative; Moon-based results are firm."),
     }
 
 
