@@ -105,7 +105,7 @@ def d30(lon: float) -> int:
     table = _D30_ODD if _is_odd_sign(_sign(lon)) else _D30_EVEN
     deg = _deg(lon)
     for upper, sign in table:
-        if deg < upper + _EPS:
+        if deg + _EPS < upper:  # boundary rounds UP, same convention as _part
             return sign
     return table[-1][1]
 

@@ -77,7 +77,10 @@ def _sub_periods(parent_lord: str, parent_start_jd: float, parent_len_days: floa
 
 
 def pratyantardashas(maha_lord: str, antar: dict) -> list[dict]:
-    """Pratyantar breakdown of one antardasha (computed on demand)."""
+    """Pratyantar breakdown of one antardasha (computed on demand).
+
+    Note: sub-periods seed from the ANTAR lord (correct convention);
+    ``maha_lord`` is kept only for call-site/API stability."""
     return _sub_periods(antar["lord"], antar["start_jd"], antar["end_jd"] - antar["start_jd"])
 
 

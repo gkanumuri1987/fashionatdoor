@@ -43,9 +43,14 @@ def detect_yogas(grahas: dict[str, dict], lagna_sign: int) -> list[dict]:
     # ── Pancha Mahapurusha: own/exalted graha in a kendra from lagna ─────────
     for g, yname in _MAHAPURUSHA.items():
         d = dignity_of(g, grahas[g]["lon"])
-        if d in ("exalted", "moolatrikona", "own") and grahas[g]["house"] in _KENDRA:
+        if d not in ("exalted", "moolatrikona", "own"):
+            continue
+        in_kendra_lagna = grahas[g]["house"] in _KENDRA
+        in_kendra_moon = _house_from(grahas[g]["sign"], moon_sign) in _KENDRA
+        if in_kendra_lagna or in_kendra_moon:
+            ref = "lagna" if in_kendra_lagna else "moon"
             out.append({"key": f"mahapurusha_{yname.lower()}", "name": f"{yname} Yoga",
-                        "factors": [f"{g} {d} in house {grahas[g]['house']}"]})
+                        "factors": [f"{g} {d} in kendra from {ref} (house {grahas[g]['house']})"]})
 
     # ── Gajakesari: Jupiter in kendra from the Moon ──────────────────────────
     jup_from_moon = _house_from(grahas["jupiter"]["sign"], moon_sign)

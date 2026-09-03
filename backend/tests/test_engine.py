@@ -135,3 +135,46 @@ def test_pre_1900_birth_computes():
                       lat=21.6417, lng=69.6293, tz_name="Asia/Kolkata")
     ChartV1.model_validate(c)
     assert len(c["grahas"]) == 9
+
+
+# ── Audit fixes (dignity degree-partition, mahapurusha-from-moon) ────────────
+
+def test_dignity_degree_partition_in_exaltation_sign():
+    from jyotish.dignity import dignity_of
+    # Moon in Taurus: 0-3° exalted, 3-30° moolatrikona (BPHS partition).
+    assert dignity_of("moon", 30.0 + 1.0) == "exalted"
+    assert dignity_of("moon", 30.0 + 10.0) == "moolatrikona"
+    # Mercury in Virgo: exalted early, MT 16-20°, own 20-30°.
+    assert dignity_of("mercury", 150.0 + 5.0) == "exalted"
+    assert dignity_of("mercury", 150.0 + 18.0) == "moolatrikona"
+    assert dignity_of("mercury", 150.0 + 25.0) == "own"
+    # Whole-sign behaviour intact where MT is elsewhere.
+    assert dignity_of("sun", 0.0 + 25.0) == "exalted"       # Sun anywhere in Aries
+    assert dignity_of("saturn", 180.0 + 5.0) == "exalted"    # Saturn in Libra
+    assert dignity_of("saturn", 300.0 + 5.0) == "moolatrikona"
+    assert dignity_of("saturn", 300.0 + 25.0) == "own"
+
+
+def test_d30_boundary_rounds_up():
+    from jyotish import varga
+    # Exactly 5° in an odd sign belongs to the SECOND trimsamsa (Aquarius).
+    assert varga.d30(5.0) == 10
+    assert varga.d30(4.99) == 0
+
+
+def test_mahapurusha_from_moon_kendra():
+    from jyotish.yogas import detect_yogas
+    # Saturn own-sign Capricorn; Moon in Libra → Saturn is 4th from Moon
+    # (kendra) but 2nd from a Sagittarius lagna (not a lagna kendra).
+    grahas = {}
+    placements = {
+        "sun": 0, "moon": 6, "mars": 1, "mercury": 2, "jupiter": 4,
+        "venus": 5, "saturn": 9, "rahu": 10, "ketu": 4,
+    }
+    lagna = 8  # Sagittarius
+    for g, sign in placements.items():
+        grahas[g] = {"lon": sign * 30 + 15.0, "sign": sign,
+                     "house": (sign - lagna) % 12 + 1}
+    yogas = detect_yogas(grahas, lagna)
+    keys = {y["key"] for y in yogas}
+    assert "mahapurusha_sasa" in keys

@@ -1,8 +1,9 @@
 """ChartV1 assembler — the canonical output of the deterministic engine.
 
-compute_chart() is a PURE function of (birth instant, place, options): identical
-inputs always produce identical output, which is why charts are cacheable on
-(utc_instant, lat, lng, ayanamsa, house_system, node_type, engine_version).
+compute_chart() is a PURE function of (birth instant, place, options) EXCEPT
+the convenience field ``current_dasha`` (evaluated at call time). Cache charts
+on (utc_instant, lat, lng, ayanamsa, house_system, node_type, engine_version)
+and re-derive current_dasha from ``vimshottari`` when serving a cached chart.
 """
 
 from __future__ import annotations

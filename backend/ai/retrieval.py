@@ -79,13 +79,29 @@ def dictums_for_chart(chart: dict) -> list[dict]:
 
 
 def archetypes_for_chart(chart: dict) -> list[dict]:
-    """Puranic archetypes for the chart's pivotal grahas: lagna lord, Moon's
-    nakshatra lord, and the current mahadasha lord."""
+    """Puranic archetypes for the chart's pivotal grahas — lagna lord, Moon's
+    nakshatra lord, the current maha AND antar lords — plus every AFFLICTED
+    graha (debilitated / combust / great-enemy sign), since classical
+    remediation (the deity's stotra, vrata, daan) is prescribed exactly for
+    the grahas that need strengthening."""
     arch = _load("purana_archetypes")
     pivotal: list[tuple[str, str]] = [("lagna lord", chart["lagna"]["lord"])]
     pivotal.append(("moon nakshatra lord", chart["grahas"]["moon"]["nakshatra"]["lord"]))
     if chart.get("current_dasha"):
         pivotal.append(("current mahadasha lord", chart["current_dasha"]["maha"]))
+        antar = chart["current_dasha"].get("antar")
+        if antar:
+            pivotal.append(("current antardasha lord", antar))
+    for g, gd in chart.get("grahas", {}).items():
+        afflictions = []
+        if gd.get("dignity") == "debilitated":
+            afflictions.append("debilitated")
+        if gd.get("dignity") == "great_enemy":
+            afflictions.append("in a great-enemy sign")
+        if gd.get("combust"):
+            afflictions.append("combust")
+        if afflictions:
+            pivotal.append((f"afflicted graha ({', '.join(afflictions)})", g))
     seen, out = set(), []
     for role, g in pivotal:
         if g in seen:

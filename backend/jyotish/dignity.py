@@ -53,14 +53,23 @@ def dignity_of(graha: str, lon: float) -> str:
     sign = int((lon % 360.0) // 30)
     deg = (lon % 360.0) % 30.0
 
+    mt = MOOLATRIKONA.get(graha)
     ex_sign, _ = EXALTATION.get(graha, (None, None))
     if ex_sign is not None:
         if sign == ex_sign:
+            # BPHS degree partition when exaltation and moolatrikona share a
+            # sign (Moon in Taurus: 0-3° exalted, 3-30° MT; Mercury in Virgo:
+            # 0-15/16° exalted, 16-20° MT, 20-30° own). Whole-sign exaltation
+            # would over-report dignity for those degree bands.
+            if mt and sign == mt[0]:
+                if mt[1] <= deg < mt[2]:
+                    return "moolatrikona"
+                if deg >= mt[2] and sign in OWN_SIGNS.get(graha, []):
+                    return "own"
             return "exalted"
         if sign == (ex_sign + 6) % 12:
             return "debilitated"
 
-    mt = MOOLATRIKONA.get(graha)
     if mt and sign == mt[0] and mt[1] <= deg < mt[2]:
         return "moolatrikona"
 
