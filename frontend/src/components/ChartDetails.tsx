@@ -17,10 +17,10 @@ const DIGNITY_COLOR: Record<string, string> = {
 
 export function PlanetTable({ chart }: { chart: ChartV1 }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-[#3d2f5c]">
+    <div className="overflow-x-auto rounded-lg border border-[var(--line)]">
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-[#241640] text-left text-[#c9a227]">
+          <tr className="bg-[var(--surface-raised)] text-left text-[var(--gold)]">
             <th className="px-3 py-2">Graha</th>
             <th className="px-3 py-2">Sign</th>
             <th className="px-3 py-2">Degree</th>
@@ -31,7 +31,7 @@ export function PlanetTable({ chart }: { chart: ChartV1 }) {
         </thead>
         <tbody>
           {Object.entries(chart.grahas).map(([key, g]) => (
-            <tr key={key} className="border-t border-[#3d2f5c]/60">
+            <tr key={key} className="border-t border-[var(--line-soft)]">
               <td className="px-3 py-2 font-medium">
                 {GRAHA_LABEL[key]}
                 {g.retrograde && key !== "rahu" && key !== "ketu" && (
@@ -43,7 +43,7 @@ export function PlanetTable({ chart }: { chart: ChartV1 }) {
               <td className="px-3 py-2 tabular-nums">{g.degree_in_sign}</td>
               <td className="px-3 py-2">{g.house}</td>
               <td className="px-3 py-2">
-                {g.nakshatra.name} <span className="text-[#9c8f6f]">p{g.nakshatra.pada}</span>
+                {g.nakshatra.name} <span className="text-[var(--ink-muted)]">p{g.nakshatra.pada}</span>
               </td>
               <td className={`px-3 py-2 ${DIGNITY_COLOR[g.dignity] || ""}`}>
                 {g.dignity.replace("_", " ")}
@@ -61,13 +61,13 @@ export function DashaTimeline({ chart }: { chart: ChartV1 }) {
   return (
     <div className="space-y-3">
       {cur && (
-        <div className="rounded-lg border border-[#c9a227]/50 bg-[#c9a227]/10 p-3 text-sm">
-          <span className="font-semibold text-[#c9a227]">Now running: </span>
+        <div className="rounded-lg border border-[var(--gold)]/50 bg-[var(--gold)]/10 p-3 text-sm">
+          <span className="font-semibold text-[var(--gold)]">Now running: </span>
           {cur.maha} mahadasha → {cur.antar} antardasha → {cur.pratyantar} pratyantar
-          <span className="text-[#9c8f6f]"> (antar ends {cur.antar_end.slice(0, 10)})</span>
+          <span className="text-[var(--ink-muted)]"> (antar ends {cur.antar_end.slice(0, 10)})</span>
         </div>
       )}
-      <div className="text-xs text-[#9c8f6f]">
+      <div className="text-xs text-[var(--ink-muted)]">
         Balance at birth: {chart.vimshottari.balance_at_birth_years.toFixed(2)} years of{" "}
         {chart.vimshottari.mahadashas[0].lord} · Moon in {chart.vimshottari.moon_nakshatra}
       </div>
@@ -75,21 +75,21 @@ export function DashaTimeline({ chart }: { chart: ChartV1 }) {
         {chart.vimshottari.mahadashas.map((m) => {
           const active = cur?.maha === m.lord;
           return (
-            <details key={m.lord + m.start} className="group rounded-lg border border-[#3d2f5c]/60">
+            <details key={m.lord + m.start} className="group rounded-lg border border-[var(--line-soft)]">
               <summary
                 className={`flex cursor-pointer items-center justify-between px-3 py-2 text-sm ${
-                  active ? "bg-[#c9a227]/10 text-[#c9a227]" : ""
+                  active ? "bg-[var(--gold)]/10 text-[var(--gold)]" : ""
                 }`}
               >
                 <span className="font-medium capitalize">{m.lord} · {m.years}y</span>
-                <span className="tabular-nums text-[#9c8f6f]">
+                <span className="tabular-nums text-[var(--ink-muted)]">
                   {m.start.slice(0, 10)} → {m.end.slice(0, 10)}
                 </span>
               </summary>
-              <div className="border-t border-[#3d2f5c]/40 px-3 py-2">
+              <div className="border-t border-[var(--line-soft)] px-3 py-2">
                 {m.antardashas?.map((a) => (
                   <div key={a.lord + a.start}
-                       className="flex justify-between py-0.5 text-xs text-[#cbbfa4]">
+                       className="flex justify-between py-0.5 text-xs text-[var(--ink-soft)]">
                     <span className="capitalize">{m.lord}–{a.lord}</span>
                     <span className="tabular-nums">{a.start.slice(0, 10)} → {a.end.slice(0, 10)}</span>
                   </div>
@@ -116,22 +116,22 @@ export function PanchangaYogas({ chart }: { chart: ChartV1 }) {
           ["Karana", p.karana.name],
           ["Moon sign", chart.moon_sign_name],
         ].map(([k, v]) => (
-          <div key={k} className="rounded-lg border border-[#3d2f5c]/60 p-3">
-            <div className="text-xs text-[#9c8f6f]">{k}</div>
+          <div key={k} className="rounded-lg border border-[var(--line-soft)] p-3">
+            <div className="text-xs text-[var(--ink-muted)]">{k}</div>
             <div className="font-medium">{v}</div>
           </div>
         ))}
       </div>
       <div>
-        <h3 className="mb-2 text-sm font-semibold text-[#c9a227]">Yogas present</h3>
+        <h3 className="mb-2 text-sm font-semibold text-[var(--gold)]">Yogas present</h3>
         {chart.yogas.length === 0 && (
-          <div className="text-sm text-[#9c8f6f]">No major classical yogas detected.</div>
+          <div className="text-sm text-[var(--ink-muted)]">No major classical yogas detected.</div>
         )}
         <div className="space-y-1">
           {chart.yogas.map((y) => (
-            <div key={y.key} className="rounded-lg border border-[#3d2f5c]/60 p-2 text-sm">
+            <div key={y.key} className="rounded-lg border border-[var(--line-soft)] p-2 text-sm">
               <span className="font-medium">{y.name}</span>
-              <span className="ml-2 text-xs text-[#9c8f6f]">{y.factors.join("; ")}</span>
+              <span className="ml-2 text-xs text-[var(--ink-muted)]">{y.factors.join("; ")}</span>
             </div>
           ))}
         </div>

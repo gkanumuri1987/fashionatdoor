@@ -55,10 +55,10 @@ export default function AuthBar() {
   if (userEmail) {
     return (
       <div className="flex items-center gap-3 text-sm">
-        <span className="text-[#9c8f6f]">{userEmail}</span>
+        <span className="text-[var(--ink-muted)]">{userEmail}</span>
         <button
           onClick={() => sb.auth.signOut()}
-          className="rounded-md border border-[#3d2f5c] px-3 py-1 hover:bg-[#2a1d45]"
+          className="rounded-md border border-[var(--line)] px-3 py-1 hover:bg-[var(--surface-raised)]"
         >{t("sign_out")}</button>
       </div>
     );
@@ -68,31 +68,31 @@ export default function AuthBar() {
     <div className="relative text-sm">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="rounded-md bg-[#c9a227] px-4 py-1.5 text-[#140b26] font-semibold hover:bg-[#b08e1f]"
+        className="rounded-md bg-[var(--gold)] px-4 py-1.5 text-[var(--on-gold)] font-semibold hover:bg-[var(--gold-bright)]"
       >{t("sign_in")}</button>
       {open && (
-        <div className="absolute right-0 z-20 mt-2 w-72 rounded-lg border border-[#3d2f5c] bg-[#1a1030] p-4 shadow-lg">
+        <div className="absolute right-0 z-20 mt-2 w-72 rounded-lg border border-[var(--line)] bg-[var(--surface-solid)] p-4 shadow-lg">
           <p className="mb-2 font-medium">{t("sign_in_email")}</p>
           <input
             type="email" value={email} placeholder="you@example.com"
             onChange={(e) => setEmail(e.target.value)}
-            className="mb-2 w-full rounded-md border border-[#3d2f5c] bg-[#140b26] px-3 py-1.5 text-[#e8e0cc]"
+            className="mb-2 w-full rounded-md border border-[var(--line)] bg-[var(--surface-deep)] px-3 py-1.5 text-[var(--ink)]"
             disabled={otpSent}
           />
           {otpSent && (
             <input
               value={otp} placeholder={t("code_ph")}
               onChange={(e) => setOtp(e.target.value)}
-              className="mb-2 w-full rounded-md border border-[#3d2f5c] bg-[#140b26] px-3 py-1.5 text-[#e8e0cc]"
+              className="mb-2 w-full rounded-md border border-[var(--line)] bg-[var(--surface-deep)] px-3 py-1.5 text-[var(--ink)]"
             />
           )}
           <button
             onClick={otpSent ? verifyOtp : sendOtp} disabled={busy}
-            className="w-full rounded-md bg-[#c9a227] py-1.5 text-[#140b26] font-semibold hover:bg-[#b08e1f] disabled:opacity-50"
+            className="w-full rounded-md bg-[var(--gold)] py-1.5 text-[var(--on-gold)] font-semibold hover:bg-[var(--gold-bright)] disabled:opacity-50"
           >
             {busy ? "…" : otpSent ? t("verify_code") : t("send_code")}
           </button>
-          {msg && <p className="mt-2 text-xs text-[#9c8f6f]">{msg}</p>}
+          {msg && <p className="mt-2 text-xs text-[var(--ink-muted)]">{msg}</p>}
         </div>
       )}
     </div>

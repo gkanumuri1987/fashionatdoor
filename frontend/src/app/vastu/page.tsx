@@ -24,8 +24,8 @@ interface VastuResult {
 }
 
 const VERDICT_COLOR: Record<string, string> = {
-  excellent: "text-emerald-400", good: "text-emerald-300", neutral: "text-[#cbbfa4]",
-  avoid: "text-orange-400", grave: "text-red-400", unknown: "text-[#6f6350]",
+  excellent: "text-emerald-400", good: "text-emerald-300", neutral: "text-[var(--ink-soft)]",
+  avoid: "text-orange-400", grave: "text-red-400", unknown: "text-[var(--ink-faint)]",
 };
 
 export default function VastuPage() {
@@ -60,15 +60,16 @@ export default function VastuPage() {
     <main className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-2 flex justify-end"><LangSwitcher /></div>
       <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-[#c9a227]">{t("vastu_title")}</h1>
-        <p className="mt-1 text-sm text-[#9c8f6f]">{t("vastu_sub")}</p>
-        <Link href="/" className="mt-2 inline-block text-xs text-[#c9a227] underline">
+        <h1 className="heading-display text-4xl">{t("vastu_title")}</h1>
+        <div className="ornament mt-2 text-xs">✦</div>
+        <p className="mt-1 text-sm text-[var(--ink-muted)]">{t("vastu_sub")}</p>
+        <Link href="/" className="mt-2 inline-block text-xs text-[var(--gold)] underline">
           {t("back_to_chart")}
         </Link>
       </header>
 
-      <section className="space-y-4 rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5">
-        <div className="rounded-xl border border-dashed border-[#3d2f5c] p-5 text-center">
+      <section className="card space-y-4 p-6">
+        <div className="rounded-xl border border-dashed border-[var(--line)] p-5 text-center">
           <input id="plan-input" type="file" accept="image/*" className="hidden"
                  onChange={async (e) => {
                    const raw = e.target.files?.[0] ?? null;
@@ -77,26 +78,26 @@ export default function VastuPage() {
                    setPreview(f ? URL.createObjectURL(f) : "");
                  }} />
           <label htmlFor="plan-input"
-                 className="inline-block cursor-pointer rounded-lg bg-[#c9a227] px-5 py-2 font-semibold text-[#140b26]">
+                 className="btn-gold cursor-pointer">
             {t("vastu_pick")}
           </label>
           {preview && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={preview} alt="floor plan preview"
-                 className="mx-auto mt-4 max-h-64 rounded-lg border border-[#3d2f5c]" />
+                 className="mx-auto mt-4 max-h-64 rounded-lg border border-[var(--line)]" />
           )}
         </div>
 
         <label className="block text-sm">
-          <span className="text-[#9c8f6f]">{t("vastu_top_dir")}</span>
+          <span className="text-[var(--ink-muted)]">{t("vastu_top_dir")}</span>
           <select value={topDir} onChange={(e) => setTopDir(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2">
+                  className="input mt-1">
             {DIRECTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
           </select>
         </label>
 
         <button onClick={analyze} disabled={!file || busy}
-                className="w-full rounded-lg bg-[#c9a227] px-5 py-3 font-semibold text-[#140b26] disabled:opacity-40">
+                className="btn-gold w-full py-3">
           {busy ? t("vastu_busy") : t("vastu_analyze")}
         </button>
         {error && <p className="text-sm text-red-400">{error}</p>}
@@ -109,29 +110,29 @@ export default function VastuPage() {
 
       {result?.usable && (
         <section className="mt-6 space-y-4">
-          <div className="rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5 text-center">
-            <div className="text-3xl font-bold text-[#c9a227]">
-              {result.score} <span className="text-lg text-[#9c8f6f]">/ {result.score_out_of}</span>
+          <div className="card p-5 text-center">
+            <div className="text-3xl font-bold text-[var(--gold)]">
+              {result.score} <span className="text-lg text-[var(--ink-muted)]">/ {result.score_out_of}</span>
             </div>
-            <div className="mt-1 text-xs text-[#9c8f6f]">{t("vastu_score")}</div>
+            <div className="mt-1 text-xs text-[var(--ink-muted)]">{t("vastu_score")}</div>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-[#3d2f5c]">
+          <div className="overflow-x-auto rounded-lg border border-[var(--line)]">
             <table className="w-full text-sm">
-              <thead><tr className="bg-[#241640] text-left text-[#c9a227]">
+              <thead><tr className="bg-[var(--surface-raised)] text-left text-[var(--gold)]">
                 <th className="px-3 py-2">{t("vastu_room")}</th>
                 <th className="px-3 py-2">{t("vastu_zone")}</th>
                 <th className="px-3 py-2">{t("vastu_verdict")}</th>
               </tr></thead>
               <tbody>
                 {result.findings?.map((f, i) => (
-                  <tr key={i} className="border-t border-[#3d2f5c]/60 align-top">
-                    <td className="px-3 py-2">{f.label} <span className="text-xs text-[#6f6350]">({f.type})</span></td>
+                  <tr key={i} className="border-t border-[var(--line-soft)] align-top">
+                    <td className="px-3 py-2">{f.label} <span className="text-xs text-[var(--ink-faint)]">({f.type})</span></td>
                     <td className="px-3 py-2">{f.zone}</td>
                     <td className={`px-3 py-2 ${VERDICT_COLOR[f.verdict] ?? ""}`}>
                       {f.verdict}
                       {f.soft_remedy && (
-                        <div className="mt-1 text-xs text-[#9c8f6f]">{f.soft_remedy}</div>
+                        <div className="mt-1 text-xs text-[var(--ink-muted)]">{f.soft_remedy}</div>
                       )}
                     </td>
                   </tr>
@@ -148,16 +149,16 @@ export default function VastuPage() {
             </p>
           )}
           {result.narrative && (
-            <div className="whitespace-pre-wrap rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5 text-sm leading-relaxed">
+            <div className="card whitespace-pre-wrap p-5 text-sm leading-relaxed">
               {result.narrative}
             </div>
           )}
-          <p className="text-center text-xs text-[#9c8f6f]">{t("vastu_not_stored")}</p>
-          <p className="text-xs text-[#9c8f6f]">{result.disclaimer}</p>
+          <p className="text-center text-xs text-[var(--ink-muted)]">{t("vastu_not_stored")}</p>
+          <p className="text-xs text-[var(--ink-muted)]">{result.disclaimer}</p>
         </section>
       )}
 
-      <footer className="mt-10 text-center text-xs text-[#9c8f6f]">{t("disclaimer")}</footer>
+      <footer className="mt-10 text-center text-xs text-[var(--ink-muted)]">{t("disclaimer")}</footer>
     </main>
   );
 }

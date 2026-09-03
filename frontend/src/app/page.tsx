@@ -157,24 +157,25 @@ export default function Home() {
         <AuthBar />
       </div>
       <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-[#c9a227]">{t("app_title")}</h1>
-        <p className="mt-1 text-sm text-[#9c8f6f]">
+        <h1 className="heading-display text-5xl">{t("app_title")}</h1>
+        <div className="ornament mt-2 text-xs">✦</div>
+        <p className="mt-1 text-sm text-[var(--ink-muted)]">
 {t("tagline")}</p>
         <nav className="mt-3 flex items-center justify-center gap-4 text-sm">
-          <span className="font-semibold text-[#c9a227]">{t("nav_kundli")}</span>
-          <Link href="/match" className="text-[#cbbfa4] hover:text-[#c9a227]">{t("nav_milan")}</Link>
-          <Link href="/vastu" className="text-[#cbbfa4] hover:text-[#c9a227]">{t("nav_vastu")}</Link>
-          <button onClick={mintPalmLink} className="text-[#cbbfa4] hover:text-[#c9a227]">
+          <span className="font-semibold text-[var(--gold)]">{t("nav_kundli")}</span>
+          <Link href="/match" className="text-[var(--ink-soft)] hover:text-[var(--gold)]">{t("nav_milan")}</Link>
+          <Link href="/vastu" className="text-[var(--ink-soft)] hover:text-[var(--gold)]">{t("nav_vastu")}</Link>
+          <button onClick={mintPalmLink} className="text-[var(--ink-soft)] hover:text-[var(--gold)]">
 {t("nav_palm")}</button>
         </nav>
         {palmLink && (
-          <div className="mx-auto mt-3 max-w-xl rounded-lg border border-[#3d2f5c] bg-[#1a1030]/60 p-3 text-xs">
-            <span className="text-[#9c8f6f]">{t("share_link")} </span>
-            <code className="break-all text-[#c9a227]">{palmLink}</code>
+          <div className="card mx-auto mt-3 max-w-xl p-3 text-xs">
+            <span className="text-[var(--ink-muted)]">{t("share_link")} </span>
+            <code className="break-all text-[var(--gold)]">{palmLink}</code>
             <div className="mt-2 flex flex-wrap justify-center gap-2">
               <button
                 onClick={async () => setPalmCopied(await copyText(palmLink))}
-                className="rounded-md bg-[#c9a227] px-3 py-1 font-semibold text-[#140b26] hover:bg-[#dcb63a]"
+                className="rounded-md bg-[var(--gold)] px-3 py-1 font-semibold text-[var(--on-gold)] hover:bg-[var(--gold-bright)]"
               >
                 {palmCopied ? t("copied") : t("copy")}
               </button>
@@ -188,7 +189,7 @@ export default function Home() {
               {typeof navigator !== "undefined" && "share" in navigator && (
                 <button
                   onClick={() => navigator.share({ text: t("palm_share_msg"), url: palmLink }).catch(() => {})}
-                  className="rounded-md border border-[#3d2f5c] px-3 py-1 text-[#cbbfa4] hover:bg-[#2a1d45]"
+                  className="rounded-md border border-[var(--line)] px-3 py-1 text-[var(--ink-soft)] hover:bg-[var(--surface-raised)]"
                 >
                   {t("share_native")}
                 </button>
@@ -199,38 +200,38 @@ export default function Home() {
         )}
       </header>
 
-      <section className="rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5">
+      <section className="card p-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block text-sm">
-            <span className="text-[#9c8f6f]">{t("dob")}</span>
+            <span className="text-[var(--ink-muted)]">{t("dob")}</span>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-                   className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2" />
+                   className="input mt-1" />
           </label>
           <label className="block text-sm">
-            <span className="text-[#9c8f6f]">{t("tob")}</span>
+            <span className="text-[var(--ink-muted)]">{t("tob")}</span>
             <input type="time" value={time} onChange={(e) => setTime(e.target.value)}
-                   className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2" />
+                   className="input mt-1" />
             <select value={timeAccuracy} onChange={(e) => setTimeAccuracy(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-2 py-1 text-xs">
+                    className="input mt-1 px-2 py-1 text-xs">
               <option value="exact">{t("time_exact")}</option>
               <option value="approximate">{t("time_approx")}</option>
               <option value="unknown">{t("time_unknown")}</option>
             </select>
           </label>
           <label className="relative block text-sm">
-            <span className="text-[#9c8f6f]">{t("pob")}</span>
+            <span className="text-[var(--ink-muted)]">{t("pob")}</span>
             <input
               value={placeQuery}
               onChange={(e) => { setPlaceQuery(e.target.value); setPlace(null); }}
               placeholder={t("place_ph")}
-              className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2"
+              className="input mt-1"
             />
             {places.length > 0 && (
-              <ul className="absolute z-10 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-[#3d2f5c] bg-[#241640] text-xs shadow-xl">
+              <ul className="absolute z-10 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-[var(--line)] bg-[var(--surface-raised)] text-xs shadow-xl">
                 {places.map((p) => (
                   <li key={p.name}>
                     <button
-                      className="w-full px-3 py-2 text-left hover:bg-[#c9a227]/10"
+                      className="w-full px-3 py-2 text-left hover:bg-[var(--gold)]/10"
                       onClick={() => { setPlace(p); setPlaceQuery(p.name); setPlaces([]); }}
                     >
                       {p.name}
@@ -241,9 +242,9 @@ export default function Home() {
             )}
           </label>
           <label className="block text-sm">
-            <span className="text-[#9c8f6f]">{t("ayanamsa")}</span>
+            <span className="text-[var(--ink-muted)]">{t("ayanamsa")}</span>
             <select value={ayanamsa} onChange={(e) => setAyanamsa(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2">
+                    className="input mt-1">
               <option value="lahiri">Lahiri (Chitrapaksha)</option>
               <option value="raman">Raman</option>
               <option value="kp">KP (Krishnamurti)</option>
@@ -257,7 +258,7 @@ export default function Home() {
           <button
             onClick={generate}
             disabled={loading}
-            className="rounded-lg bg-[#c9a227] px-5 py-2 font-semibold text-[#140b26] hover:bg-[#dcb63a] disabled:opacity-50"
+            className="btn-gold"
           >
             {loading ? t("computing") : t("generate")}
           </button>
@@ -284,16 +285,16 @@ export default function Home() {
       {chart && (
         <section className="mt-8">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm text-[#9c8f6f]">
-              {t("lagna")} <span className="text-[#ede6d6]">{chart.lagna.sign_name} {chart.lagna.degree_in_sign}</span>
-              {" · "}{t("moon")} <span className="text-[#ede6d6]">{chart.moon_sign_name}</span>
+            <div className="text-sm text-[var(--ink-muted)]">
+              {t("lagna")} <span className="text-[var(--ink)]">{chart.lagna.sign_name} {chart.lagna.degree_in_sign}</span>
+              {" · "}{t("moon")} <span className="text-[var(--ink)]">{chart.moon_sign_name}</span>
               {" · "}{chart.input.tz} (UTC{chart.input.utc_offset_hours >= 0 ? "+" : ""}{chart.input.utc_offset_hours})
               {" · "}{t("ayanamsa")} {chart.ayanamsa_value.toFixed(4)}°
             </div>
-            <nav className="flex gap-1 rounded-lg border border-[#3d2f5c] p-1 text-sm">
+            <nav className="flex gap-1 rounded-lg border border-[var(--line)] p-1 text-sm">
               {TABS.map((tb) => (
                 <button key={tb} onClick={() => setTab(tb)}
-                        className={`rounded-md px-3 py-1 ${tab === tb ? "bg-[#c9a227] font-semibold text-[#140b26]" : "text-[#cbbfa4]"}`}>
+                        className={`pill ${tab === tb ? "pill-active" : ""}`}>
                   {t(`tab_${tb.toLowerCase()}`)}
                 </button>
               ))}
@@ -305,12 +306,12 @@ export default function Home() {
               <div className="mb-3 flex gap-1 text-xs">
                 {(["south", "north"] as const).map((s) => (
                   <button key={s} onClick={() => setStyle(s)}
-                          className={`rounded-md border border-[#3d2f5c] px-3 py-1 ${style === s ? "bg-[#3d2f5c]" : ""}`}>
+                          className={`rounded-md border border-[var(--line)] px-3 py-1 ${style === s ? "bg-[var(--surface-raised)]" : ""}`}>
                     {t(`${s}_indian`)}
                   </button>
                 ))}
               </div>
-              <div className="flex justify-center rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-6">
+              <div className="card flex justify-center p-6">
                 {style === "south" ? <SouthChart chart={chart} /> : <NorthChart chart={chart} />}
               </div>
             </div>
@@ -319,10 +320,10 @@ export default function Home() {
           {tab === "Dasha" && (
             <div>
               <div className="mb-3 flex items-center gap-2 text-xs">
-                <span className="text-[#9c8f6f]">{t("dasha_system")}:</span>
+                <span className="text-[var(--ink-muted)]">{t("dasha_system")}:</span>
                 {(["vimshottari", "yogini", "ashtottari", "kalachakra", "narayana"] as const).map((sys) => (
                   <button key={sys} onClick={() => pickDashaSystem(sys)}
-                          className={`rounded-md border border-[#3d2f5c] px-3 py-1 capitalize ${dashaSystem === sys ? "bg-[#3d2f5c]" : ""}`}>
+                          className={`rounded-md border border-[var(--line)] px-3 py-1 capitalize ${dashaSystem === sys ? "bg-[var(--surface-raised)]" : ""}`}>
                     {sys}
                   </button>
                 ))}
@@ -330,25 +331,25 @@ export default function Home() {
               {dashaSystem === "vimshottari" ? (
                 <div>
                   {page?.timeline?.current_sentence && (
-                    <p className="mb-3 rounded-lg border border-[#c9a227]/40 bg-[#c9a227]/10 px-3 py-2 text-sm text-[#e8d9a0]">
+                    <p className="mb-3 rounded-lg border border-[var(--line-gold)] bg-[var(--gold)]/10 px-3 py-2 text-sm text-[var(--gold-bright)]">
                       📍 {page.timeline.current_sentence}
                     </p>
                   )}
                   <DashaTimeline chart={chart} />
                 </div>
               ) : dashaBusy ? (
-                <p className="text-sm text-[#9c8f6f]">{t("loading_dasha")}</p>
+                <p className="text-sm text-[var(--ink-muted)]">{t("loading_dasha")}</p>
               ) : altDashas[dashaSystem] ? (
-                <div className="overflow-x-auto rounded-lg border border-[#3d2f5c]">
+                <div className="overflow-x-auto rounded-lg border border-[var(--line)]">
                   <table className="w-full text-sm">
-                    <thead><tr className="bg-[#241640] text-left text-[#c9a227]">
+                    <thead><tr className="bg-[var(--surface-raised)] text-left text-[var(--gold)]">
                       <th className="px-3 py-2">{dashaSystem === "yogini" ? "Yogini" : (dashaSystem === "kalachakra" || dashaSystem === "narayana") ? "Rashi" : "Lord"}</th>
                       <th className="px-3 py-2">Years</th>
                       <th className="px-3 py-2">Start</th><th className="px-3 py-2">End</th>
                     </tr></thead>
                     <tbody>
                       {altDashas[dashaSystem].map((m, i) => (
-                        <tr key={i} className="border-t border-[#3d2f5c]/60">
+                        <tr key={i} className="border-t border-[var(--line-soft)]">
                           <td className="px-3 py-2 capitalize">{m.yogini ? `${m.yogini} (${m.lord})` : (m.sign_name ?? m.lord)}</td>
                           <td className="px-3 py-2">{m.years}</td>
                           <td className="px-3 py-2">{m.start.slice(0, 10)}</td>
@@ -359,7 +360,7 @@ export default function Home() {
                   </table>
                 </div>
               ) : (
-                <p className="text-sm text-[#9c8f6f]">{t("generic_error")}</p>
+                <p className="text-sm text-[var(--ink-muted)]">{t("generic_error")}</p>
               )}
             </div>
           )}
@@ -367,30 +368,30 @@ export default function Home() {
           {tab === "Advanced" && (
             <div className="space-y-5 text-sm">
               {chart.jaimini && (
-                <div className="rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5">
-                  <h3 className="mb-3 font-semibold text-[#c9a227]">{t("jaimini_title")}</h3>
+                <div className="card p-5">
+                  <h3 className="heading-section mb-3 text-lg">{t("jaimini_title")}</h3>
                   <div className="mb-3 grid gap-2 sm:grid-cols-2">
-                    <div className="rounded-lg border border-[#3d2f5c] p-3">
-                      <div className="text-xs text-[#9c8f6f]">{t("ishta_devata")}</div>
-                      <div className="mt-1 text-[#ede6d6]">
+                    <div className="rounded-lg border border-[var(--line)] p-3">
+                      <div className="text-xs text-[var(--ink-muted)]">{t("ishta_devata")}</div>
+                      <div className="mt-1 text-[var(--ink)]">
                         {chart.jaimini.ishta_devata?.deity}
-                        <span className="ml-1 text-xs text-[#9c8f6f]">
+                        <span className="ml-1 text-xs text-[var(--ink-muted)]">
                           (via {chart.jaimini.ishta_devata?.indicator_graha})
                         </span>
                       </div>
                     </div>
-                    <div className="rounded-lg border border-[#3d2f5c] p-3">
-                      <div className="text-xs text-[#9c8f6f]">{t("arudha_lagna")} / {t("upapada")}</div>
-                      <div className="mt-1 text-[#ede6d6]">
+                    <div className="rounded-lg border border-[var(--line)] p-3">
+                      <div className="text-xs text-[var(--ink-muted)]">{t("arudha_lagna")} / {t("upapada")}</div>
+                      <div className="mt-1 text-[var(--ink)]">
                         AL: {SIGN_NAMES[chart.jaimini.arudha_padas?.AL ?? 0]} · UL: {SIGN_NAMES[chart.jaimini.arudha_padas?.UL ?? 0]}
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-[#9c8f6f]">{t("chara_karakas")}</div>
+                  <div className="text-xs text-[var(--ink-muted)]">{t("chara_karakas")}</div>
                   <div className="mt-1 flex flex-wrap gap-2">
                     {Object.entries(chart.jaimini.chara_karakas?.karakas ?? {}).map(([role, k]) => (
-                      <span key={role} className="rounded-full border border-[#3d2f5c] px-2 py-0.5 text-xs">
-                        <b className="text-[#c9a227]">{role}</b>{" "}
+                      <span key={role} className="rounded-full border border-[var(--line)] px-2 py-0.5 text-xs">
+                        <b className="text-[var(--gold)]">{role}</b>{" "}
                         <span className="capitalize">{(k as {graha: string}).graha}</span>
                       </span>
                     ))}
@@ -398,11 +399,11 @@ export default function Home() {
                 </div>
               )}
               {chart.kp && (
-                <div className="rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5">
-                  <h3 className="mb-3 font-semibold text-[#c9a227]">{t("kp_title")}</h3>
+                <div className="card p-5">
+                  <h3 className="heading-section mb-3 text-lg">{t("kp_title")}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
-                      <thead><tr className="text-left text-[#c9a227]">
+                      <thead><tr className="text-left text-[var(--gold)]">
                         <th className="px-2 py-1">Graha</th><th className="px-2 py-1">Star lord</th>
                         <th className="px-2 py-1">Sub</th><th className="px-2 py-1">Sub-sub</th>
                       </tr></thead>
@@ -410,7 +411,7 @@ export default function Home() {
                         {Object.entries(chart.kp.planets ?? {}).map(([g, e]) => {
                           const kp = e as {star_lord: string; sub_lord: string; sub_sub_lord: string};
                           return (
-                            <tr key={g} className="border-t border-[#3d2f5c]/40 capitalize">
+                            <tr key={g} className="border-t border-[var(--line-soft)] capitalize">
                               <td className="px-2 py-1">{g}</td><td className="px-2 py-1">{kp.star_lord}</td>
                               <td className="px-2 py-1">{kp.sub_lord}</td><td className="px-2 py-1">{kp.sub_sub_lord}</td>
                             </tr>
@@ -422,21 +423,21 @@ export default function Home() {
                 </div>
               )}
               {chart.bhava_chalita && (
-                <div className="rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5">
-                  <h3 className="mb-3 font-semibold text-[#c9a227]">{t("bhava_chalita_title")}</h3>
+                <div className="card p-5">
+                  <h3 className="heading-section mb-3 text-lg">{t("bhava_chalita_title")}</h3>
                   <div className="flex flex-wrap gap-2 text-xs">
                     {Object.entries(chart.bhava_chalita.grahas ?? {}).map(([g, m]) => {
                       const mem = m as {house: number; in_sandhi: boolean};
                       const rasiHouse = chart.grahas[g]?.house;
                       const moved = rasiHouse !== undefined && rasiHouse !== mem.house;
                       return (
-                        <span key={g} className={`rounded-full border px-2 py-0.5 capitalize ${moved ? "border-[#c9a227] text-[#c9a227]" : "border-[#3d2f5c]"}`}>
+                        <span key={g} className={`rounded-full border px-2 py-0.5 capitalize ${moved ? "border-[var(--gold)] text-[var(--gold)]" : "border-[var(--line)]"}`}>
                           {g}: {mem.house}{moved ? ` (rasi ${rasiHouse})` : ""}{mem.in_sandhi ? " ⚠" : ""}
                         </span>
                       );
                     })}
                   </div>
-                  <p className="mt-2 text-xs text-[#9c8f6f]">⚠ = {t("in_sandhi")}</p>
+                  <p className="mt-2 text-xs text-[var(--ink-muted)]">⚠ = {t("in_sandhi")}</p>
                 </div>
               )}
             </div>
@@ -451,7 +452,7 @@ export default function Home() {
                             className={`rounded-full border px-3 py-1 text-xs capitalize ${
                               v.verdict === "supportive" ? "border-emerald-500/50 text-emerald-300" :
                               v.verdict === "challenging" ? "border-orange-500/50 text-orange-300" :
-                              "border-[#3d2f5c] text-[#cbbfa4]"}`}>
+                              "border-[var(--line)] text-[var(--ink-soft)]"}`}>
                         {t(`sec_${topic}`) !== `sec_${topic}` ? t(`sec_${topic}`) : topic}: {t(`verdict_${v.verdict}`)}
                       </span>
                     ))}
@@ -460,15 +461,15 @@ export default function Home() {
                     <p key={i} className="text-xs text-orange-300/90">⚠ {n}</p>
                   ))}
                   <button onClick={() => setShowWhy((w) => !w)}
-                          className="text-xs text-[#c9a227] underline">
+                          className="text-xs text-[var(--gold)] underline">
                     {t("why_receipts")}
                   </button>
                   {showWhy && (
-                    <div className="max-h-72 space-y-2 overflow-y-auto rounded-lg border border-[#3d2f5c] bg-[#140b26] p-3 text-xs">
+                    <div className="max-h-72 space-y-2 overflow-y-auto rounded-lg border border-[var(--line)] bg-[var(--surface-deep)] p-3 text-xs">
                       {(page.claims ?? []).map((c) => (
-                        <div key={c.id} className="border-b border-[#2a1d45] pb-1">
-                          <div className="text-[#ede6d6]">{c.claim}</div>
-                          <div className="text-[#9c8f6f]">
+                        <div key={c.id} className="border-b border-[var(--line-soft)] pb-1">
+                          <div className="text-[var(--ink)]">{c.claim}</div>
+                          <div className="text-[var(--ink-muted)]">
                             {c.chart_condition} · {c.source} · <b>{c.strength}</b>
                             {c.cancellations.length > 0 && (
                               <span className="text-emerald-400"> · cancelled: {c.cancellations.join("; ")}</span>
@@ -485,27 +486,27 @@ export default function Home() {
                   <button key={key} onClick={() => fetchReading(key)}
                           className={`rounded-full border px-3 py-1 text-xs ${
                             readingSection === key
-                              ? "border-[#c9a227] bg-[#c9a227]/15 text-[#c9a227]"
-                              : "border-[#3d2f5c] text-[#cbbfa4]"}`}>
+                              ? "border-[var(--gold)] bg-[var(--gold)]/15 text-[var(--gold)]"
+                              : "border-[var(--line)] text-[var(--ink-soft)]"}`}>
                     {t(`sec_${key}`)}
                   </button>
                 ))}
               </div>
-              {readingBusy && <p className="text-sm text-[#9c8f6f]">{t("consulting")}</p>}
+              {readingBusy && <p className="text-sm text-[var(--ink-muted)]">{t("consulting")}</p>}
               {readingError && <p className="text-sm text-red-400">{readingError}</p>}
               {readings[`${readingSection}:${lang}`] ? (
-                <div className="whitespace-pre-wrap rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5 text-sm leading-relaxed">
+                <div className="card whitespace-pre-wrap p-5 text-sm leading-relaxed">
                   {readings[`${readingSection}:${lang}`]}
                 </div>
               ) : (!readingBusy && !readingError && (
-                <p className="text-sm text-[#9c8f6f]">{t("reading_hint")}</p>
+                <p className="text-sm text-[var(--ink-muted)]">{t("reading_hint")}</p>
               ))}
             </div>
           )}
         </section>
       )}
 
-      <footer className="mt-12 text-center text-xs text-[#9c8f6f]">{t("disclaimer")}</footer>
+      <footer className="mt-12 text-center text-xs text-[var(--ink-muted)]">{t("disclaimer")}</footer>
     </main>
   );
 }

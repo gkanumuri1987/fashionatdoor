@@ -198,10 +198,10 @@ export function useLang(): LangCtx {
 export function LangSwitcher() {
   const { lang, setLang } = useLang();
   return (
-    <div className="flex gap-1 rounded-lg border border-[#3d2f5c] p-0.5 text-xs">
+    <div className="flex gap-1 rounded-lg border border-[var(--line)] p-0.5 text-xs">
       {(Object.keys(LANG_LABELS) as Lang[]).map((l) => (
         <button key={l} onClick={() => setLang(l)}
-                className={`rounded-md px-2 py-1 ${lang === l ? "bg-[#c9a227] font-semibold text-[#140b26]" : "text-[#cbbfa4]"}`}>
+                className={`rounded-md px-2 py-1 ${lang === l ? "bg-[var(--gold)] font-semibold text-[var(--on-gold)]" : "text-[var(--ink-soft)]"}`}>
           {LANG_LABELS[l]}
         </button>
       ))}

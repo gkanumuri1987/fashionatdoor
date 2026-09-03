@@ -1,13 +1,219 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════
+   Jyotish AI design system — "night sky & gold leaf"
+   Typography: Fraunces (display serif) + Inter (body), with Noto
+   companions for Telugu/Devanagari, all self-hosted via next/font.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@theme {
+  --font-sans: var(--font-inter), var(--font-noto-telugu), var(--font-noto-deva),
+               ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), var(--font-noto-telugu),
+                  var(--font-noto-deva), ui-serif, Georgia, serif;
+}
+
 :root {
-  --gold: #c9a227;
-  --deep: #1a1030;
-  --maroon: #6b1d2c;
+  /* ink (text) scale */
+  --ink: #f4eddc;
+  --ink-soft: #cfc5ae;
+  --ink-muted: #9a8f78;
+  --ink-faint: #6d6353;
+  /* gold ramp */
+  --gold: #d9ab2e;
+  --gold-bright: #f0c64a;
+  --gold-deep: #a87f18;
+  --on-gold: #1c1206;
+  /* surfaces */
+  --bg: #0a0714;
+  --surface: rgba(26, 18, 44, 0.72);
+  --surface-solid: #171028;
+  --surface-deep: #100a1e;
+  --surface-raised: #221739;
+  /* lines */
+  --line: rgba(150, 126, 220, 0.22);
+  --line-soft: rgba(150, 126, 220, 0.12);
+  --line-gold: rgba(217, 171, 46, 0.35);
+  /* semantic */
+  --good: #4ade80;
+  --warn: #fb923c;
+  --bad: #f87171;
+  --radius: 0.9rem;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: radial-gradient(ellipse at top, #241640 0%, #140b26 60%, #0d0718 100%);
-  color: #ede6d6;
+  background:
+    /* faint constellation */
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(244, 237, 220, 0.35) 50%, transparent 51%),
+    radial-gradient(1px 1px at 78% 9%, rgba(244, 237, 220, 0.30) 50%, transparent 51%),
+    radial-gradient(1px 1px at 33% 64%, rgba(244, 237, 220, 0.18) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 89% 43%, rgba(244, 237, 220, 0.22) 50%, transparent 51%),
+    radial-gradient(1px 1px at 55% 28%, rgba(244, 237, 220, 0.25) 50%, transparent 51%),
+    radial-gradient(1px 1px at 8% 86%, rgba(244, 237, 220, 0.16) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 67% 79%, rgba(244, 237, 220, 0.20) 50%, transparent 51%),
+    /* dawn-gold halo behind the masthead */
+    radial-gradient(60rem 24rem at 50% -6rem, rgba(217, 171, 46, 0.14), transparent 60%),
+    /* deep indigo night */
+    radial-gradient(ellipse at top, #221739 0%, #140d26 55%, var(--bg) 100%);
+  background-attachment: fixed;
+  color: var(--ink);
   min-height: 100vh;
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04";
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(217, 171, 46, 0.32);
+  color: var(--ink);
+}
+
+/* Refined focus ring — keyboard users get gold, mouse users stay clean */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Slim, unobtrusive scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 126, 220, 0.3) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(150, 126, 220, 0.3);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-track { background: transparent; }
+
+@layer components {
+  /* ── Display headings — gold-leaf gradient over Fraunces ── */
+  .heading-display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    background: linear-gradient(160deg, #f4dc8a 0%, var(--gold) 45%, #b8860b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .heading-section {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--gold);
+  }
+
+  /* ── Cards — glass surface with a hairline top-light ── */
+  .card {
+    position: relative;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(244, 237, 220, 0.035), transparent 3.2rem),
+      var(--surface);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 1px 0 rgba(244, 237, 220, 0.05) inset,
+                0 12px 32px -18px rgba(0, 0, 0, 0.55);
+    transition: border-color 200ms ease;
+  }
+  .card:hover { border-color: rgba(150, 126, 220, 0.34); }
+
+  /* ── Buttons ── */
+  .btn-gold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.7rem;
+    padding: 0.6rem 1.35rem;
+    font-weight: 600;
+    color: var(--on-gold);
+    background: linear-gradient(180deg, var(--gold-bright), var(--gold) 55%, var(--gold-deep));
+    box-shadow: 0 1px 0 rgba(255, 235, 170, 0.55) inset,
+                0 8px 20px -8px rgba(217, 171, 46, 0.55);
+    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+  }
+  .btn-gold:hover:not(:disabled) {
+    filter: brightness(1.07);
+    transform: translateY(-1px);
+    box-shadow: 0 1px 0 rgba(255, 235, 170, 0.55) inset,
+                0 12px 26px -8px rgba(217, 171, 46, 0.6);
+  }
+  .btn-gold:active:not(:disabled) { transform: translateY(0); filter: brightness(0.97); }
+  .btn-gold:disabled { opacity: 0.42; cursor: not-allowed; }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.7rem;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+  }
+  .btn-ghost:hover { border-color: var(--line-gold); color: var(--gold); }
+
+  /* ── Inputs ── */
+  .input {
+    width: 100%;
+    border-radius: 0.7rem;
+    border: 1px solid var(--line);
+    background: var(--surface-deep);
+    padding: 0.6rem 0.85rem;
+    color: var(--ink);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .input::placeholder { color: var(--ink-faint); }
+  .input:focus {
+    outline: none;
+    border-color: var(--line-gold);
+    box-shadow: 0 0 0 3px rgba(217, 171, 46, 0.14);
+  }
+
+  /* ── Tab pills ── */
+  .pill {
+    border-radius: 0.55rem;
+    padding: 0.35rem 0.85rem;
+    color: var(--ink-soft);
+    transition: color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+  }
+  .pill:hover { color: var(--ink); }
+  .pill-active {
+    background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color: var(--on-gold);
+    font-weight: 600;
+    box-shadow: 0 4px 12px -6px rgba(217, 171, 46, 0.6);
+  }
+
+  /* ── Ornamental divider under the masthead ── */
+  .ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: var(--gold);
+    opacity: 0.75;
+  }
+  .ornament::before,
+  .ornament::after {
+    content: "";
+    height: 1px;
+    width: 4rem;
+    background: linear-gradient(90deg, transparent, var(--line-gold));
+  }
+  .ornament::after {
+    background: linear-gradient(90deg, var(--line-gold), transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }

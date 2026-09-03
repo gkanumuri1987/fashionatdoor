@@ -107,37 +107,37 @@ export default function SavedProfiles({
   }
 
   return (
-    <div className="mt-4 rounded-lg border border-[#3d2f5c] bg-[#1a1030] p-4">
-      <p className="mb-2 text-sm font-semibold text-[#cbbfa4]">{t("saved_profiles")}</p>
+    <div className="mt-4 rounded-lg border border-[var(--line)] bg-[var(--surface-solid)] p-4">
+      <p className="mb-2 text-sm font-semibold text-[var(--ink-soft)]">{t("saved_profiles")}</p>
       {draft && (
         <div className="mb-3 flex gap-2">
           <input
             value={saveName} placeholder={t("name_ph")}
             onChange={(e) => setSaveName(e.target.value)}
-            className="flex-1 rounded-md border border-[#3d2f5c] bg-[#140b26] px-3 py-1.5 text-sm text-[#e8e0cc]"
+            className="flex-1 rounded-md border border-[var(--line)] bg-[var(--surface-deep)] px-3 py-1.5 text-sm text-[var(--ink)]"
           />
           <button
             onClick={save} disabled={busy}
-            className="rounded-md bg-[#c9a227] px-3 py-1.5 text-sm text-[#140b26] font-semibold hover:bg-[#b08e1f] disabled:opacity-50"
+            className="rounded-md bg-[var(--gold)] px-3 py-1.5 text-sm text-[var(--on-gold)] font-semibold hover:bg-[var(--gold-bright)] disabled:opacity-50"
           >{t("save_current")}</button>
         </div>
       )}
-      {msg && <p className="mb-2 text-xs text-[#9c8f6f]">{msg}</p>}
+      {msg && <p className="mb-2 text-xs text-[var(--ink-muted)]">{msg}</p>}
       {profiles.length === 0 ? (
-        <p className="text-xs text-[#9c8f6f]">{t("no_profiles")}</p>
+        <p className="text-xs text-[var(--ink-muted)]">{t("no_profiles")}</p>
       ) : (
-        <ul className="divide-y divide-[#2a1d45]">
+        <ul className="divide-y divide-[var(--line-soft)]">
           {profiles.map((p) => (
             <li key={p.id} className="flex items-center justify-between py-1.5 text-sm">
-              <button onClick={() => onLoad(p)} className="text-left hover:text-[#c9a227]">
+              <button onClick={() => onLoad(p)} className="text-left hover:text-[var(--gold)]">
                 <span className="font-medium">{p.name}</span>{" "}
-                <span className="text-[#9c8f6f]">
+                <span className="text-[var(--ink-muted)]">
                   {p.birth_date} {p.birth_time.slice(0, 5)} · {p.place_name}
                 </span>
               </button>
               <button
                 onClick={() => remove(p.id)}
-                className="ml-3 text-xs text-[#6f6350] hover:text-red-600"
+                className="ml-3 text-xs text-[var(--ink-faint)] hover:text-red-600"
                 aria-label={`Delete ${p.name}`}
               >
                 ✕

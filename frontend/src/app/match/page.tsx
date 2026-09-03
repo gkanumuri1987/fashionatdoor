@@ -87,9 +87,10 @@ export default function MatchPage() {
     <main className="mx-auto max-w-5xl px-4 py-10">
       <header className="mb-8 text-center">
         <div className="mb-2 flex justify-end"><LangSwitcher /></div>
-        <h1 className="text-3xl font-bold text-[#c9a227]">{t("milan_title")}</h1>
-        <p className="mt-1 text-sm text-[#9c8f6f]">{t("milan_tagline")}</p>
-        <Link href="/" className="mt-2 inline-block text-xs text-[#c9a227] underline">{t("back_to_chart")}</Link>
+        <h1 className="heading-display text-4xl">{t("milan_title")}</h1>
+        <div className="ornament mt-2 text-xs">✦</div>
+        <p className="mt-1 text-sm text-[var(--ink-muted)]">{t("milan_tagline")}</p>
+        <Link href="/" className="mt-2 inline-block text-xs text-[var(--gold)] underline">{t("back_to_chart")}</Link>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -99,7 +100,7 @@ export default function MatchPage() {
 
       <div className="mt-4 flex items-center gap-3">
         <button onClick={runMatch} disabled={loading}
-                className="rounded-lg bg-[#c9a227] px-5 py-2 font-semibold text-[#140b26] hover:bg-[#dcb63a] disabled:opacity-50">
+                className="btn-gold">
           {loading ? t("matching") : t("match_btn")}
         </button>
         {error && <span className="text-sm text-red-400">{error}</span>}
@@ -107,25 +108,25 @@ export default function MatchPage() {
 
       {milan && verdict && (
         <section className="mt-8 space-y-4">
-          <div className="rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5 text-center">
-            <div className="text-4xl font-bold text-[#c9a227]">{milan.total} <span className="text-lg text-[#9c8f6f]">/ {milan.max}</span></div>
+          <div className="card p-5 text-center">
+            <div className="text-4xl font-bold text-[var(--gold)]">{milan.total} <span className="text-lg text-[var(--ink-muted)]">/ {milan.max}</span></div>
             <div className={`mt-1 font-semibold ${verdict[1]}`}>{t(verdict[0])}</div>
-            <div className="mt-2 text-xs text-[#9c8f6f]">
+            <div className="mt-2 text-xs text-[var(--ink-muted)]">
               {milan.boy.moon_sign} moon · {milan.boy.nakshatra} ↔ {milan.girl.moon_sign} moon · {milan.girl.nakshatra}
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-[#3d2f5c]">
+          <div className="overflow-x-auto rounded-lg border border-[var(--line)]">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#241640] text-left text-[#c9a227]">
+                <tr className="bg-[var(--surface-raised)] text-left text-[var(--gold)]">
                   <th className="px-3 py-2">{t("koota")}</th><th className="px-3 py-2">{t("boy_col")}</th>
                   <th className="px-3 py-2">{t("girl_col")}</th><th className="px-3 py-2 text-right">{t("points")}</th>
                 </tr>
               </thead>
               <tbody>
                 {milan.kootas.map((k) => (
-                  <tr key={k.koota} className="border-t border-[#3d2f5c]/60">
+                  <tr key={k.koota} className="border-t border-[var(--line-soft)]">
                     <td className="px-3 py-2 font-medium capitalize">
                       {k.koota.replace("_", " ")}
                       {k.dosha && <span className="ml-2 rounded bg-orange-500/20 px-1.5 py-0.5 text-xs text-orange-300">{t("dosha")}</span>}
@@ -147,20 +148,20 @@ export default function MatchPage() {
             </div>
           ))}
 
-          <div className="rounded-lg border border-[#3d2f5c] p-3 text-sm">{milan.manglik_note}</div>
+          <div className="rounded-lg border border-[var(--line)] p-3 text-sm">{milan.manglik_note}</div>
 
           <div className="flex items-center gap-3">
             <button onClick={fetchNarrative} disabled={narrLoading}
-                    className="rounded-lg border border-[#c9a227] px-4 py-2 text-sm font-semibold text-[#c9a227] hover:bg-[#c9a227]/10 disabled:opacity-50">
+                    className="btn-ghost text-sm font-semibold">
               {narrLoading ? t("writing") : t("ai_compat")}
             </button>
           </div>
           {narrative && (
-            <div className="whitespace-pre-wrap rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5 text-sm leading-relaxed">
+            <div className="card whitespace-pre-wrap p-5 text-sm leading-relaxed">
               {narrative}
             </div>
           )}
-          <p className="text-xs text-[#9c8f6f]">{milan.disclaimer}</p>
+          <p className="text-xs text-[var(--ink-muted)]">{milan.disclaimer}</p>
         </section>
       )}
     </main>

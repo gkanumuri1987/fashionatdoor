@@ -39,32 +39,32 @@ export function BirthForm({ label, value, onChange }: {
   }, [query, value.placeName]);
 
   return (
-    <div className="rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-4">
-      <h3 className="mb-3 font-semibold text-[#c9a227]">{label}</h3>
+    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4">
+      <h3 className="mb-3 font-semibold text-[var(--gold)]">{label}</h3>
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="text-[#9c8f6f]">{t("dob")}</span>
+          <span className="text-[var(--ink-muted)]">{t("dob")}</span>
           <input type="date" value={value.date}
                  onChange={(e) => onChange({ ...value, date: e.target.value })}
-                 className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2" />
+                 className="mt-1 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-deep)] px-3 py-2" />
         </label>
         <label className="block">
-          <span className="text-[#9c8f6f]">{t("tob")}</span>
+          <span className="text-[var(--ink-muted)]">{t("tob")}</span>
           <input type="time" value={value.time}
                  onChange={(e) => onChange({ ...value, time: e.target.value })}
-                 className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2" />
+                 className="mt-1 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-deep)] px-3 py-2" />
         </label>
         <label className="relative block">
-          <span className="text-[#9c8f6f]">{t("pob")}</span>
+          <span className="text-[var(--ink-muted)]">{t("pob")}</span>
           <input value={query}
                  onChange={(e) => { setQuery(e.target.value); onChange({ ...value, lat: null, lng: null, placeName: "" }); }}
                  placeholder={t("place_ph")}
-                 className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2" />
+                 className="mt-1 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-deep)] px-3 py-2" />
           {places.length > 0 && (
-            <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-[#3d2f5c] bg-[#241640] text-xs shadow-xl">
+            <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-[var(--line)] bg-[var(--surface-raised)] text-xs shadow-xl">
               {places.map((p) => (
                 <li key={p.name}>
-                  <button type="button" className="w-full px-3 py-2 text-left hover:bg-[#c9a227]/10"
+                  <button type="button" className="w-full px-3 py-2 text-left hover:bg-[var(--gold)]/10"
                           onClick={() => {
                             onChange({ ...value, lat: p.lat, lng: p.lng, placeName: p.name });
                             setQuery(p.name);

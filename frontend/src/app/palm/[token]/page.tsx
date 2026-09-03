@@ -65,13 +65,13 @@ export default function PalmPage({ params }: { params: Promise<{ token: string }
   if (notFound) {
     return (
       <main className="mx-auto max-w-md px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold text-[#c9a227]">{t("link_expired")}</h1>
-        <p className="mt-2 text-sm text-[#9c8f6f]">{t("link_expired_sub")}</p>
+        <h1 className="heading-display text-3xl">{t("link_expired")}</h1>
+        <p className="mt-2 text-sm text-[var(--ink-muted)]">{t("link_expired_sub")}</p>
       </main>
     );
   }
   if (!session) {
-    return <main className="py-16 text-center text-[#9c8f6f]">{t("loading")}</main>;
+    return <main className="py-16 text-center text-[var(--ink-muted)]">{t("loading")}</main>;
   }
 
   const result = session.result;
@@ -79,16 +79,16 @@ export default function PalmPage({ params }: { params: Promise<{ token: string }
   return (
     <main className="mx-auto max-w-md px-4 py-8">
       <header className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-[#c9a227]">{t("palm_title")}</h1>
-        <p className="mt-1 text-xs text-[#9c8f6f]">{t("palm_sub")}</p>
+        <h1 className="heading-display text-3xl">{t("palm_title")}</h1>
+        <p className="mt-1 text-xs text-[var(--ink-muted)]">{t("palm_sub")}</p>
       </header>
 
       {session.status === "complete" && result?.reading ? (
         <section className="space-y-4">
-          <div className="whitespace-pre-wrap rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5 text-sm leading-relaxed">
+          <div className="card whitespace-pre-wrap p-5 text-sm leading-relaxed">
             {result.reading}
           </div>
-          <p className="text-center text-xs text-[#9c8f6f]">{t("photo_not_stored")}</p>
+          <p className="text-center text-xs text-[var(--ink-muted)]">{t("photo_not_stored")}</p>
         </section>
       ) : (
         <section className="space-y-4">
@@ -99,14 +99,14 @@ export default function PalmPage({ params }: { params: Promise<{ token: string }
             </div>
           )}
 
-          <div className="rounded-xl border border-dashed border-[#3d2f5c] p-5 text-center">
-            <p className="mb-3 text-sm text-[#cbbfa4]">{t("palm_instructions")}</p>
+          <div className="rounded-xl border border-dashed border-[var(--line)] p-5 text-center">
+            <p className="mb-3 text-sm text-[var(--ink-soft)]">{t("palm_instructions")}</p>
             <input
               id="palm-input" type="file" accept="image/*" capture="environment" multiple
               onChange={(e) => onPick(e.target.files)} className="hidden"
             />
             <label htmlFor="palm-input"
-                   className="inline-block cursor-pointer rounded-lg bg-[#c9a227] px-5 py-2 font-semibold text-[#140b26]">
+                   className="btn-gold cursor-pointer">
               {files.length ? t("change_photos") : t("take_photo")}
             </label>
             {previews.length > 0 && (
@@ -114,37 +114,37 @@ export default function PalmPage({ params }: { params: Promise<{ token: string }
                 {previews.map((src) => (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img key={src} src={src} alt="palm preview"
-                       className="h-40 rounded-lg border border-[#3d2f5c] object-cover" />
+                       className="h-40 rounded-lg border border-[var(--line)] object-cover" />
                 ))}
               </div>
             )}
           </div>
 
           <label className="block text-sm">
-            <span className="text-[#9c8f6f]">{t("reading_language")}</span>
+            <span className="text-[var(--ink-muted)]">{t("reading_language")}</span>
             <select value={lang} onChange={(e) => setLang(e.target.value as Lang)}
-                    className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2">
+                    className="input mt-1">
               {(Object.keys(LANG_LABELS) as Lang[]).map((l) => (
                 <option key={l} value={l}>{LANG_LABELS[l]}</option>
               ))}
             </select>
           </label>
 
-          <label className="flex items-start gap-2 text-xs text-[#9c8f6f]">
+          <label className="flex items-start gap-2 text-xs text-[var(--ink-muted)]">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}
                    className="mt-0.5" />
             <span>{t("consent_text")}</span>
           </label>
 
           <button onClick={upload} disabled={!files.length || !consent || uploading}
-                  className="w-full rounded-lg bg-[#c9a227] px-5 py-3 font-semibold text-[#140b26] disabled:opacity-40">
+                  className="btn-gold w-full py-3">
             {uploading ? t("reading_palm") : t("get_reading")}
           </button>
           {error && <p className="text-sm text-red-400">{error}</p>}
         </section>
       )}
 
-      <footer className="mt-10 text-center text-xs text-[#9c8f6f]">{t("disclaimer")}</footer>
+      <footer className="mt-10 text-center text-xs text-[var(--ink-muted)]">{t("disclaimer")}</footer>
     </main>
   );
 }
