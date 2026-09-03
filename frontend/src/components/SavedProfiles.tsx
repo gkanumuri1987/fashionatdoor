@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useLang } from "@/lib/i18n";
 
 export interface BirthProfile {
   id: string;
@@ -36,6 +37,7 @@ export default function SavedProfiles({
   draft: ProfileDraft | null;
   onLoad: (p: BirthProfile) => void;
 }) {
+  const { t } = useLang();
   const sb = supabase();
   const [signedIn, setSignedIn] = useState(false);
   const [profiles, setProfiles] = useState<BirthProfile[]>([]);
@@ -94,7 +96,7 @@ export default function SavedProfiles({
         : error.message);
       return;
     }
-    setSaveName(""); setMsg("Saved.");
+    setSaveName(""); setMsg(t("saved_ok"));
     refresh();
   }
 
@@ -106,25 +108,23 @@ export default function SavedProfiles({
 
   return (
     <div className="mt-4 rounded-lg border border-[#3d2f5c] bg-[#1a1030] p-4">
-      <p className="mb-2 text-sm font-semibold text-[#cbbfa4]">Saved profiles</p>
+      <p className="mb-2 text-sm font-semibold text-[#cbbfa4]">{t("saved_profiles")}</p>
       {draft && (
         <div className="mb-3 flex gap-2">
           <input
-            value={saveName} placeholder="Name (e.g. Amma)"
+            value={saveName} placeholder={t("name_ph")}
             onChange={(e) => setSaveName(e.target.value)}
             className="flex-1 rounded-md border border-[#3d2f5c] bg-[#140b26] px-3 py-1.5 text-sm text-[#e8e0cc]"
           />
           <button
             onClick={save} disabled={busy}
             className="rounded-md bg-[#c9a227] px-3 py-1.5 text-sm text-[#140b26] font-semibold hover:bg-[#b08e1f] disabled:opacity-50"
-          >
-            Save current
-          </button>
+          >{t("save_current")}</button>
         </div>
       )}
       {msg && <p className="mb-2 text-xs text-[#9c8f6f]">{msg}</p>}
       {profiles.length === 0 ? (
-        <p className="text-xs text-[#9c8f6f]">No saved profiles yet.</p>
+        <p className="text-xs text-[#9c8f6f]">{t("no_profiles")}</p>
       ) : (
         <ul className="divide-y divide-[#2a1d45]">
           {profiles.map((p) => (

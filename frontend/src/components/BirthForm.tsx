@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLang } from "@/lib/i18n";
 
 export interface BirthValue {
   date: string;
@@ -17,6 +18,7 @@ export function BirthForm({ label, value, onChange }: {
   value: BirthValue;
   onChange: (v: BirthValue) => void;
 }) {
+  const { t } = useLang();
   const [query, setQuery] = useState(value.placeName);
   const [places, setPlaces] = useState<Place[]>([]);
   const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -41,22 +43,22 @@ export function BirthForm({ label, value, onChange }: {
       <h3 className="mb-3 font-semibold text-[#c9a227]">{label}</h3>
       <div className="space-y-3 text-sm">
         <label className="block">
-          <span className="text-[#9c8f6f]">Date of birth</span>
+          <span className="text-[#9c8f6f]">{t("dob")}</span>
           <input type="date" value={value.date}
                  onChange={(e) => onChange({ ...value, date: e.target.value })}
                  className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2" />
         </label>
         <label className="block">
-          <span className="text-[#9c8f6f]">Time of birth</span>
+          <span className="text-[#9c8f6f]">{t("tob")}</span>
           <input type="time" value={value.time}
                  onChange={(e) => onChange({ ...value, time: e.target.value })}
                  className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2" />
         </label>
         <label className="relative block">
-          <span className="text-[#9c8f6f]">Place of birth</span>
+          <span className="text-[#9c8f6f]">{t("pob")}</span>
           <input value={query}
                  onChange={(e) => { setQuery(e.target.value); onChange({ ...value, lat: null, lng: null, placeName: "" }); }}
-                 placeholder="City, country…"
+                 placeholder={t("place_ph")}
                  className="mt-1 w-full rounded-lg border border-[#3d2f5c] bg-[#140b26] px-3 py-2" />
           {places.length > 0 && (
             <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-[#3d2f5c] bg-[#241640] text-xs shadow-xl">

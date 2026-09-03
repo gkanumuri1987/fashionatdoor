@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { LangProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "Jyotish AI — Vedic Birth Chart & Life Reading",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased"><LangProvider>{children}</LangProvider></body>
     </html>
   );
 }
