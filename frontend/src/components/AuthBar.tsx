@@ -6,6 +6,7 @@
  *  rate limits) and email CODE (passwordless OTP). */
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
@@ -111,7 +112,7 @@ export default function AuthBar() {
       <button onClick={() => setOpen(true)} className="btn-gold w-full py-1.5 text-sm">
         {t("sign_in")}
       </button>
-      {open && (
+      {open && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
              onClick={() => setOpen(false)}>
           <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
@@ -164,7 +165,8 @@ export default function AuthBar() {
             )}
             {msg && <p className="mt-3 text-center text-xs text-[var(--warn)]">{msg}</p>}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
