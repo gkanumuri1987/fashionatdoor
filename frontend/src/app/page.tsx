@@ -220,6 +220,31 @@ export default function LandingPage() {
         </p>
       </section>
 
+      {/* ── Ayanamsa deep guide ── */}
+      <section id="ayanamsa" className="card mt-14 scroll-mt-24 p-6">
+        <h2 className="heading-section text-2xl">{t("ay_section_title")}</h2>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">{t("ay_section_intro")}</p>
+        <div className="mt-5 space-y-3">
+          {([
+            ["★", "Lahiri (Chitrapaksha)", "ay_lahiri", true],
+            ["", "Raman", "ay_raman", false],
+            ["", "KP (Krishnamurti)", "ay_kp", false],
+            ["✨", "True Chitrapaksha", "ay_true_citra", false],
+            ["✨", "True Pushya", "ay_true_pushya", false],
+            ["✨", "Yukteshwar", "ay_yukteshwar", false],
+          ] as [string, string, string, boolean][]).map(([mark, name, key, rec]) => (
+            <div key={name} className={`rounded-lg border p-4 ${rec ? "border-[var(--line-gold)] bg-[var(--gold)]/6" : "border-[var(--line-soft)]"}`}>
+              <h3 className="font-semibold text-[var(--gold)]">
+                {mark && <span className="mr-1">{mark}</span>}{name}
+                {rec && <span className="ml-2 rounded-full bg-[var(--gold)] px-2 py-0.5 text-[10px] text-[var(--on-gold)]">{t("recommended")}</span>}
+              </h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-[var(--ink-soft)]">{t(key)}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-sm text-[var(--good)]">✓ {t("ay_recommend")}</p>
+      </section>
+
       {/* ── Everything it does ── */}
       <section className="mt-14">
         <h2 className="heading-section text-center text-2xl">Everything inside</h2>

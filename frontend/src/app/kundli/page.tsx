@@ -242,18 +242,11 @@ export default function Home() {
                   <button type="button" onClick={(e) => { e.preventDefault(); setShowAyInfo(false); }}
                           className="text-[var(--ink-muted)]">✕</button>
                 </div>
-                <p className="text-[var(--ink-soft)]">{t("ay_info_body")}</p>
-                <ul className="mt-2 space-y-1.5">
-                  <li><b className="text-[var(--gold)]">★ Lahiri</b> — <span className="text-[var(--ink-soft)]">{t("ay_lahiri")}</span></li>
-                  <li><b className="text-[var(--ink)]">Raman</b> — <span className="text-[var(--ink-soft)]">{t("ay_raman")}</span></li>
-                  <li><b className="text-[var(--ink)]">KP</b> — <span className="text-[var(--ink-soft)]">{t("ay_kp")}</span></li>
-                  <li className="border-t border-[var(--line-soft)] pt-1.5"><b className="text-[var(--gold)]">✨ True Chitrapaksha</b> — <span className="text-[var(--ink-soft)]">{t("ay_true_citra")}</span></li>
-                  <li><b className="text-[var(--gold)]">✨ True Pushya</b> — <span className="text-[var(--ink-soft)]">{t("ay_true_pushya")}</span></li>
-                  <li><b className="text-[var(--gold)]">✨ Yukteshwar</b> — <span className="text-[var(--ink-soft)]">{t("ay_yukteshwar")}</span></li>
-                </ul>
-                <p className="mt-2 border-t border-[var(--line-soft)] pt-2 text-[var(--good)]">
-                  ✓ {t("ay_recommend")}
-                </p>
+                <p className="text-[var(--ink-soft)]">{t("ay_info_short")}</p>
+                <p className="mt-2 text-[var(--good)]">✓ {t("ay_recommend")}</p>
+                <a href="/#ayanamsa" className="mt-2 inline-block border-t border-[var(--line-soft)] pt-2 text-[var(--gold)] underline">
+                  {t("ay_learn_more")} →
+                </a>
               </div>
             )}
           </label>

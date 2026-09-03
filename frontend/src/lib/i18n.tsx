@@ -155,6 +155,18 @@ const T: Record<string, Entry> = {
     te: "యుక్తేశ్వర్ — పరమహంస యోగానంద గురువు శ్రీ యుక్తేశ్వర్ 'హోలీ సైన్స్' నుండి: 24,000 సంవత్సరాల యుగ చక్రపు అయనాంశ. క్రియాయోగ వంశ కాస్మోలజీతో జాతకాన్ని అనుసంధానించాలనుకునే సాధకుల ఎంపిక.",
     hi: "युक्तेश्वर — परमहंस योगानंद के गुरु श्री युक्तेश्वर की 'होली साइंस' से: 24,000 वर्ष के युग-चक्र का अयनांश। क्रिया योग परंपरा की ब्रह्मांड-दृष्टि से कुंडली जोड़ने वाले साधकों की पसंद।",
   },
+  ay_info_short: {
+    en: "Ayanamsa is the sidereal correction (~24°) that anchors your chart to the real stars. Every kundli needs one; the schools differ only by fractions of a degree.",
+    te: "అయనాంశ అనేది మీ జాతకాన్ని నిజ నక్షత్రాలకు కలిపే సైడీరియల్ సవరణ (~24°). ప్రతి కుండలికి ఇది అవసరం; పద్ధతుల తేడా డిగ్రీలో కొద్ది భాగమే.",
+    hi: "अयनांश वह सायडेरियल सुधार (~24°) है जो आपकी कुंडली को वास्तविक तारों से जोड़ता है। हर कुंडली को यह चाहिए; पद्धतियों का अंतर डिग्री के अंश भर का है।",
+  },
+  ay_learn_more: { en: "Read the full guide on our home page", te: "పూర్తి వివరణ మా హోమ్ పేజీలో చదవండి", hi: "पूरी जानकारी हमारे होम पेज पर पढ़ें" },
+  ay_section_title: { en: "Choosing your ayanamsa — the deep guide", te: "మీ అయనాంశ ఎంపిక — పూర్తి మార్గదర్శిని", hi: "अपना अयनांश चुनना — पूरी जानकारी" },
+  ay_section_intro: {
+    en: "Two zodiacs exist. The Western (tropical) one follows the seasons; Vedic astrology follows the actual stars (sidereal). Earth's slow axial wobble has pulled them ~24° apart over the centuries — and the ayanamsa is exactly that correction. It is the single most important calibration in your whole chart: get it wrong and every nakshatra, dasha and prediction shifts. So the engine always applies one — and lets practitioners choose their school.",
+    te: "రెండు రాశిచక్రాలు ఉన్నాయి. పాశ్చాత్య (ట్రాపికల్) రుతువులను అనుసరిస్తుంది; వేద జ్యోతిషం నిజ నక్షత్రాలను (సైడీరియల్) అనుసరిస్తుంది. భూమి అక్ష చలనం వల్ల ఇవి శతాబ్దాలుగా ~24° దూరమయ్యాయి — ఆ సవరణే అయనాంశ. మీ జాతకంలో ఇది అత్యంత కీలకమైన కాలిబ్రేషన్: తప్పైతే ప్రతి నక్షత్రం, దశ, ఫలితం మారుతుంది. అందుకే ఇంజిన్ ఎప్పుడూ ఒకటి వాడుతుంది — నిపుణులకు పద్ధతి ఎంపిక ఇస్తుంది.",
+    hi: "दो राशिचक्र हैं। पश्चिमी (ट्रॉपिकल) ऋतुओं का अनुसरण करता है; वैदिक ज्योतिष वास्तविक तारों (सायडेरियल) का। पृथ्वी के अक्ष-कंपन से ये सदियों में ~24° दूर हो गए — वही सुधार अयनांश है। यह आपकी कुंडली का सबसे महत्वपूर्ण अंशांकन है: ग़लत होने पर हर नक्षत्र, दशा और फल बदल जाता है। इसलिए इंजन हमेशा एक लागू करता है — और विशेषज्ञों को पद्धति चुनने देता है।",
+  },
   ay_recommend: { en: "Not sure? Keep Lahiri — it matches the panchangam your family already uses.",
                   te: "తెలియకపోతే లహరినే ఉంచండి — మీ ఇంట్లో వాడే పంచాంగంతో ఇది సరిపోతుంది.",
                   hi: "निश्चित नहीं? लाहिरी ही रखें — यह आपके घर के पंचांग से मेल खाता है।" },
