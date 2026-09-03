@@ -277,3 +277,17 @@ def test_lagna_sensitivity_bands():
     assert unknown["lagna_sensitivity"]["band_minutes"] == 180
     # ±3h from 10:30 IST sweeps several signs — must flag instability.
     assert not unknown["lagna_sensitivity"]["stable"]
+
+
+def test_extraordinary_ayanamsas():
+    from datetime import datetime, timezone
+    from jyotish.ephemeris import ayanamsa_value, julian_day_ut
+    jd = julian_day_ut(datetime(2000, 1, 1, 12, tzinfo=timezone.utc))
+    lahiri = ayanamsa_value(jd, "lahiri")
+    # True Chitrapaksha: the star-exact Lahiri — within arc-minutes of it.
+    assert abs(ayanamsa_value(jd, "true_citra") - lahiri) < 0.2
+    # True Pushya: the Suryasiddhantic school — roughly a degree from Lahiri.
+    assert abs(ayanamsa_value(jd, "true_pushya") - lahiri) < 2.0
+    # Yukteshwar: the Holy Science value, distinctly lower (~22.5° at J2000).
+    y = ayanamsa_value(jd, "yukteshwar")
+    assert 21.0 < y < 23.5

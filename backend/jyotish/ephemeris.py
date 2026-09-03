@@ -28,6 +28,10 @@ AYANAMSAS = {
     "lahiri": swe.SIDM_LAHIRI,
     "raman": swe.SIDM_RAMAN,
     "kp": swe.SIDM_KRISHNAMURTI,
+    # The "extraordinary" three:
+    "true_citra": swe.SIDM_TRUE_CITRA,     # Spica pinned EXACTLY at 0° Libra
+    "true_pushya": swe.SIDM_TRUE_PUSHYA,   # Pushya pinned at 16° Cancer (Suryasiddhantic school)
+    "yukteshwar": swe.SIDM_YUKTESHWAR,     # Sri Yukteswar's Holy Science cycle
 }
 
 _PLANET_IDS = {

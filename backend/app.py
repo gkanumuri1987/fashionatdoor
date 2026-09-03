@@ -42,7 +42,7 @@ class ChartRequest(BaseModel):
     lat: float = Field(ge=-90, le=90)
     lng: float = Field(ge=-180, le=180)
     tz: str | None = Field(default=None, description="IANA zone; derived from lat/lng if omitted")
-    ayanamsa: str = Field(default="lahiri", pattern="^(lahiri|raman|kp)$")
+    ayanamsa: str = Field(default="lahiri", pattern="^(lahiri|raman|kp|true_citra|true_pushya|yukteshwar)$")
     house_system: str = Field(default="whole_sign", pattern="^(whole_sign|placidus|sripati)$")
     node_type: str = Field(default="true", pattern="^(true|mean)$")
     time_accuracy: str = Field(default="exact", pattern="^(exact|approximate|unknown)$")
@@ -325,7 +325,7 @@ class MuhurtaRequest(BaseModel):
     lng: float = Field(ge=-180, le=180)
     natal_moon_nakshatra: int | None = Field(default=None, ge=0, le=26)
     natal_moon_sign: int | None = Field(default=None, ge=0, le=11)
-    ayanamsa: str = Field(default="lahiri", pattern="^(lahiri|raman|kp)$")
+    ayanamsa: str = Field(default="lahiri", pattern="^(lahiri|raman|kp|true_citra|true_pushya|yukteshwar)$")
 
 
 @app.post("/api/muhurta")
@@ -479,7 +479,7 @@ class CalendarRequest(BaseModel):
     month: int = Field(ge=1, le=12)
     tradition: str = Field(default="telugu", pattern="^(telugu|tamil|kannada|hindi)$")
     location: str = Field(default="in", pattern="^(in|uk|us_east|us_central|us_west|au|ca|gulf|sg)$")
-    ayanamsa: str = Field(default="lahiri", pattern="^(lahiri|raman|kp)$")
+    ayanamsa: str = Field(default="lahiri", pattern="^(lahiri|raman|kp|true_citra|true_pushya|yukteshwar)$")
 
 
 @app.post("/api/calendar")

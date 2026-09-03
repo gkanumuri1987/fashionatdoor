@@ -140,6 +140,21 @@ const T: Record<string, Entry> = {
     te: "KP (కృష్ణమూర్తి) — లహరికి కొన్ని ఆర్క్-నిమిషాల తేడా; KP పద్ధతి సబ్-లార్డ్ విధానానికి ఇది తప్పనిసరి.",
     hi: "KP (कृष्णमूर्ति) — लाहिरी से कुछ आर्क-मिनट का अंतर; KP पद्धति की सब-लॉर्ड तकनीकों के लिए आवश्यक।",
   },
+  ay_true_citra: {
+    en: "True Chitrapaksha — the purist's power move: the star Chitra (Spica) is pinned EXACTLY opposite 0° Aries, every day, forever. Where Lahiri approximates, this anchors your nakshatras to the living star itself — razor-true padas for nakshatra-level work.",
+    te: "ట్రూ చిత్రపక్ష — శుద్ధవాదుల శక్తివంతమైన ఎంపిక: చిత్తా నక్షత్రం (స్పైకా) ప్రతిరోజూ ఖచ్చితంగా స్థిరంగా ఉంచబడుతుంది. లహరి సుమారుగా ఉంటే, ఇది మీ నక్షత్రాలను నిజ నక్షత్రానికే బంధిస్తుంది — పాద స్థాయి పనికి అత్యంత ఖచ్చితం.",
+    hi: "ट्रू चित्रपक्ष — शुद्धतावादियों की शक्तिशाली पसंद: चित्रा तारा (स्पाइका) हर दिन ठीक स्थिर रखा जाता है। जहाँ लाहिरी अनुमानित है, यह आपके नक्षत्रों को जीवित तारे से ही बाँधता है — पद-स्तर के कार्य के लिए अचूक।",
+  },
+  ay_true_pushya: {
+    en: "True Pushya — the ancient Suryasiddhantic anchor: Pushya, 'the most auspicious of all nakshatras', held at exactly 16° Cancer. Favored by research astrologers reviving the oldest siddhantic tradition — charts shift nearly a degree, and stubborn borderline cases often snap into place.",
+    te: "ట్రూ పుష్య — ప్రాచీన సూర్యసిద్ధాంత ఆధారం: 'నక్షత్రాలలో అత్యంత శుభకరమైన' పుష్యమి ఖచ్చితంగా స్థిరపరచబడుతుంది. అతి ప్రాచీన సంప్రదాయాన్ని పునరుద్ధరించే పరిశోధకుల ఎంపిక — సరిహద్దు జాతకాలు తరచూ సరిగ్గా కుదురుతాయి.",
+    hi: "ट्रू पुष्य — प्राचीन सूर्यसिद्धांतिक आधार: 'सभी नक्षत्रों में सबसे शुभ' पुष्य ठीक स्थिर रखा जाता है। सबसे पुरानी सिद्धांत परंपरा को पुनर्जीवित करने वाले शोधकों की पसंद — सीमावर्ती कुंडलियाँ अक्सर सटीक बैठ जाती हैं।",
+  },
+  ay_yukteshwar: {
+    en: "Yukteshwar — from 'The Holy Science' of Sri Yukteswar, guru of Paramahansa Yogananda: the ayanamsa of the 24,000-year yuga cycle. Chosen by seekers on the yoga path who want their chart aligned with the cosmology of the kriya lineage.",
+    te: "యుక్తేశ్వర్ — పరమహంస యోగానంద గురువు శ్రీ యుక్తేశ్వర్ 'హోలీ సైన్స్' నుండి: 24,000 సంవత్సరాల యుగ చక్రపు అయనాంశ. క్రియాయోగ వంశ కాస్మోలజీతో జాతకాన్ని అనుసంధానించాలనుకునే సాధకుల ఎంపిక.",
+    hi: "युक्तेश्वर — परमहंस योगानंद के गुरु श्री युक्तेश्वर की 'होली साइंस' से: 24,000 वर्ष के युग-चक्र का अयनांश। क्रिया योग परंपरा की ब्रह्मांड-दृष्टि से कुंडली जोड़ने वाले साधकों की पसंद।",
+  },
   ay_recommend: { en: "Not sure? Keep Lahiri — it matches the panchangam your family already uses.",
                   te: "తెలియకపోతే లహరినే ఉంచండి — మీ ఇంట్లో వాడే పంచాంగంతో ఇది సరిపోతుంది.",
                   hi: "निश्चित नहीं? लाहिरी ही रखें — यह आपके घर के पंचांग से मेल खाता है।" },

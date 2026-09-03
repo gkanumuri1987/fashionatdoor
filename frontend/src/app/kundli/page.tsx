@@ -230,6 +230,9 @@ export default function Home() {
               <option value="lahiri">Lahiri (Chitrapaksha) ★ {t("recommended")}</option>
               <option value="raman">Raman</option>
               <option value="kp">KP (Krishnamurti)</option>
+              <option value="true_citra">True Chitrapaksha ✨</option>
+              <option value="true_pushya">True Pushya ✨</option>
+              <option value="yukteshwar">Yukteshwar ✨</option>
             </select>
             {showAyInfo && (
               <div className="card absolute right-0 top-full z-20 mt-2 w-80 p-4 text-xs leading-relaxed"
@@ -244,6 +247,9 @@ export default function Home() {
                   <li><b className="text-[var(--gold)]">★ Lahiri</b> — <span className="text-[var(--ink-soft)]">{t("ay_lahiri")}</span></li>
                   <li><b className="text-[var(--ink)]">Raman</b> — <span className="text-[var(--ink-soft)]">{t("ay_raman")}</span></li>
                   <li><b className="text-[var(--ink)]">KP</b> — <span className="text-[var(--ink-soft)]">{t("ay_kp")}</span></li>
+                  <li className="border-t border-[var(--line-soft)] pt-1.5"><b className="text-[var(--gold)]">✨ True Chitrapaksha</b> — <span className="text-[var(--ink-soft)]">{t("ay_true_citra")}</span></li>
+                  <li><b className="text-[var(--gold)]">✨ True Pushya</b> — <span className="text-[var(--ink-soft)]">{t("ay_true_pushya")}</span></li>
+                  <li><b className="text-[var(--gold)]">✨ Yukteshwar</b> — <span className="text-[var(--ink-soft)]">{t("ay_yukteshwar")}</span></li>
                 </ul>
                 <p className="mt-2 border-t border-[var(--line-soft)] pt-2 text-[var(--good)]">
                   ✓ {t("ay_recommend")}
