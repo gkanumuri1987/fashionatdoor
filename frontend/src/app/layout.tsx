@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter, Noto_Sans_Devanagari, Noto_Sans_Telugu } from "next/font/google";
+import { Fraunces, Inter, Mandali, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import { LangProvider } from "@/lib/i18n";
 
@@ -16,10 +16,12 @@ const fraunces = Fraunces({
   axes: ["opsz"],
 });
 
-const notoTelugu = Noto_Sans_Telugu({
+// Mandali — Purushoth Kumar Guttula's Telugu face (single 400 weight;
+// heavier weights are browser-synthesized).
+const mandali = Mandali({
   subsets: ["telugu"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-noto-telugu",
+  weight: "400",
+  variable: "--font-telugu",
   display: "swap",
 });
 
@@ -43,7 +45,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en"
-          className={`${inter.variable} ${fraunces.variable} ${notoTelugu.variable} ${notoDevanagari.variable}`}>
+          className={`${inter.variable} ${fraunces.variable} ${mandali.variable} ${notoDevanagari.variable}`}>
       <body className="font-sans antialiased">
         <LangProvider>{children}</LangProvider>
       </body>

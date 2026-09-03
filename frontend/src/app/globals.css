@@ -7,9 +7,9 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @theme {
-  --font-sans: var(--font-inter), var(--font-noto-telugu), var(--font-noto-deva),
+  --font-sans: var(--font-inter), var(--font-telugu), var(--font-noto-deva),
                ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), var(--font-noto-telugu),
+  --font-display: var(--font-fraunces), var(--font-telugu),
                   var(--font-noto-deva), ui-serif, Georgia, serif;
 }
 
