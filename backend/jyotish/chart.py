@@ -26,6 +26,7 @@ from .bhava import bhava_chalita
 from .geo import to_utc
 from .jaimini import (arudha_padas, chara_dasha, chara_karakas, ishta_devata,
                       karakamsa)
+from .chakras import kota_chakra, sarvatobhadra_vedha, tripataki
 from .calendar_hindu import (julian_calendar_note, kali_ahargana, saka_year,
                              samvatsara, vikrama_year)
 from .events import masa as amanta_masa
@@ -467,6 +468,19 @@ def transit_report(chart: dict, as_of: datetime | None = None) -> dict:
     except Exception:  # pragma: no cover — enrichment
         pass
 
+    # Classical transit chakras (Sarvatobhadra vedha, Kota, Tripataki).
+    chakra_block = None
+    try:
+        natal_moon_nak = nakshatra_of(chart["grahas"]["moon"]["lon"])["index"]
+        t_lons = {g: transits[g]["lon"] for g in transits}
+        chakra_block = {
+            "sarvatobhadra": sarvatobhadra_vedha(natal_moon_nak, t_lons),
+            "kota": kota_chakra(natal_moon_nak, t_lons),
+            "tripataki": tripataki(chart["moon_sign"], t_lons),
+        }
+    except Exception:  # pragma: no cover — enrichment
+        pass
+
     sat_from_moon = transits["saturn"]["house_from_moon"]
     sade_sati = sat_from_moon in (12, 1, 2)
 
@@ -503,4 +517,5 @@ def transit_report(chart: dict, as_of: datetime | None = None) -> dict:
             "favourable": chandra_count in (1, 3, 6, 7, 10, 11),
         },
         "jupiter_from_moon": transits["jupiter"]["house_from_moon"],
+        "chakras": chakra_block,
     }

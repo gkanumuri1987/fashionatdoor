@@ -96,3 +96,15 @@ export const GRAHA_LABEL: Record<string, string> = {
 export const SIGN_SHORT = [
   "Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis",
 ];
+
+export interface ReadingPage {
+  schema: string;
+  language: string;
+  strength_bars?: { grahas?: Record<string, { level: string; bar_percent: number }> };
+  claims: { id: string; claim: string; chart_condition: string; source: string;
+            strength: string; cancellations: string[] }[];
+  verdicts: Record<string, { verdict: string; score: number }>;
+  timeline?: { current_sentence?: string | null; next_change?: string | null };
+  uncertainty?: string[];
+  glosses?: Record<string, string>;
+}

@@ -415,3 +415,36 @@ def rectify_endpoint(body: RectifyRequest):
                        band_minutes=body.band_minutes, step_minutes=body.step_minutes)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+
+# ── Presentation contract (deterministic — no AI) ───────────────────────────
+
+class ReadingPageRequest(BaseModel):
+    chart: dict
+    language: str = Field(default="en", pattern="^(en|te|hi)$")
+
+
+@app.post("/api/reading-page")
+def reading_page_endpoint(body: ReadingPageRequest):
+    """ReadingPageV1: strength bars, receipted claims, resolved verdicts,
+    dasha timeline, glosses, uncertainty — all computed, none written by AI."""
+    from ai.presentation import reading_page
+    try:
+        return reading_page(body.chart, body.language)
+    except (KeyError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid chart payload: {exc}")
+
+
+# ── Traditional (Surya Siddhanta) vs drik comparison ────────────────────────
+
+@app.post("/api/siddhanta-compare")
+def siddhanta_compare(body: TransitRequest):
+    """Side-by-side classical Surya-Siddhanta vs Swiss-Ephemeris positions for
+    the chart's birth instant (transparency view; drik remains the default)."""
+    from jyotish.siddhanta import compare_with_drik
+    try:
+        jd = body.chart["julian_day_ut"]
+        ay = body.chart["input"]["ayanamsa"]
+        return compare_with_drik(jd, ayanamsa=ay)
+    except (KeyError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid chart payload: {exc}")

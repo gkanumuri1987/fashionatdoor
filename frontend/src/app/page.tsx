@@ -6,7 +6,7 @@ import { NorthChart, SouthChart } from "@/components/KundliCharts";
 import { DashaTimeline, PanchangaYogas, PlanetTable } from "@/components/ChartDetails";
 import AuthBar from "@/components/AuthBar";
 import SavedProfiles, { type BirthProfile } from "@/components/SavedProfiles";
-import type { ChartV1 } from "@/lib/types";
+import type { ChartV1, ReadingPage } from "@/lib/types";
 import { LangSwitcher, useLang } from "@/lib/i18n";
 import { copyText } from "@/lib/clipboard";
 
@@ -45,6 +45,8 @@ export default function Home() {
   const [dashaSystem, setDashaSystem] = useState<"vimshottari" | "yogini" | "ashtottari" | "kalachakra" | "narayana">("vimshottari");
   const [altDashas, setAltDashas] = useState<Record<string, {lord?: string; yogini?: string; sign_name?: string; years: number; start: string; end: string}[]>>({});
   const [dashaBusy, setDashaBusy] = useState(false);
+  const [page, setPage] = useState<ReadingPage | null>(null);
+  const [showWhy, setShowWhy] = useState(false);
   const [palmCopied, setPalmCopied] = useState<null | boolean>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -134,6 +136,10 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Chart computation failed");
       setChart(data);
+      fetch("/api/reading-page", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chart: data, language: lang }),
+      }).then((r) => (r.ok ? r.json() : null)).then(setPage).catch(() => setPage(null));
       setAltDashas({});
       setDashaSystem("vimshottari");
       setTab("Chart");
@@ -322,7 +328,14 @@ export default function Home() {
                 ))}
               </div>
               {dashaSystem === "vimshottari" ? (
-                <DashaTimeline chart={chart} />
+                <div>
+                  {page?.timeline?.current_sentence && (
+                    <p className="mb-3 rounded-lg border border-[#c9a227]/40 bg-[#c9a227]/10 px-3 py-2 text-sm text-[#e8d9a0]">
+                      📍 {page.timeline.current_sentence}
+                    </p>
+                  )}
+                  <DashaTimeline chart={chart} />
+                </div>
               ) : dashaBusy ? (
                 <p className="text-sm text-[#9c8f6f]">{t("loading_dasha")}</p>
               ) : altDashas[dashaSystem] ? (
@@ -430,6 +443,43 @@ export default function Home() {
           )}
           {tab === "Reading" && (
             <div className="space-y-4">
+              {page && (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(page.verdicts ?? {}).map(([topic, v]) => (
+                      <span key={topic}
+                            className={`rounded-full border px-3 py-1 text-xs capitalize ${
+                              v.verdict === "supportive" ? "border-emerald-500/50 text-emerald-300" :
+                              v.verdict === "challenging" ? "border-orange-500/50 text-orange-300" :
+                              "border-[#3d2f5c] text-[#cbbfa4]"}`}>
+                        {t(`sec_${topic}`) !== `sec_${topic}` ? t(`sec_${topic}`) : topic}: {t(`verdict_${v.verdict}`)}
+                      </span>
+                    ))}
+                  </div>
+                  {(page.uncertainty ?? []).map((n, i) => (
+                    <p key={i} className="text-xs text-orange-300/90">⚠ {n}</p>
+                  ))}
+                  <button onClick={() => setShowWhy((w) => !w)}
+                          className="text-xs text-[#c9a227] underline">
+                    {t("why_receipts")}
+                  </button>
+                  {showWhy && (
+                    <div className="max-h-72 space-y-2 overflow-y-auto rounded-lg border border-[#3d2f5c] bg-[#140b26] p-3 text-xs">
+                      {(page.claims ?? []).map((c) => (
+                        <div key={c.id} className="border-b border-[#2a1d45] pb-1">
+                          <div className="text-[#ede6d6]">{c.claim}</div>
+                          <div className="text-[#9c8f6f]">
+                            {c.chart_condition} · {c.source} · <b>{c.strength}</b>
+                            {c.cancellations.length > 0 && (
+                              <span className="text-emerald-400"> · cancelled: {c.cancellations.join("; ")}</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex flex-wrap items-center gap-2">
                 {READING_SECTIONS.map(([key]) => (
                   <button key={key} onClick={() => fetchReading(key)}

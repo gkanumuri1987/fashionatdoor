@@ -10,6 +10,7 @@ import json
 
 from .client import call_ai
 from .guardrails import PROMPT_RULES, scrub
+from .presentation import reading_page
 from .retrieval import archetypes_for_chart, dictums_for_chart
 
 PROMPT_VERSION = "1.0.0"
@@ -59,6 +60,10 @@ def generate_reading(chart: dict, section: str, language: str = "en") -> dict:
     if section not in SECTIONS:
         return {"_error": True, "_error_message": f"Unknown section '{section}'."}
 
+    page = reading_page(chart, language)
+    # Rank claims: full > firm > moderate > thin (the writer sequences, never re-weighs).
+    _order = {"full": 0, "firm": 1, "moderate": 2, "thin": 3}
+    ranked_claims = sorted(page["claims"], key=lambda c: _order.get(c["strength"], 2))
     dictums = dictums_for_chart(chart)
     archetypes = archetypes_for_chart(chart)
 
@@ -116,8 +121,21 @@ def generate_reading(chart: dict, section: str, language: str = "en") -> dict:
            if facts["time_accuracy"] != "exact" else "")
         + "\n=== COMPUTED FACTS (the only chart facts that exist) ===\n"
         + json.dumps(facts, ensure_ascii=False, default=str)
-        + "\n\n=== CLASSICAL DICTUMS TRIGGERED BY THIS CHART ===\n"
-        + json.dumps(dictums, ensure_ascii=False)
+        + "\n\n=== RANKED CLAIMS (pre-worded, with receipts — your ONLY source "
+          "of statements; sequence and tone them, never invent beyond them; a "
+          "claim marked thin is mentioned briefly or omitted; a cancellation "
+          "means the affliction is overcome) ===\n"
+        + json.dumps(ranked_claims, ensure_ascii=False)
+        + "\n\n=== RESOLVED VERDICTS (one per topic — already weighed; never "
+          "present competing views as unresolved) ===\n"
+        + json.dumps(page["verdicts"], ensure_ascii=False)
+        + "\n\n=== TIMELINE ===\n"
+        + json.dumps({"current": page["timeline"]["current_sentence"],
+                      "next_change": page["timeline"]["next_change"]}, ensure_ascii=False)
+        + "\n\n=== UNCERTAINTY NOTES (state each once, plainly) ===\n"
+        + json.dumps(page["uncertainty"], ensure_ascii=False)
+        + "\n\n=== GLOSSES (use these plain twins for technical terms) ===\n"
+        + json.dumps(page["glosses"], ensure_ascii=False)
         + "\n\n=== PURANIC ARCHETYPES FOR THIS CHART'S PIVOTAL GRAHAS ===\n"
         + json.dumps(archetypes, ensure_ascii=False)
     )
