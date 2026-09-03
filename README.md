@@ -37,9 +37,12 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
   are placed in `backend/ephe/`, the engine upgrades to them automatically.
 - Sidereal default: **Lahiri (Chitrapaksha)**. `raman` and `kp` (Krishnamurti)
   are selectable per request.
-- **Licence:** Swiss Ephemeris / pyswisseph is AGPL-3.0. Before commercial hosted
-  launch: open-source the server, buy Astrodienst's commercial licence, or swap
-  `jyotish/ephemeris.py` for an MIT alternative. Tracked as a launch blocker.
+- **Licence:** This repository is **AGPL-3.0** (see LICENSE, NOTICE.md) — the
+  backend links the AGPL Swiss Ephemeris, and publishing this source satisfies
+  the network clause for the hosted service. To go closed-source later: buy
+  Astrodienst's commercial licence, or swap `jyotish/ephemeris.py` for an
+  MIT-licensed stack (Skyfield + JPL data) and validate against the golden
+  regression set in `backend/tests/golden/`.
 
 ## Correctness bar
 
