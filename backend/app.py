@@ -512,3 +512,70 @@ def jaathakam_chat(body: ChatRequest):
     if result.get("_error"):
         raise HTTPException(status_code=502, detail=result["_error_message"])
     return result
+
+
+# ── Payments: Stripe (USD cards) + Razorpay (INR UPI/cards) ─────────────────
+
+@app.get("/api/pay/config")
+def pay_config():
+    import payments
+    return payments.config()
+
+
+class StripeCheckoutRequest(BaseModel):
+    plan: str = Field(pattern="^(monthly_basic|monthly_plus|lifetime|lifetime_plus)$")
+    user_id: str = Field(min_length=8, max_length=64)
+    email: str = Field(default="", max_length=200)
+    origin: str = Field(pattern="^https?://[^ ]+$")
+
+
+@app.post("/api/pay/stripe/checkout")
+def stripe_checkout_ep(body: StripeCheckoutRequest):
+    import payments
+    result = payments.stripe_checkout(body.plan, body.user_id, body.email, body.origin)
+    if "error" in result:
+        raise HTTPException(status_code=502, detail=result["error"])
+    return result
+
+
+@app.post("/api/pay/stripe/webhook")
+async def stripe_webhook_ep(request: Request):
+    import payments
+    payload = await request.body()
+    sig = request.headers.get("stripe-signature", "")
+    result = payments.stripe_webhook(payload, sig)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result
+
+
+class RazorpayOrderRequest(BaseModel):
+    plan: str = Field(pattern="^(monthly_basic|monthly_plus|lifetime|lifetime_plus)$")
+    user_id: str = Field(min_length=8, max_length=64)
+
+
+@app.post("/api/pay/razorpay/order")
+def razorpay_order_ep(body: RazorpayOrderRequest):
+    import payments
+    result = payments.razorpay_order(body.plan, body.user_id)
+    if "error" in result:
+        raise HTTPException(status_code=502, detail=result["error"])
+    return result
+
+
+class RazorpayVerifyRequest(BaseModel):
+    order_id: str
+    payment_id: str
+    signature: str
+    user_id: str
+    plan: str = Field(pattern="^(monthly_basic|monthly_plus|lifetime|lifetime_plus)$")
+
+
+@app.post("/api/pay/razorpay/verify")
+def razorpay_verify_ep(body: RazorpayVerifyRequest):
+    import payments
+    result = payments.razorpay_verify(body.order_id, body.payment_id, body.signature,
+                                      body.user_id, body.plan)
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    return result

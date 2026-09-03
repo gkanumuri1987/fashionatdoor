@@ -12,21 +12,21 @@ import { supabase } from "@/lib/supabase";
 
 const PLANS = [
   {
-    key: "monthly_basic", price: 1.99, period: "monthly" as const,
+    key: "monthly_basic", price: 1.99, inr: 179, period: "monthly" as const,
     features: ["plan_f_unlimited", "plan_f_readings", "plan_f_calendar"],
   },
   {
-    key: "monthly_plus", price: 2.99, period: "monthly" as const, popular: true,
+    key: "monthly_plus", price: 2.99, inr: 269, period: "monthly" as const, popular: true,
     features: ["plan_f_unlimited", "plan_f_readings", "plan_f_calendar",
                "plan_f_family", "plan_f_priority", "plan_f_ai"],
   },
   {
-    key: "lifetime", price: 9.99, period: "lifetime" as const,
+    key: "lifetime", price: 9.99, inr: 899, period: "lifetime" as const,
     features: ["plan_f_unlimited", "plan_f_readings", "plan_f_calendar",
                "plan_f_family", "plan_f_forever"],
   },
   {
-    key: "lifetime_plus", price: 19.99, period: "lifetime" as const,
+    key: "lifetime_plus", price: 19.99, inr: 1799, period: "lifetime" as const,
     features: ["plan_f_unlimited", "plan_f_readings", "plan_f_calendar",
                "plan_f_family", "plan_f_priority", "plan_f_ai", "plan_f_forever"],
   },
@@ -45,6 +45,82 @@ export default function SubscriptionPage() {
   const [msg, setMsg] = useState("");
   const { account } = useAccount();
   const [refCopied, setRefCopied] = useState(false);
+  const [pay, setPay] = useState<{ stripe: boolean; razorpay: { enabled: boolean; key_id: string | null } } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/pay/config").then((r) => (r.ok ? r.json() : null))
+      .then(setPay).catch(() => setPay(null));
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("paid")) setMsg(t("pay_success"));
+    if (q.get("cancelled")) setMsg(t("pay_cancelled"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function payStripe(planKey: string) {
+    if (!sb) return;
+    const { data: u } = await sb.auth.getUser();
+    if (!u.user) { setMsg(t("sub_signin_first")); return; }
+    setBusy(planKey);
+    try {
+      const res = await fetch("/api/pay/stripe/checkout", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planKey, user_id: u.user.id,
+                               email: u.user.email ?? "", origin: window.location.origin }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail);
+      window.location.href = data.url;
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : t("generic_error"));
+      setBusy("");
+    }
+  }
+
+  async function payRazorpay(planKey: string) {
+    if (!sb) return;
+    const { data: u } = await sb.auth.getUser();
+    if (!u.user) { setMsg(t("sub_signin_first")); return; }
+    setBusy(planKey);
+    try {
+      if (!(window as unknown as { Razorpay?: unknown }).Razorpay) {
+        await new Promise<void>((res, rej) => {
+          const sc = document.createElement("script");
+          sc.src = "https://checkout.razorpay.com/v1/checkout.js";
+          sc.onload = () => res(); sc.onerror = () => rej(new Error("Razorpay load failed"));
+          document.body.appendChild(sc);
+        });
+      }
+      const res = await fetch("/api/pay/razorpay/order", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planKey, user_id: u.user.id }),
+      });
+      const order = await res.json();
+      if (!res.ok) throw new Error(order.detail);
+      const RazorpayCtor = (window as unknown as { Razorpay: new (o: object) => { open: () => void } }).Razorpay;
+      const rz = new RazorpayCtor({
+        key: order.key_id, order_id: order.order_id,
+        amount: order.amount, currency: order.currency, name: order.label,
+        prefill: { email: u.user.email ?? "" },
+        theme: { color: "#d9ab2e" },
+        handler: async (resp: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+          const v = await fetch("/api/pay/razorpay/verify", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ order_id: resp.razorpay_order_id,
+                                   payment_id: resp.razorpay_payment_id,
+                                   signature: resp.razorpay_signature,
+                                   user_id: u.user!.id, plan: planKey }),
+          });
+          setMsg(v.ok ? t("pay_success") : t("generic_error"));
+          refresh();
+        },
+      });
+      rz.open();
+      setBusy("");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : t("generic_error"));
+      setBusy("");
+    }
+  }
 
   const refresh = useCallback(async () => {
     if (!sb) return;
@@ -129,6 +205,9 @@ export default function SubscriptionPage() {
               <span className="text-sm text-[var(--ink-muted)]">
                 {p.period === "monthly" ? t("sub_per_month") : t("sub_once")}
               </span>
+              <div className="text-sm text-[var(--gold)]">
+                ₹{p.inr}{p.period === "monthly" ? t("sub_per_month") : ""}
+              </div>
             </div>
             <ul className="mb-4 mt-4 flex-1 space-y-2 text-sm text-[var(--ink-soft)]">
               {p.features.map((f) => (
@@ -137,11 +216,30 @@ export default function SubscriptionPage() {
                 </li>
               ))}
             </ul>
-            <button onClick={() => choose(p.key, p.price, p.period)}
-                    disabled={busy !== "" || signedIn === false || Boolean(isPremium)}
-                    className={p.popular ? "btn-gold w-full" : "btn-ghost w-full"}>
-              {busy === p.key ? "…" : t("sub_choose")}
-            </button>
+            {(pay?.stripe || pay?.razorpay.enabled) ? (
+              <div className="space-y-2">
+                {pay.razorpay.enabled && (
+                  <button onClick={() => payRazorpay(p.key)}
+                          disabled={busy !== "" || signedIn === false || Boolean(isPremium)}
+                          className={p.popular ? "btn-gold w-full text-sm" : "btn-ghost w-full text-sm"}>
+                    {busy === p.key ? "…" : t("pay_upi")}
+                  </button>
+                )}
+                {pay.stripe && (
+                  <button onClick={() => payStripe(p.key)}
+                          disabled={busy !== "" || signedIn === false || Boolean(isPremium)}
+                          className="btn-ghost w-full text-sm">
+                    {busy === p.key ? "…" : `${t("pay_card")} — $${p.price}`}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <button onClick={() => choose(p.key, p.price, p.period)}
+                      disabled={busy !== "" || signedIn === false || Boolean(isPremium)}
+                      className={p.popular ? "btn-gold w-full" : "btn-ghost w-full"}>
+                {busy === p.key ? "…" : t("sub_choose")}
+              </button>
+            )}
           </div>
         ))}
       </div>
