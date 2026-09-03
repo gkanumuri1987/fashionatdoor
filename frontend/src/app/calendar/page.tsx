@@ -14,7 +14,8 @@ const LOCATIONS = [
   { key: "in", label: "🇮🇳 India" }, { key: "uk", label: "🇬🇧 UK" },
   { key: "us_east", label: "🇺🇸 US East" }, { key: "us_central", label: "🇺🇸 US Central" },
   { key: "us_west", label: "🇺🇸 US West" },
-  { key: "au", label: "🇦🇺 Australia" },
+  { key: "au", label: "🇦🇺 Australia" }, { key: "ca", label: "🇨🇦 Canada" },
+  { key: "gulf", label: "🇦🇪 Gulf (UAE)" }, { key: "sg", label: "🇸🇬 Singapore" },
 ];
 const TRADITIONS = [
   { key: "telugu", label: "తెలుగు · Telugu" }, { key: "tamil", label: "தமிழ் · Tamil" },
@@ -30,8 +31,10 @@ interface CalDay {
   date: string; day: number; weekday: number; vara: string;
   sunrise: string | null; sunset: string | null;
   tithi: { name: string; paksha: string; number: number; ends: string | null;
-           ends_next_day?: boolean; next?: string | null };
-  nakshatra: { name: string; ends: string | null; ends_next_day?: boolean };
+           ends_next_day?: boolean; next?: string | null; local?: string;
+           next_local?: string };
+  nakshatra: { name: string; ends: string | null; ends_next_day?: boolean; local?: string };
+  vara_local?: string; masa_local?: string;
   moon_phase?: "full" | "new" | null;
   good_time?: { abhijit: string | null };
   avoid_times?: { rahu_kalam: string | null; yamaganda: string | null; gulika_kalam: string | null };
@@ -196,11 +199,13 @@ export default function CalendarPage() {
                       {d.moon_phase === "new" && <span className="ml-1 text-sm" title="Amavasya">🌑</span>}
                     </span>
                     <span className="text-[9px]" style={{ color: masaColor }}>
-                      {tradition === "tamil" ? `${d.tamil_month} ${d.tamil_day}` : masaLabel}
+                      {tradition === "tamil"
+                        ? `${d.masa_local ?? d.tamil_month} ${d.tamil_day}`
+                        : (d.masa_local ? `${d.masa_adhika ? "అధిక " : ""}${d.masa_local}` : masaLabel)}
                     </span>
                   </div>
                   <div className="mt-1 text-[var(--ink-soft)]">
-                    {d.tithi.name}
+                    {d.tithi.local ?? d.tithi.name}
                     {d.tithi.ends && (
                       <span className="text-[var(--ink-faint)]">
                         {" "}→{d.tithi.ends}{d.tithi.ends_next_day ? "⁺¹" : ""}
@@ -209,11 +214,11 @@ export default function CalendarPage() {
                   </div>
                   {d.tithi.next && (
                     <div className="text-[9px] italic text-[var(--ink-faint)]">
-                      {t("cal_then")} {d.tithi.next}
+                      {t("cal_then")} {d.tithi.next_local ?? d.tithi.next}
                     </div>
                   )}
                   <div className="text-[var(--ink-muted)]">
-                    {d.nakshatra.name}
+                    {d.nakshatra.local ?? d.nakshatra.name}
                     {d.nakshatra.ends && (
                       <span className="text-[var(--ink-faint)]">
                         {" "}→{d.nakshatra.ends}{d.nakshatra.ends_next_day ? "⁺¹" : ""}

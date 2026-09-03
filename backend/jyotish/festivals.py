@@ -37,6 +37,9 @@ LOCATIONS = {
     "us_central": {"tz": "America/Chicago", "lat": 41.8781, "lng": -87.6298, "label": "US Central"},
     "us_west": {"tz": "America/Los_Angeles", "lat": 34.0522, "lng": -118.2437, "label": "US West"},
     "au": {"tz": "Australia/Sydney", "lat": -33.8688, "lng": 151.2093, "label": "Australia"},
+    "ca": {"tz": "America/Toronto", "lat": 43.6532, "lng": -79.3832, "label": "Canada"},
+    "gulf": {"tz": "Asia/Dubai", "lat": 25.2048, "lng": 55.2708, "label": "Gulf (UAE)"},
+    "sg": {"tz": "Asia/Singapore", "lat": 1.3521, "lng": 103.8198, "label": "Singapore"},
 }
 
 TRADITIONS = ("telugu", "tamil", "kannada", "hindi")
@@ -277,6 +280,8 @@ def build_month(year: int, month: int, tradition: str = "telugu",
         })
 
     _attach_festivals(days, tradition, tz, lat, lng, ayanamsa)
+    for day in days:
+        localize_day(day, tradition)
 
     for day in days:  # strip internals
         for k in ("_jd_sunrise", "_jd_sunset", "_jd_noon"):
@@ -374,3 +379,102 @@ def _attach_festivals(days: list[dict], tradition: str, tz: ZoneInfo,
                             "name": f["names"].get(tradition, f["names"]["en"]),
                             "name_en": f["names"]["en"]})
                         break
+
+
+# ── Native-script panchanga vocabulary per tradition ────────────────────────
+# Tithi stems indexed 1-15 (shukla/krishna share stems; 15 = Purnima/Amavasya
+# handled separately), nakshatras 0-26, masas by amanta name, varas Mon-first.
+
+TITHI_LOCAL: dict[str, list[str]] = {
+    "telugu": ["పాడ్యమి", "విదియ", "తదియ", "చవితి", "పంచమి", "షష్ఠి", "సప్తమి",
+               "అష్టమి", "నవమి", "దశమి", "ఏకాదశి", "ద్వాదశి", "త్రయోదశి", "చతుర్దశి"],
+    "tamil": ["பிரதமை", "துவிதியை", "திருதியை", "சதுர்த்தி", "பஞ்சமி", "சஷ்டி",
+              "சப்தமி", "அஷ்டமி", "நவமி", "தசமி", "ஏகாதசி", "துவாதசி",
+              "திரயோதசி", "சதுர்த்தசி"],
+    "kannada": ["ಪಾಡ್ಯ", "ಬಿದಿಗೆ", "ತದಿಗೆ", "ಚೌತಿ", "ಪಂಚಮಿ", "ಷಷ್ಠಿ", "ಸಪ್ತಮಿ",
+                "ಅಷ್ಟಮಿ", "ನವಮಿ", "ದಶಮಿ", "ಏಕಾದಶಿ", "ದ್ವಾದಶಿ", "ತ್ರಯೋದಶಿ", "ಚತುರ್ದಶಿ"],
+    "hindi": ["प्रतिपदा", "द्वितीया", "तृतीया", "चतुर्थी", "पंचमी", "षष्ठी", "सप्तमी",
+              "अष्टमी", "नवमी", "दशमी", "एकादशी", "द्वादशी", "त्रयोदशी", "चतुर्दशी"],
+}
+FULL_NEW_LOCAL = {
+    "telugu": {"full": "పౌర్ణమి", "new": "అమావాస్య", "shukla": "శుక్ల", "krishna": "బహుళ"},
+    "tamil": {"full": "பௌர்ணமி", "new": "அமாவாசை", "shukla": "வளர்பிறை", "krishna": "தேய்பிறை"},
+    "kannada": {"full": "ಹುಣ್ಣಿಮೆ", "new": "ಅಮಾವಾಸ್ಯೆ", "shukla": "ಶುಕ್ಲ", "krishna": "ಕೃಷ್ಣ"},
+    "hindi": {"full": "पूर्णिमा", "new": "अमावस्या", "shukla": "शुक्ल", "krishna": "कृष्ण"},
+}
+NAKSHATRA_LOCAL: dict[str, list[str]] = {
+    "telugu": ["అశ్విని", "భరణి", "కృత్తిక", "రోహిణి", "మృగశిర", "ఆరుద్ర", "పునర్వసు",
+               "పుష్యమి", "ఆశ్లేష", "మఖ", "పుబ్బ", "ఉత్తర", "హస్త", "చిత్త", "స్వాతి",
+               "విశాఖ", "అనూరాధ", "జ్యేష్ఠ", "మూల", "పూర్వాషాఢ", "ఉత్తరాషాఢ",
+               "శ్రవణం", "ధనిష్ఠ", "శతభిషం", "పూర్వాభాద్ర", "ఉత్తరాభాద్ర", "రేవతి"],
+    "tamil": ["அசுவினி", "பரணி", "கார்த்திகை", "ரோகிணி", "மிருகசீரிடம்", "திருவாதிரை",
+              "புனர்பூசம்", "பூசம்", "ஆயில்யம்", "மகம்", "பூரம்", "உத்திரம்", "அஸ்தம்",
+              "சித்திரை", "சுவாதி", "விசாகம்", "அனுஷம்", "கேட்டை", "மூலம்", "பூராடம்",
+              "உத்திராடம்", "திருவோணம்", "அவிட்டம்", "சதயம்", "பூரட்டாதி",
+              "உத்திரட்டாதி", "ரேவதி"],
+    "kannada": ["ಅಶ್ವಿನಿ", "ಭರಣಿ", "ಕೃತ್ತಿಕಾ", "ರೋಹಿಣಿ", "ಮೃಗಶಿರ", "ಆರ್ದ್ರಾ", "ಪುನರ್ವಸು",
+                "ಪುಷ್ಯ", "ಆಶ್ಲೇಷಾ", "ಮಘಾ", "ಪುಬ್ಬ", "ಉತ್ತರಾ", "ಹಸ್ತ", "ಚಿತ್ರಾ", "ಸ್ವಾತಿ",
+                "ವಿಶಾಖಾ", "ಅನುರಾಧಾ", "ಜ್ಯೇಷ್ಠಾ", "ಮೂಲಾ", "ಪೂರ್ವಾಷಾಢ", "ಉತ್ತರಾಷಾಢ",
+                "ಶ್ರವಣ", "ಧನಿಷ್ಠಾ", "ಶತಭಿಷಾ", "ಪೂರ್ವಾಭಾದ್ರ", "ಉತ್ತರಾಭಾದ್ರ", "ರೇವತಿ"],
+    "hindi": ["अश्विनी", "भरणी", "कृत्तिका", "रोहिणी", "मृगशिरा", "आर्द्रा", "पुनर्वसु",
+              "पुष्य", "आश्लेषा", "मघा", "पूर्वा फाल्गुनी", "उत्तरा फाल्गुनी", "हस्त",
+              "चित्रा", "स्वाती", "विशाखा", "अनुराधा", "ज्येष्ठा", "मूल", "पूर्वाषाढ़ा",
+              "उत्तराषाढ़ा", "श्रवण", "धनिष्ठा", "शतभिषा", "पूर्वाभाद्रपदा",
+              "उत्तराभाद्रपदा", "रेवती"],
+}
+MASA_LOCAL: dict[str, dict[str, str]] = {
+    "telugu": {"Chaitra": "చైత్రం", "Vaishakha": "వైశాఖం", "Jyeshtha": "జ్యేష్ఠం",
+               "Ashadha": "ఆషాఢం", "Shravana": "శ్రావణం", "Bhadrapada": "భాద్రపదం",
+               "Ashwina": "ఆశ్వయుజం", "Kartika": "కార్తీకం", "Margashirsha": "మార్గశిరం",
+               "Pausha": "పుష్యం", "Magha": "మాఘం", "Phalguna": "ఫాల్గుణం"},
+    "kannada": {"Chaitra": "ಚೈತ್ರ", "Vaishakha": "ವೈಶಾಖ", "Jyeshtha": "ಜ್ಯೇಷ್ಠ",
+                "Ashadha": "ಆಷಾಢ", "Shravana": "ಶ್ರಾವಣ", "Bhadrapada": "ಭಾದ್ರಪದ",
+                "Ashwina": "ಆಶ್ವಯುಜ", "Kartika": "ಕಾರ್ತೀಕ", "Margashirsha": "ಮಾರ್ಗಶಿರ",
+                "Pausha": "ಪುಷ್ಯ", "Magha": "ಮಾಘ", "Phalguna": "ಫಾಲ್ಗುಣ"},
+    "hindi": {"Chaitra": "चैत्र", "Vaishakha": "वैशाख", "Jyeshtha": "ज्येष्ठ",
+              "Ashadha": "आषाढ़", "Shravana": "श्रावण", "Bhadrapada": "भाद्रपद",
+              "Ashwina": "आश्विन", "Kartika": "कार्तिक", "Margashirsha": "मार्गशीर्ष",
+              "Pausha": "पौष", "Magha": "माघ", "Phalguna": "फाल्गुन"},
+    "tamil": {},  # Tamil uses SOLAR months — TAMIL_MONTHS_LOCAL below.
+}
+TAMIL_MONTHS_LOCAL = ["சித்திரை", "வைகாசி", "ஆனி", "ஆடி", "ஆவணி", "புரட்டாசி",
+                      "ஐப்பசி", "கார்த்திகை", "மார்கழி", "தை", "மாசி", "பங்குனி"]
+VARA_LOCAL: dict[str, list[str]] = {  # Mon-first, matching constants.VARAS
+    "telugu": ["సోమ", "మంగళ", "బుధ", "గురు", "శుక్ర", "శని", "ఆది"],
+    "tamil": ["திங்கள்", "செவ்வாய்", "புதன்", "வியாழன்", "வெள்ளி", "சனி", "ஞாயிறு"],
+    "kannada": ["ಸೋಮ", "ಮಂಗಳ", "ಬುಧ", "ಗುರು", "ಶುಕ್ರ", "ಶನಿ", "ಭಾನು"],
+    "hindi": ["सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "रवि"],
+}
+
+
+def localize_day(day: dict, tradition: str) -> dict:
+    """Attach native-script names to a computed day (non-destructive extras)."""
+    fn = FULL_NEW_LOCAL.get(tradition, FULL_NEW_LOCAL["telugu"])
+    num, paksha = day["tithi"]["number"], day["tithi"]["paksha"]
+    if num == 15:
+        tithi_local = fn["full"] if paksha == "shukla" else fn["new"]
+    else:
+        tithi_local = f"{fn[paksha]} {TITHI_LOCAL[tradition][num - 1]}"
+    nak_idx = NAKSHATRAS.index(day["nakshatra"]["name"]) if day["nakshatra"]["name"] in NAKSHATRAS else None
+    day["tithi"]["local"] = tithi_local
+    if day["tithi"].get("next"):
+        # localize the "then" name too (strip paksha word for brevity)
+        nxt = day["tithi"]["next"]
+        stem = nxt.split(" ", 1)[-1]
+        try:
+            i = ["Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi",
+                 "Saptami", "Ashtami", "Navami", "Dashami", "Ekadashi", "Dwadashi",
+                 "Trayodashi", "Chaturdashi"].index(stem)
+            day["tithi"]["next_local"] = TITHI_LOCAL[tradition][i]
+        except ValueError:
+            day["tithi"]["next_local"] = (fn["full"] if nxt == "Purnima"
+                                          else fn["new"] if nxt == "Amavasya" else nxt)
+    if nak_idx is not None:
+        day["nakshatra"]["local"] = NAKSHATRA_LOCAL[tradition][nak_idx]
+    day["vara_local"] = VARA_LOCAL[tradition][day["weekday"]]
+    if tradition == "tamil":
+        ti = TAMIL_MONTHS.index(day["tamil_month"])
+        day["masa_local"] = TAMIL_MONTHS_LOCAL[ti]
+    else:
+        day["masa_local"] = MASA_LOCAL[tradition].get(day["masa"], day["masa"])
+    return day
