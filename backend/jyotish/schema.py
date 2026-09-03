@@ -31,6 +31,10 @@ class GrahaInfo(BaseModel):
     dignity: str
     nakshatra: NakshatraInfo
     vargas: dict[str, int]
+    # v1.1: strength + state annotations
+    avasthas: Optional[dict] = None
+    functional: Optional[dict] = None
+    shadbala: Optional[dict] = None
 
 
 class LagnaInfo(BaseModel):
@@ -102,5 +106,14 @@ class ChartV1(BaseModel):
     current_dasha: Optional[dict]
     moon_sign: int
     moon_sign_name: str
+    # v1.1: judgment layer
+    sunrise_utc: Optional[str] = None
+    sunset_utc: Optional[str] = None
+    is_day_birth: Optional[bool] = None
+    functional_lords: Optional[dict] = None
+    shadbala: Optional[dict] = None
+    shadbala_summary: Optional[dict] = None
+    ashtakavarga: Optional[dict] = None
+    graha_yuddha: Optional[list] = None
 
     model_config = {"populate_by_name": True}

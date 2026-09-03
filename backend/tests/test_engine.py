@@ -178,3 +178,66 @@ def test_mahapurusha_from_moon_kendra():
     yogas = detect_yogas(grahas, lagna)
     keys = {y["key"] for y in yogas}
     assert "mahapurusha_sasa" in keys
+
+
+# ── v1.1 judgment layer integration ──────────────────────────────────────────
+
+def test_chart_v11_strength_layer(chart):
+    # Shadbala present for all 7 classical grahas with sane bounds.
+    assert set(chart["shadbala_summary"]) == {"sun", "moon", "mars", "mercury",
+                                              "jupiter", "venus", "saturn"}
+    for g, e in chart["shadbala_summary"].items():
+        assert 2.0 < e["rupas"] < 15.0
+    # Ashtakavarga invariants.
+    av = chart["ashtakavarga"]
+    assert av["sarva_total"] == 337
+    assert len(av["sarva"]) == 12 and all(0 <= b <= 8 * 8 for b in av["sarva"])
+    assert set(av["bhinna"]) == set(chart["shadbala_summary"])
+    # Bhava SAV bindus mirror the sarva of the bhava's sign.
+    for b in chart["bhavas"]:
+        assert b["sav_bindus"] == av["sarva"][b["sign"]]
+
+
+def test_chart_v11_functional_and_avasthas(chart):
+    fn = chart["functional_lords"]
+    assert len(fn["maraka_lords"]) >= 1
+    assert fn["badhaka"]["lord"] in chart["grahas"]
+    # Cancer lagna (this chart): movable → badhaka house 11.
+    assert fn["badhaka"]["house"] == 11
+    for g, gd in chart["grahas"].items():
+        a = gd["avasthas"]
+        assert a["baladi"] in ("bala", "kumara", "yuva", "vriddha", "mrita")
+        assert a["jagradadi"] in ("jagrat", "swapna", "sushupti")
+        assert isinstance(a["vargottama"], bool)
+    # Sunrise-based vara present with basis marker.
+    assert chart["panchanga"]["vara"]["basis"] == "sunrise"
+    assert chart["sunrise_utc"] is not None
+
+
+def test_yoga_strength_annotated(chart):
+    with_grahas = [y for y in chart["yogas"] if y.get("grahas")]
+    assert with_grahas, "expected at least one yoga with participants"
+    for y in with_grahas:
+        if any(g in chart["shadbala_summary"] for g in y["grahas"]):
+            assert "strength_ratio" in y and y["strength_ratio"] > 0
+
+
+def test_dictums_carry_weights(chart):
+    import sys
+    sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent.parent))
+    from ai.retrieval import dictums_for_chart
+    dictums = dictums_for_chart(chart)
+    weighted = [d for d in dictums if "weight" in d]
+    assert len(weighted) >= 5, "graha and yoga dictums should carry strength weights"
+    assert all(0.0 < d["weight"] <= 2.0 for d in weighted)
+
+
+def test_pre_sunrise_birth_takes_previous_vara():
+    # 03:00 IST birth — before sunrise, so the vara is the PREVIOUS weekday.
+    c = compute_chart(date(1990, 5, 15), time(3, 0),
+                      lat=17.385, lng=78.4867, tz_name="Asia/Kolkata")
+    # 1990-05-15 was a Tuesday; pre-sunrise → Monday's vara (Somavara).
+    assert c["panchanga"]["vara"]["name"] == "Somavara"
+    day = compute_chart(date(1990, 5, 15), time(10, 30),
+                        lat=17.385, lng=78.4867, tz_name="Asia/Kolkata")
+    assert day["panchanga"]["vara"]["name"] == "Mangalavara"

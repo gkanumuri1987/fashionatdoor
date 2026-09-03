@@ -11,13 +11,18 @@ from __future__ import annotations
 from datetime import date, datetime, time, timezone
 
 from . import ENGINE_VERSION
+from .ashtakavarga import bhinnashtakavarga, sarvashtakavarga
+from .avastha import avasthas_for, graha_yuddha
 from .constants import GRAHAS, GRAHA_NAMES, SIGNS, SIGN_LORD, SPECIAL_ASPECTS
 from .dasha import current_period, vimshottari
 from .dignity import combustion_flags, compound_relation, dignity_of
-from .ephemeris import ayanamsa_value, houses, julian_day_ut, sidereal_positions
+from .ephemeris import (ayanamsa_value, houses, jd_to_utc, julian_day_ut,
+                        sidereal_positions, sunrise_sunset)
 from .geo import to_utc
+from .lords import functional_nature
 from .nakshatra import nakshatra_of
 from .panchanga import panchanga
+from .strength import ShadbalaInputs, ishta_kashta, shadbala
 from .varga import all_vargas
 from .yogas import detect_yogas
 
@@ -64,6 +69,43 @@ def compute_chart(birth_date: date, birth_time: time, lat: float, lng: float,
     house_data = houses(jd, lat, lng, ayanamsa=ayanamsa, system=house_system)
     lagna_sign = int(house_data["ascendant"] // 30)
     combust = combustion_flags(positions)
+    ay_value = ayanamsa_value(jd, ayanamsa)
+
+    # Sunrise/sunset — drives day/night balas AND the traditional vara
+    # (a birth before sunrise belongs to the PREVIOUS vara).
+    rise_jd, set_jd = sunrise_sunset(jd, lat, lng)
+    from datetime import timedelta as _td
+    vara_date = birth_date
+    if rise_jd is not None and jd < rise_jd:
+        vara_date = birth_date - _td(days=1)
+    if rise_jd is not None and set_jd is not None:
+        is_day_birth = rise_jd <= jd < set_jd
+    else:  # polar fallback: local-solar-hour approximation
+        local_frac = (jd + lng / 360.0 + 0.5) % 1.0
+        is_day_birth = 0.25 <= local_frac < 0.75
+
+    wars = graha_yuddha(positions)
+    _lost_war = {w["loser"] for w in wars}
+
+    # Functional nature per lagna (yogakaraka / maraka / badhaka — Rule: the
+    # engine states these; the AI never derives them).
+    fn = functional_nature(lagna_sign)
+
+    # Shadbala (skipped only in polar no-sunrise conditions).
+    sb: dict[str, dict] = {}
+    if rise_jd is not None and set_jd is not None:
+        sb = shadbala(ShadbalaInputs(
+            positions=positions, lagna_lon=house_data["ascendant"], jd_ut=jd,
+            lat=lat, lng=lng, sunrise_jd=rise_jd, sunset_jd=set_jd,
+            is_day_birth=is_day_birth, weekday=vara_date.weekday(),
+            ayanamsa_value=ay_value,
+        ))
+
+    bav = bhinnashtakavarga(
+        {g: positions[g]["lon"] for g in
+         ("sun", "moon", "mars", "mercury", "jupiter", "venus", "saturn")},
+        lagna_sign)
+    sav = sarvashtakavarga(bav)
 
     grahas: dict[str, dict] = {}
     for g in GRAHAS:
@@ -81,7 +123,24 @@ def compute_chart(birth_date: date, birth_time: time, lat: float, lng: float,
             "dignity": dignity_of(g, lon),
             "nakshatra": nakshatra_of(lon),
             "vargas": all_vargas(lon),
+            "avasthas": avasthas_for(g, lon, combust[g], g in _lost_war),
         }
+        if g in fn["per_graha"]:
+            entry["functional"] = {
+                "verdict": fn["per_graha"][g]["verdict"],
+                "is_maraka": fn["per_graha"][g]["is_maraka"],
+                "is_badhaka": fn["per_graha"][g]["is_badhaka"],
+            }
+        if g in sb:
+            ik = ishta_kashta(sb[g]["sthana"]["uccha"], sb[g]["chesta"])
+            entry["shadbala"] = {
+                "total_rupas": sb[g]["total_rupas"],
+                "required_rupas": sb[g]["required_rupas"],
+                "ratio": sb[g]["ratio"],
+                "is_strong": sb[g]["is_strong"],
+                "ishta": round(ik[0], 2),
+                "kashta": round(ik[1], 2),
+            }
         grahas[g] = entry
 
     # Upgrade friend/enemy dignities to compound (needs all positions — the
@@ -103,6 +162,7 @@ def compute_chart(birth_date: date, birth_time: time, lat: float, lng: float,
             "lord": SIGN_LORD[sign],
             "cusp": round(house_data["cusps"][h - 1], 6),
             "occupants": [g for g in GRAHAS if grahas[g]["house"] == h],
+            "sav_bindus": sav[sign],
         })
 
     return {
@@ -114,9 +174,10 @@ def compute_chart(birth_date: date, birth_time: time, lat: float, lng: float,
             "utc": instant.utc.isoformat(),
             "utc_offset_hours": instant.utc_offset_hours,
             "time_accuracy": time_accuracy,
+            "time_note": instant.time_note,
             "ayanamsa": ayanamsa, "house_system": house_system, "node_type": node_type,
         },
-        "ayanamsa_value": round(ayanamsa_value(jd, ayanamsa), 6),
+        "ayanamsa_value": round(ay_value, 6),
         "julian_day_ut": jd,
         "lagna": {
             "lon": round(house_data["ascendant"], 6),
@@ -129,13 +190,38 @@ def compute_chart(birth_date: date, birth_time: time, lat: float, lng: float,
         "grahas": grahas,
         "bhavas": bhavas,
         "aspects": _graha_aspects(grahas),
-        "panchanga": panchanga(positions["sun"]["lon"], positions["moon"]["lon"], birth_date),
-        "yogas": detect_yogas(grahas, lagna_sign),
+        "panchanga": panchanga(positions["sun"]["lon"], positions["moon"]["lon"],
+                               birth_date, vara_date=vara_date),
+        "yogas": _annotate_yoga_strength(detect_yogas(grahas, lagna_sign), sb),
         "vimshottari": dasha,
         "current_dasha": current_period(dasha, now_jd),
         "moon_sign": grahas["moon"]["sign"],
         "moon_sign_name": grahas["moon"]["sign_name"],
+        "sunrise_utc": jd_to_utc(rise_jd).isoformat() if rise_jd else None,
+        "sunset_utc": jd_to_utc(set_jd).isoformat() if set_jd else None,
+        "is_day_birth": is_day_birth,
+        "functional_lords": fn,
+        "shadbala": sb,
+        "shadbala_summary": {
+            g: {"rupas": sb[g]["total_rupas"], "required": sb[g]["required_rupas"],
+                "is_strong": sb[g]["is_strong"]}
+            for g in sb
+        },
+        "ashtakavarga": {"bhinna": bav, "sarva": sav, "sarva_total": sum(sav)},
+        "graha_yuddha": wars,
     }
+
+
+def _annotate_yoga_strength(yogas: list[dict], sb: dict[str, dict]) -> list[dict]:
+    """A yoga on strong grahas is a different statement from the same yoga on
+    weak ones — attach the mean Shadbala ratio of the participants."""
+    for y in yogas:
+        parts = [g for g in y.get("grahas", []) if g in sb]
+        if parts:
+            avg = sum(sb[g]["ratio"] for g in parts) / len(parts)
+            y["strength_ratio"] = round(avg, 3)
+            y["strong"] = avg >= 1.0
+    return yogas
 
 
 def transit_report(chart: dict, as_of: datetime | None = None) -> dict:
@@ -154,16 +240,35 @@ def transit_report(chart: dict, as_of: datetime | None = None) -> dict:
     for g in GRAHAS:
         lon = positions[g]["lon"]
         sign = int(lon // 30)
-        transits[g] = {
+        entry = {
             "lon": round(lon, 6), "sign": sign, "sign_name": SIGNS[sign]["en"],
             "retrograde": positions[g]["retrograde"],
             "house_from_lagna": (sign - lagna_sign) % 12 + 1,
             "house_from_moon": (sign - moon_sign) % 12 + 1,
             "nakshatra": nakshatra_of(lon)["name"],
         }
+        sav_natal = (chart.get("ashtakavarga") or {}).get("sarva")
+        if sav_natal:
+            # Classical gochara judgment: a transit over a high-bindu sign
+            # supports; over a low-bindu sign strains (SAV mean = 28).
+            entry["sav_bindus"] = sav_natal[sign]
+        transits[g] = entry
 
     sat_from_moon = transits["saturn"]["house_from_moon"]
     sade_sati = sat_from_moon in (12, 1, 2)
+
+    # Tarabala: count today's Moon nakshatra from the NATAL Moon nakshatra
+    # (janma tara), folded 1-9. Favourable: Sampat(2), Kshema(4), Sadhaka(6),
+    # Mitra(8), Ati-mitra(9). Unfavourable: Vipat(3), Pratyari(5), Vadha(7).
+    natal_nak = nakshatra_of(chart["grahas"]["moon"]["lon"])["index"]
+    today_nak = nakshatra_of(positions["moon"]["lon"])["index"]
+    tara_count = (today_nak - natal_nak) % 27 % 9 + 1
+    tara_names = ["Janma", "Sampat", "Vipat", "Kshema", "Pratyari",
+                  "Sadhaka", "Vadha", "Mitra", "Ati-mitra"]
+    # Chandrabala: today's Moon sign counted from the natal Moon sign;
+    # favourable at 1, 3, 6, 7, 10, 11.
+    chandra_count = transits["moon"]["house_from_moon"]
+
     return {
         "as_of": as_of.isoformat(),
         "transits": transits,
@@ -171,4 +276,18 @@ def transit_report(chart: dict, as_of: datetime | None = None) -> dict:
             "active": sade_sati,
             "phase": _SADE_SATI_PHASES.get(sat_from_moon) if sade_sati else None,
         },
+        "shani_flags": {
+            "ashtama_shani": sat_from_moon == 8,
+            "kantaka_shani": sat_from_moon in (4, 7, 10),
+        },
+        "tarabala": {
+            "count": tara_count,
+            "name": tara_names[tara_count - 1],
+            "favourable": tara_count in (2, 4, 6, 8, 9),
+        },
+        "chandrabala": {
+            "count": chandra_count,
+            "favourable": chandra_count in (1, 3, 6, 7, 10, 11),
+        },
+        "jupiter_from_moon": transits["jupiter"]["house_from_moon"],
     }

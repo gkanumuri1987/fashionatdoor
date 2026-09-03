@@ -48,6 +48,30 @@ def dictums_for_chart(chart: dict) -> list[dict]:
                 "dictum": line,
             })
 
+    sb = chart.get("shadbala_summary") or {}
+    neecha_bhanga_grahas = {y["key"].removeprefix("neecha_bhanga_")
+                            for y in chart.get("yogas", [])
+                            if y.get("key", "").startswith("neecha_bhanga_")}
+
+    def _weight_for(graha: str) -> float | None:
+        e = sb.get(graha)
+        if not e or not e.get("required"):
+            return None
+        return round(min(2.0, e["rupas"] / e["required"]), 2)
+
+    # Annotate the graha-placement dictums emitted above with strength weights
+    # and cancellation flags — a dictum on a strong graha reads differently.
+    for d in out:
+        trig = d.get("trigger", "")
+        for g in sb:
+            if trig.startswith(f"{g} in house") or trig.startswith(f"{g} in "):
+                w = _weight_for(g)
+                if w is not None:
+                    d["weight"] = w
+                if g in neecha_bhanga_grahas and "debilitat" in (d.get("dictum", "") + trig).lower():
+                    d["cancelled_by"] = "neecha bhanga (dispositor in kendra)"
+                break
+
     yoga_corpus = _load("yogas")
     for y in chart.get("yogas", []):
         key = y["key"]
@@ -58,7 +82,10 @@ def dictums_for_chart(chart: dict) -> list[dict]:
                     entry = e
                     break
         if entry:
-            out.append({"trigger": f"yoga {y['name']} ({'; '.join(y['factors'])})",
+            yd = {"trigger": f"yoga {y['name']} ({'; '.join(y['factors'])})"}
+            if y.get("strength_ratio") is not None:
+                yd["weight"] = round(min(2.0, y["strength_ratio"]), 2)
+            out.append({**yd,
                         "source": entry["source"], "dictum": entry["dictum"]})
 
     nak = _load("nakshatra").get(chart["grahas"]["moon"]["nakshatra"]["index"])

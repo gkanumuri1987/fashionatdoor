@@ -25,10 +25,11 @@ Return STRICT JSON (no markdown fence, no commentary) with this shape:
 {
   "usable": true/false,
   "reason": "only when unusable: blurry / too dark / not a palm / palm not open / too far",
+  "overall_confidence": 0.0-1.0,
   "hand": "left" | "right" | "unknown",
   "hand_shape": {"type": "earth|air|fire|water|unknown", "notes": "..."},
   "major_lines": {
-    "heart": {"visible": bool, "length": "short|medium|long", "depth": "faint|moderate|deep", "curve": "straight|curved", "notes": "..."},
+    "heart": {"visible": bool, "confidence": 0.0-1.0, "length": "short|medium|long", "depth": "faint|moderate|deep", "curve": "straight|curved", "notes": "..."},
     "head":  {...same...},
     "life":  {...same...},
     "fate":  {"visible": bool, "notes": "..."},
@@ -40,8 +41,17 @@ Return STRICT JSON (no markdown fence, no commentary) with this shape:
   "fingers": {"relative_lengths": "...", "notes": "..."},
   "special_marks": ["only clearly visible marks: crosses, stars, islands, chains, grilles"]
 }
+Every major line carries a "confidence" (0.0-1.0) for how clearly YOU can see
+it; "overall_confidence" reflects the whole photo. Vision models are unreliable
+at fine line geometry — be conservative: when in doubt, LOWER the confidence.
 Mark anything not clearly visible as "unknown" or visible:false. If the image is
 not a clear open palm, set usable:false with the reason."""
+
+# A confident wrong reading is worse than a declined one: below this overall
+# confidence the extraction is treated as unusable and a retake is requested.
+MIN_OVERALL_CONFIDENCE = 0.45
+# Individual lines below this confidence are dropped from the narrative input.
+MIN_FEATURE_CONFIDENCE = 0.4
 
 _NARRATIVE_SYSTEM = f"""You are a warm, experienced palm reader writing from an
 EXTRACTED FEATURE REPORT. You interpret ONLY the features in the report — if a
@@ -52,8 +62,9 @@ fate/sun/mercury — career, recognition, communication; mounts — planetary
 temperaments; hand element — basic disposition).
 
 {PROMPT_RULES}
-Additional palm rule: the life line NEVER indicates lifespan or death — say so
-explicitly if its length might be misread. 350-500 words, flowing prose, warm
+Additional palm rules: the life line NEVER indicates lifespan or death — say so
+explicitly if its length might be misread; features excluded as "not clearly
+visible" are acknowledged honestly, never invented. 350-500 words, flowing prose, warm
 and specific to the reported features. Write in the requested language."""
 
 
@@ -80,6 +91,12 @@ def extract_features(images: list[bytes]) -> dict:
     data = _parse_json(result["text"])
     if data is None:
         return {"_error": True, "_error_message": "Feature extraction returned unparseable output."}
+    conf = float(data.get("overall_confidence", 1.0) or 0.0)
+    if data.get("usable", False) and conf < MIN_OVERALL_CONFIDENCE:
+        data["usable"] = False
+        data.setdefault("reason", "")
+        data["reason"] = (data["reason"] or
+                          "the lines are not clearly visible enough for an honest reading")
     if not data.get("usable", False):
         return {"usable": False,
                 "reason": data.get("reason", "The photo was not clear enough to read.")}
@@ -98,6 +115,15 @@ def analyze_palm(images: list[bytes], language: str = "en") -> dict:
                                "no shadows across the palm."}
 
     lang_names = {"en": "English", "te": "Telugu (Telugu script)", "hi": "Hindi (Devanagari)"}
+    # Drop low-confidence lines — the writer must never elaborate on a guess.
+    lines = features.get("major_lines") or {}
+    for lname in list(lines):
+        entry = lines[lname]
+        if isinstance(entry, dict):
+            c = entry.get("confidence")
+            if isinstance(c, (int, float)) and c < MIN_FEATURE_CONFIDENCE:
+                lines[lname] = {"visible": False,
+                                "notes": "not clearly visible — excluded"}
     prompt = (
         f"LANGUAGE: {lang_names.get(language, 'English')}\n\n"
         "=== EXTRACTED PALM FEATURES (the only features that exist) ===\n"

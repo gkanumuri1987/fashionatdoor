@@ -34,6 +34,7 @@ class BirthInstant:
     utc: datetime          # tz-aware UTC datetime
     tz_name: str           # IANA zone used
     utc_offset_hours: float  # offset that was in force at the birth instant
+    time_note: str = ""    # honesty flag for known tzdb blind spots
 
 
 def to_utc(d: date, t: time, tz_name: str | None = None,
@@ -52,5 +53,15 @@ def to_utc(d: date, t: time, tz_name: str | None = None,
     local = datetime.combine(d, t).replace(tzinfo=zone, fold=0)
     utc_dt = local.astimezone(timezone.utc)
     offset = local.utcoffset() or timedelta(0)
+    note = ""
+    # tzdb carries ONE zone for all of India, but before IST unification
+    # (1948, and city times into the 1950s) Bombay Time (+4:51) and Madras
+    # Time (+5:21) were in civil use. The applied offset is shown so the
+    # user can verify; an LMT override is a tracked follow-up.
+    if tz_name == "Asia/Kolkata" and d.year < 1950:
+        note = ("Pre-1950 Indian birth: tzdb applies a single all-India zone. "
+                "If the birth record used Bombay Time (+4:51) or Madras Time "
+                "(+5:21), the ascendant may shift — verify the applied offset.")
     return BirthInstant(utc=utc_dt, tz_name=tz_name,
-                        utc_offset_hours=offset.total_seconds() / 3600.0)
+                        utc_offset_hours=offset.total_seconds() / 3600.0,
+                        time_note=note)

@@ -32,6 +32,11 @@ You are given COMPUTED FACTS (from a Swiss Ephemeris engine) and CLASSICAL
 DICTUMS with sources (freshly paraphrased from BPHS, Phaladeepika, Saravali,
 and Puranic archetypes). Your job is ONLY to weave these into flowing prose for
 the requested section — synthesize, reconcile tensions between dictums using the
+computed WEIGHTS when present (weight is the graha's Shadbala strength ratio:
+>=1.0 means the graha can deliver its promise — emphasize; <0.8 means the theme
+is present but muted — mention briefly and honestly). A dictum flagged
+"cancelled_by" is substantially neutralized — present the affliction as
+overcome, never as an active curse. Judge primarily from the
 dignity/combustion/retrograde qualifiers, and make it personal and readable.
 
 {PROMPT_RULES}
@@ -60,6 +65,30 @@ def generate_reading(chart: dict, section: str, language: str = "en") -> dict:
         "moon_sign": chart["moon_sign_name"],
         "time_accuracy": chart["input"]["time_accuracy"],
     }
+    for key in ("functional_lords", "shadbala_summary"):
+        if chart.get(key):
+            facts[key] = chart[key]
+
+    # "What's active now": the dasha-outlook section additionally receives the
+    # LIVE computed transit context (never model-recalled) — gochara over the
+    # natal Moon is what this section is classically judged from.
+    if section == "dasha_outlook":
+        try:
+            from jyotish.chart import transit_report
+            rep = transit_report(chart)
+            facts["current_transits"] = {
+                "as_of": rep["as_of"],
+                "sade_sati": rep["sade_sati"],
+                "shani_flags": rep["shani_flags"],
+                "tarabala": rep["tarabala"],
+                "chandrabala": rep["chandrabala"],
+                "jupiter_from_moon": rep["jupiter_from_moon"],
+                "saturn": rep["transits"]["saturn"],
+                "jupiter": rep["transits"]["jupiter"],
+                "rahu": rep["transits"]["rahu"],
+            }
+        except Exception:  # pragma: no cover — reading must not die on transits
+            pass
 
     lang_names = {"en": "English", "te": "Telugu (Telugu script)", "hi": "Hindi (Devanagari)"}
     prompt = (

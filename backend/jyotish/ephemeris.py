@@ -127,3 +127,29 @@ def houses(jd_ut: float, lat: float, lng: float, ayanamsa: str = "lahiri",
     else:
         cusp_list = [c % 360.0 for c in cusps[:12]]
     return {"ascendant": asc, "mc": mc, "cusps": cusp_list, "system": system}
+
+
+def sunrise_sunset(jd_ut: float, lat: float, lng: float) -> tuple[float | None, float | None]:
+    """Sunrise/sunset Julian days bracketing the given instant's civil day.
+
+    Convention (stated per the audit): Hindu sunrise = the moment the CENTRE of
+    the solar disc touches the horizon WITHOUT refraction (swe.BIT_NO_REFRACTION
+    | swe.BIT_DISC_CENTER) — the traditional udaya used by panchangas (drik).
+    Returns (sunrise_jd, sunset_jd) for the day containing jd_ut (searched from
+    local midnight), or (None, None) in polar conditions where the sun does not
+    rise/set.
+    """
+    flags = swe.CALC_RISE | swe.BIT_NO_REFRACTION | swe.BIT_DISC_CENTER
+    set_flags = swe.CALC_SET | swe.BIT_NO_REFRACTION | swe.BIT_DISC_CENTER
+    # Search from ~local midnight before the instant (approx via longitude).
+    local_offset_days = lng / 360.0
+    start = int(jd_ut + local_offset_days - 0.5) + 0.5 - local_offset_days
+    try:
+        with _LOCK:
+            res_r, t_r = swe.rise_trans(start, swe.SUN, flags, (lng, lat, 0.0))
+            res_s, t_s = swe.rise_trans(start, swe.SUN, set_flags, (lng, lat, 0.0))
+        rise = t_r[0] if res_r == 0 else None
+        sett = t_s[0] if res_s == 0 else None
+        return rise, sett
+    except Exception:  # pragma: no cover — polar/edge conditions
+        return None, None
