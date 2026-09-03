@@ -5,6 +5,8 @@
  *  billing goes live. Premium unlocks unlimited saved jaathakams. */
 
 import { useCallback, useEffect, useState } from "react";
+import { useAccount } from "@/lib/account";
+import { copyText } from "@/lib/clipboard";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
@@ -16,12 +18,17 @@ const PLANS = [
   {
     key: "monthly_plus", price: 2.99, period: "monthly" as const, popular: true,
     features: ["plan_f_unlimited", "plan_f_readings", "plan_f_calendar",
-               "plan_f_family", "plan_f_priority"],
+               "plan_f_family", "plan_f_priority", "plan_f_ai"],
   },
   {
     key: "lifetime", price: 9.99, period: "lifetime" as const,
     features: ["plan_f_unlimited", "plan_f_readings", "plan_f_calendar",
-               "plan_f_family", "plan_f_priority", "plan_f_forever"],
+               "plan_f_family", "plan_f_forever"],
+  },
+  {
+    key: "lifetime_plus", price: 19.99, period: "lifetime" as const,
+    features: ["plan_f_unlimited", "plan_f_readings", "plan_f_calendar",
+               "plan_f_family", "plan_f_priority", "plan_f_ai", "plan_f_forever"],
   },
 ];
 
@@ -36,6 +43,8 @@ export default function SubscriptionPage() {
   const [pending, setPending] = useState<SubReq | null>(null);
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState("");
+  const { account } = useAccount();
+  const [refCopied, setRefCopied] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!sb) return;
@@ -105,7 +114,7 @@ export default function SubscriptionPage() {
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {PLANS.map((p) => (
           <div key={p.key}
                className={`card relative flex flex-col p-5 ${p.popular ? "border-[var(--line-gold)]" : ""}`}>
@@ -143,6 +152,39 @@ export default function SubscriptionPage() {
       {msg && <p className="mt-4 text-center text-sm text-[var(--gold)]">{msg}</p>}
 
       <p className="mt-8 text-center text-xs text-[var(--ink-faint)]">{t("sub_note")}</p>
+
+      {account && (
+        <section id="account" className="card mx-auto mt-8 max-w-xl p-5">
+          <h3 className="heading-section mb-3 text-lg">{t("acct_title")}</h3>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="rounded-lg border border-[var(--line-soft)] p-3">
+              <div className="text-xs text-[var(--ink-muted)]">{t("acct_plan")}</div>
+              <div className="mt-0.5 capitalize text-[var(--gold)]">
+                {(account.is_premium && account.plan === "free") ? "premium" : account.plan.replaceAll("_", " ")}
+              </div>
+            </div>
+            <div className="rounded-lg border border-[var(--line-soft)] p-3">
+              <div className="text-xs text-[var(--ink-muted)]">{t("acct_credits")}</div>
+              <div className="mt-0.5 text-[var(--gold)]">◈ {account.credits}</div>
+            </div>
+          </div>
+          {account.referral_code && (
+            <div className="mt-3 text-xs">
+              <p className="text-[var(--ink-muted)]">{t("acct_ref")}</p>
+              <div className="mt-1.5 flex gap-2">
+                <code className="input flex-1 truncate py-1.5 text-[var(--gold)]">
+                  {`${typeof window !== "undefined" ? window.location.origin : ""}/?ref=${account.referral_code}`}
+                </code>
+                <button
+                  onClick={async () => setRefCopied(await copyText(`${window.location.origin}/?ref=${account.referral_code}`))}
+                  className="btn-gold px-3 py-1 text-xs">
+                  {refCopied ? t("copied") : t("copy")}
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
     </main>
   );
 }

@@ -5,6 +5,8 @@ import { NorthChart, SouthChart } from "@/components/KundliCharts";
 import { DashaTimeline, PanchangaYogas, PlanetTable } from "@/components/ChartDetails";
 import DateDMY from "@/components/DateDMY";
 import SavedProfiles, { type BirthProfile } from "@/components/SavedProfiles";
+import ChatAssistant from "@/components/ChatAssistant";
+import { captureReferralParam, claimPendingReferral } from "@/lib/account";
 import type { ChartV1, ReadingPage } from "@/lib/types";
 import { useLang } from "@/lib/i18n";
 
@@ -13,7 +15,7 @@ interface Place { name: string; lat: number; lng: number }
 const SIGN_NAMES = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
                     "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
 
-const TABS = ["Chart", "Planets", "Dasha", "Panchanga", "Advanced", "Reading"] as const;
+const TABS = ["Chart", "Planets", "Dasha", "Panchanga", "Advanced", "Reading", "Ask"] as const;
 
 const READING_SECTIONS: [string, string][] = [
   ["personality", "Personality"], ["career", "Career"], ["wealth", "Wealth"],
@@ -86,6 +88,11 @@ export default function Home() {
     } catch { /* selector falls back to vimshottari view */ }
     finally { setDashaBusy(false); }
   }
+
+  useEffect(() => {
+    captureReferralParam();
+    claimPendingReferral();
+  }, []);
 
   useEffect(() => {
     if (placeQuery.trim().length < 3 || (place && placeQuery === place.name)) {
@@ -431,6 +438,7 @@ export default function Home() {
               )}
             </div>
           )}
+          {tab === "Ask" && <ChatAssistant chart={chart} />}
           {tab === "Reading" && (
             <div className="space-y-4">
               {page && (

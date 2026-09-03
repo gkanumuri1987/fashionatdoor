@@ -493,3 +493,22 @@ def calendar_month(body: CalendarRequest):
     except Exception as exc:  # pragma: no cover
         logger.error("calendar failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Calendar computation failed")
+
+
+# ── Jaathakam chat assistant (Plus feature; free users spend a credit) ──────
+
+class ChatRequest(BaseModel):
+    chart: dict
+    question: str = Field(min_length=2, max_length=500)
+    language: str = Field(default="en", pattern="^(en|te|hi)$")
+    history: list[dict] | None = None
+
+
+@app.post("/api/chat")
+def jaathakam_chat(body: ChatRequest):
+    from ai.chat import answer_question
+    result = answer_question(body.chart, body.question, body.language,
+                             history=body.history)
+    if result.get("_error"):
+        raise HTTPException(status_code=502, detail=result["_error_message"])
+    return result
