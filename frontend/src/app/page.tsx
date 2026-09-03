@@ -1,521 +1,195 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { NorthChart, SouthChart } from "@/components/KundliCharts";
-import { DashaTimeline, PanchangaYogas, PlanetTable } from "@/components/ChartDetails";
-import DateDMY from "@/components/DateDMY";
-import SavedProfiles, { type BirthProfile } from "@/components/SavedProfiles";
-import ChatAssistant from "@/components/ChatAssistant";
-import { captureReferralParam, claimPendingReferral, useAccount } from "@/lib/account";
-import type { ChartV1, ReadingPage } from "@/lib/types";
+/** Landing — the story of the app, told to spark curiosity and excitement.
+ *  Every capability named here exists and works; nothing promised that the
+ *  product cannot do today. */
+
+import Link from "next/link";
+import { useState } from "react";
+import { useEffect } from "react";
+import AuthBar from "@/components/AuthBar";
+import { captureReferralParam, claimPendingReferral } from "@/lib/account";
 import { useLang } from "@/lib/i18n";
+import { supabase } from "@/lib/supabase";
 
-interface Place { name: string; lat: number; lng: number }
-
-const SIGN_NAMES = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
-                    "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-
-const TABS = ["Chart", "Planets", "Dasha", "Panchanga", "Advanced", "Reading", "Ask"] as const;
-
-const READING_SECTIONS: [string, string][] = [
-  ["personality", "Personality"], ["career", "Career"], ["wealth", "Wealth"],
-  ["relationships", "Relationships"], ["health", "Health"], ["dharma", "Dharma"],
-  ["dasha_outlook", "Current Period"], ["remedies", "Remedies"],
+const QUESTIONS = [
+  "When will I marry — and what kind of partner is written for me?",
+  "Which years will lift my career, and which ask for patience?",
+  "What does my chart say about children?",
+  "Is this match right for our family?",
+  "Which deity is MINE to worship — by my own birth stars?",
 ];
 
-export default function Home() {
-  const { lang, t } = useLang();
-  const { signedIn } = useAccount();
-  const [date, setDate] = useState("1990-05-15");
-  const [time, setTime] = useState("10:30");
-  const [timeAccuracy, setTimeAccuracy] = useState("exact");
-  const [placeQuery, setPlaceQuery] = useState("");
-  const [places, setPlaces] = useState<Place[]>([]);
-  const [place, setPlace] = useState<Place | null>(null);
-  const [ayanamsa, setAyanamsa] = useState("lahiri");
-  const [chart, setChart] = useState<ChartV1 | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Chart");
-  const [style, setStyle] = useState<"north" | "south">("south");
-  const [readings, setReadings] = useState<Record<string, string>>({});
-  const [readingSection, setReadingSection] = useState("personality");
-  const [readingBusy, setReadingBusy] = useState(false);
-  const [readingError, setReadingError] = useState("");
-  const [palmLink, setPalmLink] = useState("");
-  const [dashaSystem, setDashaSystem] = useState<"vimshottari" | "yogini" | "ashtottari" | "kalachakra" | "narayana">("vimshottari");
-  const [altDashas, setAltDashas] = useState<Record<string, {lord?: string; yogini?: string; sign_name?: string; years: number; start: string; end: string}[]>>({});
-  const [dashaBusy, setDashaBusy] = useState(false);
-  const [page, setPage] = useState<ReadingPage | null>(null);
-  const [showAyInfo, setShowAyInfo] = useState(false);
-  const [showWhy, setShowWhy] = useState(false);
-  const [palmCopied, setPalmCopied] = useState<null | boolean>(null);
-  const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+const CAPABILITIES: [string, string, string, string][] = [
+  ["✧", "Your complete jaathakam, in minutes",
+   "Birth date, time, place — and your full kundli appears: North or South style, every planet, every nakshatra, your dashas mapped across your whole life with real dates.",
+   "/kundli"],
+  ["🗨", "Talk to your jaathakam",
+   "Ask it anything, in Telugu, Hindi or English — marriage, career, children, 'summarize my life'. The answers come from YOUR chart's actual planetary periods, with the dates to prove it. It feels like sitting with a learned family jyotishi who has studied your chart for hours.",
+   "/kundli"],
+  ["❋", "Marriage matching the full traditional way",
+   "All 36 gunas, the southern Dashakoota checks, honest Manglik analysis with its classical exceptions — and a warm reading of what the match truly holds.",
+   "/match"],
+  ["🗓", "Your family's festival calendar — wherever you live",
+   "Ugadi, Deepavali, Varalakshmi Vratam on the RIGHT day for Dallas, London, Sydney or Hyderabad — with tithis, good times and Rahu kalam in your own clock, in your own script. Print it, pin it, share it.",
+   "/calendar"],
+  ["✋", "Palm reading by a simple link",
+   "Send a link to anyone — they photograph their palm and the reading appears right there. Lines, mounts, hand shape — read honestly, never invented.",
+   "/palmistry"],
+  ["⌂", "Vastu from a floor-plan photo",
+   "Upload your home's plan, tell us which way it faces — every room is judged by the classical placement rules, with practical remedies where something sits wrong.",
+   "/vastu"],
+];
 
-  async function fetchReading(section: string) {
-    if (!chart) return;
-    const key = `${section}:${lang}`;
-    setReadingSection(section);
-    if (readings[key]) return;
-    setReadingBusy(true); setReadingError("");
-    try {
-      const res = await fetch("/api/reading", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chart, section, language: lang }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Reading failed");
-      setReadings((r) => ({ ...r, [key]: data.text }));
-    } catch (e) {
-      setReadingError(e instanceof Error ? e.message : t("generic_error"));
-    } finally {
-      setReadingBusy(false);
-    }
-  }
+const SOURCES = ["Brihat Parashara Hora Shastra", "Phaladeepika", "Saravali",
+                 "Jaimini Sutras", "Brihat Jataka", "Tajika Nilakanthi",
+                 "the Puranas & epics"];
 
-  async function pickDashaSystem(sys: "vimshottari" | "yogini" | "ashtottari" | "kalachakra" | "narayana") {
-    setDashaSystem(sys);
-    if (sys === "vimshottari" || altDashas[sys] || !chart) return;
-    setDashaBusy(true);
-    try {
-      const res = await fetch("/api/dashas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chart, system: sys }),
-      });
-      const data = await res.json();
-      if (res.ok) setAltDashas((a) => ({ ...a, [sys]: data.mahadashas }));
-    } catch { /* selector falls back to vimshottari view */ }
-    finally { setDashaBusy(false); }
-  }
+export default function LandingPage() {
+  const { t } = useLang();
+  const sb = supabase();
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [err, setErr] = useState("");
 
   useEffect(() => {
     captureReferralParam();
     claimPendingReferral();
   }, []);
 
-  useEffect(() => {
-    if (placeQuery.trim().length < 3 || (place && placeQuery === place.name)) {
-      setPlaces([]);
-      return;
-    }
-    clearTimeout(debounce.current);
-    debounce.current = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/geocode?q=${encodeURIComponent(placeQuery)}`);
-        if (res.ok) setPlaces(await res.json());
-      } catch {
-        /* best-effort autocomplete */
-      }
-    }, 400);
-    return () => clearTimeout(debounce.current);
-  }, [placeQuery, place]);
-
-  async function generate() {
-    if (signedIn === false) {
-      setError(t("gate_title"));
-      return;
-    }
-    if (!place) {
-      setError(t("pick_place"));
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/chart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          date, time, lat: place.lat, lng: place.lng,
-          ayanamsa, time_accuracy: timeAccuracy,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Chart computation failed");
-      setChart(data);
-      // Account-level history: every computed chart is stored for the signed-in
-      // user (best-effort; anonymous users simply skip this).
-      try {
-        const { supabase } = await import("@/lib/supabase");
-        const sb = supabase();
-        const u = sb ? (await sb.auth.getUser()).data.user : null;
-        if (sb && u && place) {
-          sb.from("chart_history").insert({
-            user_id: u.id,
-            person_name: "",
-            birth_date: date, birth_time: time, time_accuracy: timeAccuracy,
-            place_name: place.name, lat: place.lat, lng: place.lng, ayanamsa,
-            lagna_sign: data.lagna?.sign_name ?? null,
-            moon_sign: data.moon_sign_name ?? null,
-            moon_nakshatra: data.grahas?.moon?.nakshatra?.name ?? null,
-          }).then(() => {}, () => {});
-        }
-      } catch { /* history is enrichment */ }
-      fetch("/api/reading-page", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chart: data, language: lang }),
-      }).then((r) => (r.ok ? r.json() : null)).then(setPage).catch(() => setPage(null));
-      setAltDashas({});
-      setDashaSystem("vimshottari");
-      setTab("Chart");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t("generic_error"));
-    } finally {
-      setLoading(false);
-    }
+  async function signup() {
+    if (!sb || !email.trim()) return;
+    setErr("");
+    const { error } = await sb.auth.signInWithOtp({
+      email: email.trim(), options: { shouldCreateUser: true },
+    });
+    if (error) { setErr(error.message); return; }
+    setSent(true);
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
-      <header className="mb-8 text-center">
-        <h1 className="heading-display text-5xl">{t("app_title")}</h1>
-        <div className="ornament mt-2 text-xs">✦</div>
-        <p className="mt-1 text-sm text-[var(--ink-muted)]">
-{t("tagline")}</p>
+    <main className="mx-auto max-w-4xl px-4 py-12">
+      {/* ── Hero: curiosity ── */}
+      <header className="text-center">
+        <p className="text-xs uppercase tracking-[0.3em] text-[var(--gold)]">
+          జ్యోతిషం · ज्योतिष · Jyotisha
+        </p>
+        <h1 className="heading-display mt-3 text-5xl leading-tight">
+          The sky remembers the minute you were born.
+        </h1>
+        <div className="ornament mt-4 text-xs">✦</div>
+        <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-[var(--ink-soft)]">
+          At that exact moment, nine grahas stood in a pattern that has never
+          repeated and never will. Our rishis spent five thousand years learning
+          to read that pattern. <span className="text-[var(--gold)]">Now it
+          takes you two minutes to see yours.</span>
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href="/kundli" className="btn-gold text-base">✧ Reveal my jaathakam</Link>
+          <Link href="/subscription" className="btn-ghost text-base">✦ See plans</Link>
+        </div>
       </header>
 
-      <section className="card p-6">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="block text-sm">
-            <span className="text-[var(--ink-muted)]">{t("dob")}</span>
-            <DateDMY value={date} onChange={setDate} />
-          </label>
-          <label className="block text-sm">
-            <span className="text-[var(--ink-muted)]">{t("tob")}</span>
-            <input type="time" value={time} onChange={(e) => setTime(e.target.value)}
-                   className="input mt-1" />
-            <select value={timeAccuracy} onChange={(e) => setTimeAccuracy(e.target.value)}
-                    className="input mt-1 px-2 py-1 text-xs">
-              <option value="exact">{t("time_exact")}</option>
-              <option value="approximate">{t("time_approx")}</option>
-              <option value="unknown">{t("time_unknown")}</option>
-            </select>
-          </label>
-          <label className="relative block text-sm">
-            <span className="text-[var(--ink-muted)]">{t("pob")}</span>
-            <input
-              value={placeQuery}
-              onChange={(e) => { setPlaceQuery(e.target.value); setPlace(null); }}
-              placeholder={t("place_ph")}
-              className="input mt-1"
-            />
-            {places.length > 0 && (
-              <ul className="absolute z-10 mt-1 max-h-52 w-full overflow-auto rounded-lg border border-[var(--line)] bg-[var(--surface-raised)] text-xs shadow-xl">
-                {places.map((p) => (
-                  <li key={p.name}>
-                    <button
-                      className="w-full px-3 py-2 text-left hover:bg-[var(--gold)]/10"
-                      onClick={() => { setPlace(p); setPlaceQuery(p.name); setPlaces([]); }}
-                    >
-                      {p.name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </label>
-          <label className="relative block text-sm">
-            <span className="flex items-center gap-1.5 text-[var(--ink-muted)]">
-              {t("ayanamsa")}
-              <button type="button" onClick={(e) => { e.preventDefault(); setShowAyInfo((v) => !v); }}
-                      aria-label={t("ay_info_title")}
-                      className="flex h-4 w-4 items-center justify-center rounded-full border border-[var(--line)] text-[10px] text-[var(--gold)] hover:border-[var(--line-gold)]">
-                i
-              </button>
-            </span>
-            <select value={ayanamsa} onChange={(e) => setAyanamsa(e.target.value)}
-                    className="input mt-1">
-              <option value="lahiri">Lahiri (Chitrapaksha) ★ {t("recommended")}</option>
-              <option value="raman">Raman</option>
-              <option value="kp">KP (Krishnamurti)</option>
-            </select>
-            {showAyInfo && (
-              <div className="card absolute right-0 top-full z-20 mt-2 w-80 p-4 text-xs leading-relaxed"
-                   onClick={(e) => e.preventDefault()}>
-                <div className="mb-1 flex items-start justify-between">
-                  <b className="text-[var(--gold)]">{t("ay_info_title")}</b>
-                  <button type="button" onClick={(e) => { e.preventDefault(); setShowAyInfo(false); }}
-                          className="text-[var(--ink-muted)]">✕</button>
-                </div>
-                <p className="text-[var(--ink-soft)]">{t("ay_info_body")}</p>
-                <ul className="mt-2 space-y-1.5">
-                  <li><b className="text-[var(--gold)]">★ Lahiri</b> — <span className="text-[var(--ink-soft)]">{t("ay_lahiri")}</span></li>
-                  <li><b className="text-[var(--ink)]">Raman</b> — <span className="text-[var(--ink-soft)]">{t("ay_raman")}</span></li>
-                  <li><b className="text-[var(--ink)]">KP</b> — <span className="text-[var(--ink-soft)]">{t("ay_kp")}</span></li>
-                </ul>
-                <p className="mt-2 border-t border-[var(--line-soft)] pt-2 text-[var(--good)]">
-                  ✓ {t("ay_recommend")}
-                </p>
-              </div>
-            )}
-          </label>
+      {/* ── The questions it answers ── */}
+      <section className="mt-14">
+        <h2 className="heading-section text-center text-2xl">
+          The questions you&apos;ve always wanted to ask
+        </h2>
+        <div className="mt-5 space-y-2">
+          {QUESTIONS.map((q) => (
+            <div key={q} className="card px-4 py-3 text-sm text-[var(--ink-soft)]">
+              <span className="mr-2 text-[var(--gold)]">❝</span>{q}
+            </div>
+          ))}
         </div>
-        {timeAccuracy !== "exact" && (
-          <p className="mt-3 text-xs text-orange-300">{t("accuracy_warning")}</p>
-        )}
-        {signedIn === false ? (
-          <div className="mt-4 rounded-lg border border-[var(--line-gold)] bg-[var(--gold)]/10 p-4">
-            <p className="text-sm font-semibold text-[var(--gold)]">🔒 {t("gate_title")}</p>
-            <p className="mt-1 text-xs text-[var(--ink-soft)]">{t("gate_body")}</p>
-          </div>
-        ) : (
-          <div className="mt-4 flex items-center gap-3">
-            <button
-              onClick={generate}
-              disabled={loading}
-              className="btn-gold"
-            >
-              {loading ? t("computing") : t("generate")}
-            </button>
-            {error && <span className="text-sm text-red-400">{error}</span>}
-          </div>
-        )}
+        <p className="mt-4 text-center text-sm text-[var(--ink-muted)]">
+          Your jaathakam has been holding the answers all along — now you can ask it directly,
+          and it replies with <span className="text-[var(--gold)]">your real planetary periods and their dates</span>.
+        </p>
       </section>
-      <SavedProfiles
-        draft={place ? {
-          name: "", birth_date: date, birth_time: time, time_accuracy: timeAccuracy,
-          place_name: place.name, lat: place.lat, lng: place.lng, ayanamsa,
-        } : null}
-        onLoad={(p: BirthProfile) => {
-          setDate(p.birth_date);
-          setTime(p.birth_time.slice(0, 5));
-          setTimeAccuracy(p.time_accuracy);
-          setAyanamsa(p.ayanamsa);
-          setPlace({ name: p.place_name, lat: p.lat, lng: p.lng });
-          setPlaceQuery(p.place_name);
-          setChart(null);
-        }}
-      />
 
+      {/* ── Accuracy & scriptures ── */}
+      <section className="card mt-14 p-6">
+        <h2 className="heading-section text-2xl">Why our answers can be trusted</h2>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">
+          Two things make a jaathakam true: the <b className="text-[var(--ink)]">sky</b> and
+          the <b className="text-[var(--ink)]">shastra</b>. For the sky, we compute your
+          planets with the same professional-grade astronomy that powers the
+          panchangams in temples — exact to the arc-second, with your birth
+          place&apos;s historical clock handled correctly even for the 1940s. For
+          the shastra, our readings are drawn from deeply researched classical
+          works — {SOURCES.slice(0, -1).join(", ")} and {SOURCES.at(-1)} — matched
+          to your chart rule by rule, the way a scholar-jyotishi was trained to.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">
+          Even your <span className="text-[var(--gold)]">remedies are personal</span>:
+          from your own karakamsa we compute your Ishta Devata — the deity the
+          Jaimini tradition says is yours — and the strengthening practices the
+          Puranas prescribe for each graha: Hanuman for Shani, Ganesha for Ketu,
+          Durga for Rahu.
+        </p>
+        <p className="mt-3 text-sm text-[var(--ink-muted)]">
+          And when a detail is uncertain — an approximate birth time, a boundary
+          degree — we tell you plainly instead of pretending. That honesty is why
+          people trust what we say when it matters.
+        </p>
+      </section>
 
-      {chart && (
-        <section className="mt-8">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm text-[var(--ink-muted)]">
-              {t("lagna")} <span className="text-[var(--ink)]">{chart.lagna.sign_name} {chart.lagna.degree_in_sign}</span>
-              {" · "}{t("moon")} <span className="text-[var(--ink)]">{chart.moon_sign_name}</span>
-              {" · "}{chart.input.tz} (UTC{chart.input.utc_offset_hours >= 0 ? "+" : ""}{chart.input.utc_offset_hours})
-              {" · "}{t("ayanamsa")} {chart.ayanamsa_value.toFixed(4)}°
-            </div>
-            <nav className="flex gap-1 rounded-lg border border-[var(--line)] p-1 text-sm">
-              {TABS.map((tb) => (
-                <button key={tb} onClick={() => setTab(tb)}
-                        className={`pill ${tab === tb ? "pill-active" : ""}`}>
-                  {t(`tab_${tb.toLowerCase()}`)}
-                </button>
-              ))}
-            </nav>
-          </div>
+      {/* ── Everything it does ── */}
+      <section className="mt-14">
+        <h2 className="heading-section text-center text-2xl">Everything inside</h2>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          {CAPABILITIES.map(([icon, title, body, href]) => (
+            <Link key={title} href={href}
+                  className="card block p-5 transition-transform hover:-translate-y-0.5">
+              <h3 className="font-semibold text-[var(--gold)]">{icon} {title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">{body}</p>
+            </Link>
+          ))}
+        </div>
+        <p className="mt-4 text-center text-xs text-[var(--ink-muted)]">
+          Plus: Varshaphal year charts · KP & Jaimini for practitioners · Muhurta good-day
+          finder · everything in English, తెలుగు and हिन्दी.
+        </p>
+      </section>
 
-          {tab === "Chart" && (
-            <div>
-              <div className="mb-3 flex gap-1 text-xs">
-                {(["south", "north"] as const).map((s) => (
-                  <button key={s} onClick={() => setStyle(s)}
-                          className={`rounded-md border border-[var(--line)] px-3 py-1 ${style === s ? "bg-[var(--surface-raised)]" : ""}`}>
-                    {t(`${s}_indian`)}
-                  </button>
-                ))}
-              </div>
-              <div className="card flex justify-center p-6">
-                {style === "south" ? <SouthChart chart={chart} /> : <NorthChart chart={chart} />}
-              </div>
-            </div>
-          )}
-          {tab === "Planets" && <PlanetTable chart={chart} />}
-          {tab === "Dasha" && (
-            <div>
-              <div className="mb-3 flex items-center gap-2 text-xs">
-                <span className="text-[var(--ink-muted)]">{t("dasha_system")}:</span>
-                {(["vimshottari", "yogini", "ashtottari", "kalachakra", "narayana"] as const).map((sys) => (
-                  <button key={sys} onClick={() => pickDashaSystem(sys)}
-                          className={`rounded-md border border-[var(--line)] px-3 py-1 capitalize ${dashaSystem === sys ? "bg-[var(--surface-raised)]" : ""}`}>
-                    {sys}
-                  </button>
-                ))}
-              </div>
-              {dashaSystem === "vimshottari" ? (
-                <div>
-                  {page?.timeline?.current_sentence && (
-                    <p className="mb-3 rounded-lg border border-[var(--line-gold)] bg-[var(--gold)]/10 px-3 py-2 text-sm text-[var(--gold-bright)]">
-                      📍 {page.timeline.current_sentence}
-                    </p>
-                  )}
-                  <DashaTimeline chart={chart} />
-                </div>
-              ) : dashaBusy ? (
-                <p className="text-sm text-[var(--ink-muted)]">{t("loading_dasha")}</p>
-              ) : altDashas[dashaSystem] ? (
-                <div className="overflow-x-auto rounded-lg border border-[var(--line)]">
-                  <table className="w-full text-sm">
-                    <thead><tr className="bg-[var(--surface-raised)] text-left text-[var(--gold)]">
-                      <th className="px-3 py-2">{dashaSystem === "yogini" ? "Yogini" : (dashaSystem === "kalachakra" || dashaSystem === "narayana") ? "Rashi" : "Lord"}</th>
-                      <th className="px-3 py-2">Years</th>
-                      <th className="px-3 py-2">Start</th><th className="px-3 py-2">End</th>
-                    </tr></thead>
-                    <tbody>
-                      {altDashas[dashaSystem].map((m, i) => (
-                        <tr key={i} className="border-t border-[var(--line-soft)]">
-                          <td className="px-3 py-2 capitalize">{m.yogini ? `${m.yogini} (${m.lord})` : (m.sign_name ?? m.lord)}</td>
-                          <td className="px-3 py-2">{m.years}</td>
-                          <td className="px-3 py-2">{m.start.slice(0, 10)}</td>
-                          <td className="px-3 py-2">{m.end.slice(0, 10)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-sm text-[var(--ink-muted)]">{t("generic_error")}</p>
-              )}
-            </div>
-          )}
-          {tab === "Panchanga" && <PanchangaYogas chart={chart} />}
-          {tab === "Advanced" && (
-            <div className="space-y-5 text-sm">
-              {chart.jaimini && (
-                <div className="card p-5">
-                  <h3 className="heading-section mb-3 text-lg">{t("jaimini_title")}</h3>
-                  <div className="mb-3 grid gap-2 sm:grid-cols-2">
-                    <div className="rounded-lg border border-[var(--line)] p-3">
-                      <div className="text-xs text-[var(--ink-muted)]">{t("ishta_devata")}</div>
-                      <div className="mt-1 text-[var(--ink)]">
-                        {chart.jaimini.ishta_devata?.deity}
-                        <span className="ml-1 text-xs text-[var(--ink-muted)]">
-                          (via {chart.jaimini.ishta_devata?.indicator_graha})
-                        </span>
-                      </div>
-                    </div>
-                    <div className="rounded-lg border border-[var(--line)] p-3">
-                      <div className="text-xs text-[var(--ink-muted)]">{t("arudha_lagna")} / {t("upapada")}</div>
-                      <div className="mt-1 text-[var(--ink)]">
-                        AL: {SIGN_NAMES[chart.jaimini.arudha_padas?.AL ?? 0]} · UL: {SIGN_NAMES[chart.jaimini.arudha_padas?.UL ?? 0]}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-[var(--ink-muted)]">{t("chara_karakas")}</div>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {Object.entries(chart.jaimini.chara_karakas?.karakas ?? {}).map(([role, k]) => (
-                      <span key={role} className="rounded-full border border-[var(--line)] px-2 py-0.5 text-xs">
-                        <b className="text-[var(--gold)]">{role}</b>{" "}
-                        <span className="capitalize">{(k as {graha: string}).graha}</span>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {chart.kp && (
-                <div className="card p-5">
-                  <h3 className="heading-section mb-3 text-lg">{t("kp_title")}</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead><tr className="text-left text-[var(--gold)]">
-                        <th className="px-2 py-1">Graha</th><th className="px-2 py-1">Star lord</th>
-                        <th className="px-2 py-1">Sub</th><th className="px-2 py-1">Sub-sub</th>
-                      </tr></thead>
-                      <tbody>
-                        {Object.entries(chart.kp.planets ?? {}).map(([g, e]) => {
-                          const kp = e as {star_lord: string; sub_lord: string; sub_sub_lord: string};
-                          return (
-                            <tr key={g} className="border-t border-[var(--line-soft)] capitalize">
-                              <td className="px-2 py-1">{g}</td><td className="px-2 py-1">{kp.star_lord}</td>
-                              <td className="px-2 py-1">{kp.sub_lord}</td><td className="px-2 py-1">{kp.sub_sub_lord}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-              {chart.bhava_chalita && (
-                <div className="card p-5">
-                  <h3 className="heading-section mb-3 text-lg">{t("bhava_chalita_title")}</h3>
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    {Object.entries(chart.bhava_chalita.grahas ?? {}).map(([g, m]) => {
-                      const mem = m as {house: number; in_sandhi: boolean};
-                      const rasiHouse = chart.grahas[g]?.house;
-                      const moved = rasiHouse !== undefined && rasiHouse !== mem.house;
-                      return (
-                        <span key={g} className={`rounded-full border px-2 py-0.5 capitalize ${moved ? "border-[var(--gold)] text-[var(--gold)]" : "border-[var(--line)]"}`}>
-                          {g}: {mem.house}{moved ? ` (rasi ${rasiHouse})` : ""}{mem.in_sandhi ? " ⚠" : ""}
-                        </span>
-                      );
-                    })}
-                  </div>
-                  <p className="mt-2 text-xs text-[var(--ink-muted)]">⚠ = {t("in_sandhi")}</p>
-                </div>
-              )}
-            </div>
-          )}
-          {tab === "Ask" && <ChatAssistant chart={chart} />}
-          {tab === "Reading" && (
-            <div className="space-y-4">
-              {page && (
-                <div className="space-y-2">
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(page.verdicts ?? {}).map(([topic, v]) => (
-                      <span key={topic}
-                            className={`rounded-full border px-3 py-1 text-xs capitalize ${
-                              v.verdict === "supportive" ? "border-emerald-500/50 text-emerald-300" :
-                              v.verdict === "challenging" ? "border-orange-500/50 text-orange-300" :
-                              "border-[var(--line)] text-[var(--ink-soft)]"}`}>
-                        {t(`sec_${topic}`) !== `sec_${topic}` ? t(`sec_${topic}`) : topic}: {t(`verdict_${v.verdict}`)}
-                      </span>
-                    ))}
-                  </div>
-                  {(page.uncertainty ?? []).map((n, i) => (
-                    <p key={i} className="text-xs text-orange-300/90">⚠ {n}</p>
-                  ))}
-                  <button onClick={() => setShowWhy((w) => !w)}
-                          className="text-xs text-[var(--gold)] underline">
-                    {t("why_receipts")}
-                  </button>
-                  {showWhy && (
-                    <div className="max-h-72 space-y-2 overflow-y-auto rounded-lg border border-[var(--line)] bg-[var(--surface-deep)] p-3 text-xs">
-                      {(page.claims ?? []).map((c) => (
-                        <div key={c.id} className="border-b border-[var(--line-soft)] pb-1">
-                          <div className="text-[var(--ink)]">{c.claim}</div>
-                          <div className="text-[var(--ink-muted)]">
-                            {c.chart_condition} · {c.source} · <b>{c.strength}</b>
-                            {c.cancellations.length > 0 && (
-                              <span className="text-emerald-400"> · cancelled: {c.cancellations.join("; ")}</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="flex flex-wrap items-center gap-2">
-                {READING_SECTIONS.map(([key]) => (
-                  <button key={key} onClick={() => fetchReading(key)}
-                          className={`rounded-full border px-3 py-1 text-xs ${
-                            readingSection === key
-                              ? "border-[var(--gold)] bg-[var(--gold)]/15 text-[var(--gold)]"
-                              : "border-[var(--line)] text-[var(--ink-soft)]"}`}>
-                    {t(`sec_${key}`)}
-                  </button>
-                ))}
-              </div>
-              {readingBusy && <p className="text-sm text-[var(--ink-muted)]">{t("consulting")}</p>}
-              {readingError && <p className="text-sm text-red-400">{readingError}</p>}
-              {readings[`${readingSection}:${lang}`] ? (
-                <div className="card whitespace-pre-wrap p-5 text-sm leading-relaxed">
-                  {readings[`${readingSection}:${lang}`]}
-                </div>
-              ) : (!readingBusy && !readingError && (
-                <p className="text-sm text-[var(--ink-muted)]">{t("reading_hint")}</p>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+      {/* ── Plans teaser ── */}
+      <section className="card mt-14 border-[var(--line-gold)] p-6 text-center">
+        <h2 className="heading-display text-3xl">Your first jaathakam is free.</h2>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-[var(--ink-soft)]">
+          Save it to your account forever. When you&apos;re ready for more — the whole
+          family&apos;s jaathakams, unlimited questions to the AI jyotishi — plans start
+          at just <b className="text-[var(--gold)]">$1.99 / ₹179 a month</b>, with a
+          once-and-forever Lifetime option. Share your link with friends and earn
+          free questions every time someone joins.
+        </p>
+        <Link href="/subscription" className="btn-gold mt-5 inline-flex">✦ Explore plans</Link>
+      </section>
 
-      <footer className="mt-12 text-center text-xs text-[var(--ink-muted)]">{t("disclaimer")}</footer>
+      {/* ── Sign-up ── */}
+      <section className="mx-auto mt-14 max-w-xl text-center">
+        <h2 className="heading-display text-3xl">{t("about_join_title")}</h2>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">{t("about_join_body")}</p>
+        {sent ? (
+          <>
+            <p className="mt-5 text-sm text-[var(--good)]">✓ {t("code_sent")}</p>
+            <div className="mt-4 flex justify-center"><AuthBar /></div>
+          </>
+        ) : (
+          <form className="mx-auto mt-5 flex max-w-sm gap-2"
+                onSubmit={(e) => { e.preventDefault(); signup(); }}>
+            <input type="email" required value={email}
+                   onChange={(e) => setEmail(e.target.value)}
+                   placeholder="you@example.com" className="input flex-1" />
+            <button type="submit" className="btn-gold">{t("about_join_btn")}</button>
+          </form>
+        )}
+        {err && <p className="mt-2 text-xs text-red-400">{err}</p>}
+      </section>
+
+      <footer className="mt-14 text-center text-xs text-[var(--ink-muted)]">
+        {t("disclaimer")}
+      </footer>
     </main>
   );
 }

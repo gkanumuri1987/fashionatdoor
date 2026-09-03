@@ -10,13 +10,13 @@ import AuthBar from "@/components/AuthBar";
 import { LangSwitcher, useLang } from "@/lib/i18n";
 
 const ITEMS: { href: string; key: string; icon: string }[] = [
-  { href: "/", key: "nav_kundli", icon: "✧" },
+  { href: "/", key: "nav_about", icon: "🏠" },
+  { href: "/kundli", key: "nav_kundli", icon: "✧" },
   { href: "/match", key: "nav_milan", icon: "❋" },
   { href: "/vastu", key: "nav_vastu", icon: "⌂" },
   { href: "/calendar", key: "nav_calendar", icon: "🗓" },
   { href: "/palmistry", key: "nav_palm", icon: "✋" },
   { href: "/subscription", key: "nav_subscription", icon: "✦" },
-  { href: "/about", key: "nav_about", icon: "ℹ" },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
