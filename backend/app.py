@@ -268,21 +268,33 @@ async def palm_upload(token: str, request: Request,
 
 class DashaRequest(BaseModel):
     chart: dict
-    system: str = Field(default="yogini", pattern="^(yogini|ashtottari)$")
+    system: str = Field(default="yogini",
+                        pattern="^(yogini|ashtottari|kalachakra|narayana|vimshottari_360)$")
 
 
 @app.post("/api/dashas")
 def alternate_dashas(body: DashaRequest):
-    """Yogini / Ashtottari periods computed from an existing ChartV1."""
+    """Alternate dasha systems computed from an existing ChartV1:
+    yogini | ashtottari | kalachakra | narayana | vimshottari_360 (savana year)."""
+    from jyotish.dasha_advanced import (kalachakra, narayana_dasha,
+                                        vimshottari_with_year)
     from jyotish.dasha_extra import ashtottari_dasha, yogini_dasha
     try:
         moon_lon = body.chart["grahas"]["moon"]["lon"]
         sun_lon = body.chart["grahas"]["sun"]["lon"]
         birth_jd = body.chart["julian_day_ut"]
+        positions = {g: {"lon": gd["lon"]} for g, gd in body.chart["grahas"].items()}
+        lagna_sign = body.chart["lagna"]["sign"]
     except (KeyError, TypeError) as exc:
         raise HTTPException(status_code=400, detail=f"Invalid chart payload: {exc}")
     if body.system == "yogini":
         return yogini_dasha(moon_lon, birth_jd)
+    if body.system == "kalachakra":
+        return kalachakra(moon_lon, birth_jd)
+    if body.system == "narayana":
+        return narayana_dasha(lagna_sign, positions, birth_jd)
+    if body.system == "vimshottari_360":
+        return vimshottari_with_year(moon_lon, birth_jd, year_days=360.0)
     lagna_lord = body.chart["lagna"]["lord"]
     lagna_lord_sign = body.chart["grahas"].get(lagna_lord, {}).get("sign")
     rahu_sign = body.chart["grahas"]["rahu"]["sign"]
@@ -380,3 +392,26 @@ def varshaphal_endpoint(body: VarshaphalRequest):
     except Exception as exc:  # pragma: no cover
         logger.error("varshaphal failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Varshaphal computation failed")
+
+
+# ── Rectification screening ─────────────────────────────────────────────────
+
+class RectifyRequest(BaseModel):
+    date: str
+    time: str
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+    tz: str | None = None
+    band_minutes: int = Field(default=30, ge=2, le=120)
+    step_minutes: int = Field(default=2, ge=1, le=30)
+
+
+@app.post("/api/rectify")
+def rectify_endpoint(body: RectifyRequest):
+    from jyotish.rectify import rectify
+    try:
+        return rectify(_date.fromisoformat(body.date), _time.fromisoformat(body.time),
+                       lat=body.lat, lng=body.lng, tz_name=body.tz,
+                       band_minutes=body.band_minutes, step_minutes=body.step_minutes)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))

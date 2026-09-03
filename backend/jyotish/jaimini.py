@@ -211,3 +211,43 @@ def chara_dasha(lagna_sign: int, graha_signs: dict[str, int], birth_jd: float) -
                         "end": _jd_to_iso(end)})
         cursor = end
     return periods
+
+
+# ── Argala (intervention) — Jaimini Sutras 1.1.5-8 ───────────────────────────
+# Planets in the 2nd, 4th and 11th signs FROM a given sign exert argala
+# (intervention) on it; the 5th gives secondary argala. Each argala is
+# obstructed (virodha) by planets in its mirror: 12th blocks 2nd, 10th blocks
+# 4th, 3rd blocks 11th, 9th blocks 5th. Ketu's argala counts REVERSE (from the
+# 12th, 10th, 3rd). An argala stands when the intervening grahas outnumber the
+# obstructors (equal counts cancel — documented convention).
+
+_ARGALA_PAIRS = [(2, 12), (4, 10), (11, 3), (5, 9)]  # (argala house, virodha house)
+
+
+def argala(on_sign: int, graha_signs: dict[str, int]) -> dict:
+    """Argala analysis on a sign. graha_signs: {graha: rasi index} (9 grahas)."""
+    def _occupants(offset: int, reverse: bool = False) -> list[str]:
+        target = (on_sign - (offset - 1)) % 12 if reverse else (on_sign + offset - 1) % 12
+        return [g for g, s in graha_signs.items() if s == target]
+
+    out = []
+    for arg_h, vir_h in _ARGALA_PAIRS:
+        interveners = [g for g in _occupants(arg_h) if g != "ketu"]
+        # Ketu intervenes from the reverse count.
+        if "ketu" in _occupants(arg_h, reverse=True):
+            interveners.append("ketu (reverse)")
+        obstructors = [g for g in _occupants(vir_h) if g != "ketu"]
+        if "ketu" in _occupants(vir_h, reverse=True):
+            obstructors.append("ketu (reverse)")
+        if not interveners:
+            continue
+        effective = len(interveners) > len(obstructors)
+        out.append({
+            "house_from": arg_h,
+            "secondary": arg_h == 5,
+            "interveners": interveners,
+            "obstructors": obstructors,
+            "effective": effective,
+        })
+    return {"on_sign": on_sign, "argalas": out,
+            "has_effective_argala": any(a["effective"] for a in out)}

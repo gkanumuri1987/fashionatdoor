@@ -1,6 +1,6 @@
 {
   "schema": "golden-charts-v1",
-  "engine_version": "1.2.0",
+  "engine_version": "1.3.0",
   "note": "ENGINE snapshots: self-consistent regression anchors pinned from jyotish.compute_chart(). Values were additionally spot-verified by eye against Jagannatha Hora at generation time. Any change to these values requires bumping jyotish.ENGINE_VERSION and deliberately regenerating this file via scripts/make_golden.py — never hand-editing it.",
   "generated_by": "scripts/make_golden.py",
   "cases": [
@@ -324,11 +324,11 @@
         "shadbala_rupas": {
           "sun": 10.038,
           "moon": 7.077,
-          "mars": 6.786,
-          "mercury": 7.788,
-          "jupiter": 8.169,
-          "venus": 6.761,
-          "saturn": 8.027
+          "mars": 7.307,
+          "mercury": 7.669,
+          "jupiter": 8.442,
+          "venus": 7.333,
+          "saturn": 7.696
         },
         "ashtakavarga_sarva": [
           30,
@@ -760,13 +760,13 @@
           "vesi"
         ],
         "shadbala_rupas": {
-          "sun": 7.557,
+          "sun": 8.307,
           "moon": 8.602,
-          "mars": 4.915,
-          "mercury": 8.097,
-          "jupiter": 8.086,
-          "venus": 5.509,
-          "saturn": 7.503
+          "mars": 4.987,
+          "mercury": 8.083,
+          "jupiter": 7.926,
+          "venus": 5.519,
+          "saturn": 7.867
         },
         "ashtakavarga_sarva": [
           22,
@@ -1205,11 +1205,11 @@
         "shadbala_rupas": {
           "sun": 9.252,
           "moon": 10.508,
-          "mars": 8.055,
-          "mercury": 7.378,
-          "jupiter": 7.458,
-          "venus": 6.365,
-          "saturn": 5.876
+          "mars": 8.843,
+          "mercury": 7.267,
+          "jupiter": 7.722,
+          "venus": 6.731,
+          "saturn": 5.927
         },
         "ashtakavarga_sarva": [
           28,
@@ -1644,12 +1644,12 @@
         ],
         "shadbala_rupas": {
           "sun": 5.388,
-          "moon": 7.78,
-          "mars": 7.84,
-          "mercury": 6.842,
-          "jupiter": 7.237,
-          "venus": 6.202,
-          "saturn": 5.713
+          "moon": 8.28,
+          "mars": 7.998,
+          "mercury": 6.572,
+          "jupiter": 7.354,
+          "venus": 6.255,
+          "saturn": 5.437
         },
         "ashtakavarga_sarva": [
           24,
@@ -2081,12 +2081,12 @@
         ],
         "shadbala_rupas": {
           "sun": 5.687,
-          "moon": 8.807,
-          "mars": 7.163,
-          "mercury": 7.45,
-          "jupiter": 7.07,
-          "venus": 6.891,
-          "saturn": 6.754
+          "moon": 9.057,
+          "mars": 7.311,
+          "mercury": 7.872,
+          "jupiter": 7.4,
+          "venus": 7.044,
+          "saturn": 7.029
         },
         "ashtakavarga_sarva": [
           24,
@@ -2520,12 +2520,12 @@
         ],
         "shadbala_rupas": {
           "sun": 6.262,
-          "moon": 8.836,
-          "mars": 5.605,
-          "mercury": 8.699,
-          "jupiter": 6.543,
-          "venus": 5.961,
-          "saturn": 7.415
+          "moon": 9.086,
+          "mars": 6.144,
+          "mercury": 8.711,
+          "jupiter": 6.849,
+          "venus": 5.57,
+          "saturn": 7.61
         },
         "ashtakavarga_sarva": [
           27,
@@ -3388,11 +3388,11 @@
         "shadbala_rupas": {
           "sun": 10.506,
           "moon": 8.49,
-          "mars": 6.923,
-          "mercury": 6.805,
-          "jupiter": 9.309,
-          "venus": 7.384,
-          "saturn": 7.563
+          "mars": 7.172,
+          "mercury": 6.794,
+          "jupiter": 9.899,
+          "venus": 7.549,
+          "saturn": 7.206
         },
         "ashtakavarga_sarva": [
           27,
@@ -3827,11 +3827,11 @@
         "shadbala_rupas": {
           "sun": 10.102,
           "moon": 7.376,
-          "mars": 6.725,
-          "mercury": 7.889,
-          "jupiter": 8.173,
-          "venus": 6.824,
-          "saturn": 8.698
+          "mars": 7.245,
+          "mercury": 7.77,
+          "jupiter": 8.446,
+          "venus": 7.396,
+          "saturn": 8.368
         },
         "ashtakavarga_sarva": [
           30,
@@ -4266,11 +4266,11 @@
         "shadbala_rupas": {
           "sun": 9.505,
           "moon": 5.147,
-          "mars": 6.44,
-          "mercury": 6.665,
-          "jupiter": 9.1,
-          "venus": 6.201,
-          "saturn": 7.369
+          "mars": 7.278,
+          "mercury": 6.4,
+          "jupiter": 8.893,
+          "venus": 6.132,
+          "saturn": 7.762
         },
         "ashtakavarga_sarva": [
           29,
@@ -4706,12 +4706,12 @@
         ],
         "shadbala_rupas": {
           "sun": 6.139,
-          "moon": 5.351,
-          "mars": 6.735,
-          "mercury": 5.636,
-          "jupiter": 4.307,
-          "venus": 7.307,
-          "saturn": 5.868
+          "moon": 6.101,
+          "mars": 6.7,
+          "mercury": 5.566,
+          "jupiter": 4.492,
+          "venus": 7.104,
+          "saturn": 5.671
         },
         "ashtakavarga_sarva": [
           22,
@@ -5146,12 +5146,12 @@
         ],
         "shadbala_rupas": {
           "sun": 5.876,
-          "moon": 7.904,
-          "mars": 4.826,
-          "mercury": 9.085,
-          "jupiter": 6.719,
-          "venus": 7.892,
-          "saturn": 5.505
+          "moon": 8.154,
+          "mars": 4.967,
+          "mercury": 9.136,
+          "jupiter": 6.728,
+          "venus": 7.98,
+          "saturn": 5.838
         },
         "ashtakavarga_sarva": [
           34,
@@ -5583,11 +5583,11 @@
         "shadbala_rupas": {
           "sun": 5.955,
           "moon": 9.523,
-          "mars": 6.284,
-          "mercury": 8.712,
-          "jupiter": 7.505,
-          "venus": 7.264,
-          "saturn": 5.479
+          "mars": 6.55,
+          "mercury": 8.87,
+          "jupiter": 8.237,
+          "venus": 7.125,
+          "saturn": 5.416
         },
         "ashtakavarga_sarva": [
           25,
@@ -6023,12 +6023,12 @@
         ],
         "shadbala_rupas": {
           "sun": 7.284,
-          "moon": 5.894,
-          "mars": 5.67,
-          "mercury": 6.55,
-          "jupiter": 8.771,
-          "venus": 6.37,
-          "saturn": 8.088
+          "moon": 6.144,
+          "mars": 5.815,
+          "mercury": 6.409,
+          "jupiter": 9.127,
+          "venus": 6.466,
+          "saturn": 7.867
         },
         "ashtakavarga_sarva": [
           35,
@@ -6461,11 +6461,11 @@
         "shadbala_rupas": {
           "sun": 9.029,
           "moon": 6.174,
-          "mars": 5.661,
-          "mercury": 7.543,
-          "jupiter": 7.31,
-          "venus": 7.511,
-          "saturn": 5.146
+          "mars": 5.36,
+          "mercury": 7.509,
+          "jupiter": 7.524,
+          "venus": 7.759,
+          "saturn": 5.37
         },
         "ashtakavarga_sarva": [
           32,
@@ -6899,12 +6899,12 @@
         ],
         "shadbala_rupas": {
           "sun": 7.738,
-          "moon": 7.27,
-          "mars": 5.277,
-          "mercury": 9.092,
-          "jupiter": 7.354,
-          "venus": 4.893,
-          "saturn": 4.761
+          "moon": 7.52,
+          "mars": 5.086,
+          "mercury": 9.464,
+          "jupiter": 7.145,
+          "venus": 4.815,
+          "saturn": 5.077
         },
         "ashtakavarga_sarva": [
           27,
@@ -7339,13 +7339,13 @@
           "viparita_sarala"
         ],
         "shadbala_rupas": {
-          "sun": 9.482,
+          "sun": 9.732,
           "moon": 5.375,
-          "mars": 4.916,
-          "mercury": 10.491,
-          "jupiter": 7.13,
-          "venus": 7.308,
-          "saturn": 5.487
+          "mars": 4.913,
+          "mercury": 10.775,
+          "jupiter": 7.092,
+          "venus": 7.16,
+          "saturn": 5.789
         },
         "ashtakavarga_sarva": [
           30,
@@ -7779,11 +7779,11 @@
         "shadbala_rupas": {
           "sun": 8.053,
           "moon": 7.887,
-          "mars": 6.599,
-          "mercury": 6.467,
-          "jupiter": 7.851,
-          "venus": 6.993,
-          "saturn": 6.107
+          "mars": 6.98,
+          "mercury": 6.201,
+          "jupiter": 7.838,
+          "venus": 7.622,
+          "saturn": 5.788
         },
         "ashtakavarga_sarva": [
           31,
@@ -8217,11 +8217,11 @@
         "shadbala_rupas": {
           "sun": 11.106,
           "moon": 6.798,
-          "mars": 6.396,
-          "mercury": 9.159,
-          "jupiter": 9.475,
-          "venus": 6.605,
-          "saturn": 4.666
+          "mars": 6.724,
+          "mercury": 9.57,
+          "jupiter": 9.553,
+          "venus": 6.166,
+          "saturn": 4.993
         },
         "ashtakavarga_sarva": [
           34,
@@ -8656,11 +8656,11 @@
         "shadbala_rupas": {
           "sun": 5.058,
           "moon": 7.358,
-          "mars": 6.52,
-          "mercury": 7.117,
-          "jupiter": 6.127,
-          "venus": 6.688,
-          "saturn": 8.385
+          "mars": 7.039,
+          "mercury": 7.065,
+          "jupiter": 6.44,
+          "venus": 6.843,
+          "saturn": 8.445
         },
         "ashtakavarga_sarva": [
           26,

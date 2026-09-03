@@ -7,13 +7,17 @@ tests only) for 1990-05-15 10:30 IST, Hyderabad.
 import math
 from datetime import datetime, timezone
 
-from jyotish.strength import (NAISARGIKA_BALA, REQUIRED_RUPAS, SHADBALA_GRAHAS,
-                              ShadbalaInputs, ayana_bala, chesta_bala,
+from jyotish.strength import (KALI_EPOCH_JD, MOTION_STATES, NAISARGIKA_BALA,
+                              REQUIRED_RUPAS, SHADBALA_GRAHAS, ShadbalaInputs,
+                              abda_bala, abda_lord, abda_masa_ahargana,
+                              ayana_bala, bhava_bala, bhava_bala_simple,
+                              bhava_dig_bala, chesta_bala, chesta_kendra,
                               dig_bala, drekkana_bala, drik_bala, hora_bala,
-                              ishta_kashta, kendradi_bala, bhava_bala_simple,
+                              ishta_kashta, kendradi_bala, masa_bala,
+                              masa_lord, mean_longitude, motion_state,
                               nathonnatha_bala, ojayugma_bala, paksha_bala,
                               shadbala, sphuta_drishti, tribhaga_bala,
-                              uccha_bala, vara_bala)
+                              uccha_bala, vara_bala, vimshopaka_bala)
 
 HYD_LAT, HYD_LNG = 17.385, 78.4867
 
@@ -238,8 +242,11 @@ def test_shadbala_totals_and_rupas():
         assert 0.0 <= r["dig"] <= 60.0
 
 
-def test_shadbala_real_chart_sanity():
-    """1990-05-15 10:30 IST (05:00 UTC), Hyderabad — a Tuesday day birth."""
+def _real_chart_inputs(full_bphs: bool = False):
+    """1990-05-15 10:30 IST (05:00 UTC), Hyderabad — a Tuesday day birth.
+
+    Returns (inputs, cusps): live-ephemeris ShadbalaInputs + the house cusps
+    (allowed in tests only)."""
     from jyotish import ephemeris  # allowed in tests only
 
     dt = datetime(1990, 5, 15, 5, 0, tzinfo=timezone.utc)
@@ -256,8 +263,13 @@ def test_shadbala_real_chart_sanity():
         lagna_lon=house_data["ascendant"], jd_ut=jd, lat=HYD_LAT, lng=HYD_LNG,
         sunrise_jd=sunrise, sunset_jd=sunset, is_day_birth=True,
         weekday=1,  # Tuesday
-        ayanamsa_value=ayan,
+        ayanamsa_value=ayan, full_bphs=full_bphs,
     )
+    return inputs, house_data["cusps"]
+
+
+def test_shadbala_real_chart_sanity():
+    inputs, _ = _real_chart_inputs()
     result = shadbala(inputs)
     assert set(result) == set(SHADBALA_GRAHAS)
     for g, r in result.items():
@@ -271,3 +283,205 @@ def test_shadbala_real_chart_sanity():
         # ishta/kashta derived from this chart stay in bounds.
         ishta, kashta = ishta_kashta(r["sthana"]["uccha"], r["chesta"])
         assert 0.0 <= ishta <= 60.0 and 0.0 <= kashta <= 60.0
+
+
+# ── true chesta (mean elements) ──────────────────────────────────────────────
+
+_REAL_JD = 2448026.708334247  # 1990-05-15 05:00 UTC
+
+
+def test_mean_longitude_sun_sanity():
+    """Mean Sun tracks the true Sun within the equation of center (~2°)."""
+    inputs, _ = _real_chart_inputs()
+    true_sidereal_sun = inputs.positions["sun"]["lon"]
+    mean_sidereal_sun = mean_longitude("sun", inputs.jd_ut, inputs.ayanamsa_value)
+    diff = abs((mean_sidereal_sun - true_sidereal_sun + 180.0) % 360.0 - 180.0)
+    assert diff < 2.5, f"mean Sun off by {diff}°"
+    # Ayanamsa subtraction shifts the reading by exactly the ayanamsa.
+    trop = mean_longitude("sun", inputs.jd_ut)
+    assert abs((trop - mean_sidereal_sun) % 360.0 - inputs.ayanamsa_value % 360.0) < 1e-9
+
+
+def test_chesta_kendra_identity():
+    """chesta bala (true mode) == reduced kendra / 3 for the five taras."""
+    pos = _dummy_positions()
+    for g in ("mars", "mercury", "jupiter", "venus", "saturn"):
+        k = chesta_kendra(g, _REAL_JD)
+        assert 0.0 <= k <= 180.0
+        assert abs(chesta_bala(g, pos, 0.0, 0.0, jd_ut=_REAL_JD) - k / 3.0) < 1e-9
+        # And the kendra is the reduced mean-planet/mean-Sun separation.
+        raw = (mean_longitude(g, _REAL_JD) - mean_longitude("sun", _REAL_JD)) % 360.0
+        assert abs(k - (360.0 - raw if raw > 180.0 else raw)) < 1e-9
+
+
+def test_true_chesta_retrograde_mars_near_60():
+    """Mars retrogrades at opposition, where the kendra peaks → chesta ~60.
+
+    Scan one synodic period for the peak kendra day."""
+    best = max(chesta_kendra("mars", _REAL_JD + d) for d in range(0, 800, 2))
+    assert best > 178.0                      # opposition is reached in the scan
+    assert best / 3.0 > 59.0                 # chesta bala saturates near 60
+
+
+def test_true_chesta_real_chart_retro_planets_high():
+    """1990-05-15: Mercury and Saturn are retrograde — true chesta rewards them."""
+    inputs, _ = _real_chart_inputs(full_bphs=True)
+    result = shadbala(inputs)
+    assert inputs.positions["mercury"]["speed"] < 0  # retro in this chart
+    assert inputs.positions["saturn"]["speed"] < 0
+    assert result["mercury"]["chesta"] > 45.0        # near inferior conjunction
+    assert result["saturn"]["chesta"] > 35.0
+    # Fast direct Jupiter scores below both retrograde planets.
+    assert result["jupiter"]["chesta"] < result["mercury"]["chesta"]
+    assert result["jupiter"]["chesta"] < result["saturn"]["chesta"]
+    # Sun/Moon pass-throughs are unchanged by the mode.
+    assert result["sun"]["chesta"] == result["sun"]["kala"]["ayana"]
+    assert result["moon"]["chesta"] == result["moon"]["kala"]["paksha"]
+
+
+def test_legacy_chesta_default_unchanged():
+    """Default mode still uses the speed proxy (golden totals depend on it)."""
+    pos = _dummy_positions()
+    pos["saturn"]["speed"] = -0.05
+    assert chesta_bala("saturn", pos, 0.0, 0.0) == 60.0
+    inputs, _ = _real_chart_inputs()
+    result = shadbala(inputs)
+    assert "abda" not in result["sun"]["kala"] and "masa" not in result["sun"]["kala"]
+
+
+# ── motion states ────────────────────────────────────────────────────────────
+
+def test_motion_state_thresholds():
+    m = 0.524  # Mars mean speed
+    assert motion_state("mars", -0.6 * m) == "vakra"
+    assert motion_state("mars", -0.2 * m) == "anuvakra"
+    assert motion_state("mars", 0.0) == "vikala"
+    assert motion_state("mars", 0.2 * m) == "mandatara"
+    assert motion_state("mars", 0.7 * m) == "manda"
+    assert motion_state("mars", 1.0 * m) == "sama"
+    assert motion_state("mars", 1.3 * m) == "chara"
+    assert motion_state("mars", 2.0 * m) == "atichara"
+
+
+def test_motion_state_present_for_five_taras():
+    for full in (False, True):
+        inputs, _ = _real_chart_inputs(full_bphs=full)
+        result = shadbala(inputs)
+        for g in ("mars", "mercury", "jupiter", "venus", "saturn"):
+            assert result[g]["motion_state"] in MOTION_STATES, g
+        # Retro planets of this chart land in a retrograde state.
+        for g in ("mercury", "saturn"):
+            assert result[g]["motion_state"] in ("vakra", "anuvakra"), g
+
+
+# ── abda / masa (kala completion) ────────────────────────────────────────────
+
+def test_ahargana_epoch_and_weekday_anchor():
+    assert abda_masa_ahargana(KALI_EPOCH_JD) == 0.0
+    # Kali epoch day is a Friday: floor(588465.5 + 1.5) % 7 == 5 (0=Sunday).
+    assert int(KALI_EPOCH_JD + 1.5) % 7 == 5
+    # Cross-check the anchor against Python's weekday on a modern date:
+    # JD 2460310.5 = 2024-01-01 00:00 UT, a Monday.
+    assert int(2460310.5 + 1.5) % 7 == 1
+
+
+def test_abda_masa_lords_deterministic_and_valid():
+    for jd in (_REAL_JD, 2451545.0, 2460310.5):
+        a1, a2 = abda_lord(jd), abda_lord(jd)
+        m1, m2 = masa_lord(jd), masa_lord(jd)
+        assert a1 == a2 and m1 == m2                 # deterministic
+        assert a1 in SHADBALA_GRAHAS and m1 in SHADBALA_GRAHAS
+    # Pinned values for the 1990 chart (from the documented Friday anchor).
+    assert abda_lord(_REAL_JD) == "mars"
+    assert masa_lord(_REAL_JD) == "venus"
+    # Exactly one graha holds each bala: totals 15 and 30.
+    assert sum(abda_bala(g, _REAL_JD) for g in SHADBALA_GRAHAS) == 15.0
+    assert sum(masa_bala(g, _REAL_JD) for g in SHADBALA_GRAHAS) == 30.0
+
+
+def test_full_bphs_kala_includes_abda_masa():
+    inputs, _ = _real_chart_inputs(full_bphs=True)
+    result = shadbala(inputs)
+    for g, r in result.items():
+        assert "abda" in r["kala"] and "masa" in r["kala"], g
+        assert r["kala"]["abda"] in (0.0, 15.0)
+        assert r["kala"]["masa"] in (0.0, 30.0)
+        # Kala total includes the new components (existing vara 45 / hora 60 kept).
+        parts = {k: v for k, v in r["kala"].items() if k != "total"}
+        assert abs(sum(parts.values()) - r["kala"]["total"]) < 0.05
+    assert result["mars"]["kala"]["abda"] == 15.0    # abda lord of this chart
+    assert result["venus"]["kala"]["masa"] == 30.0   # masa lord of this chart
+
+
+def test_full_bphs_real_chart_sanity_band():
+    """Total rupas stay in the 2..15 sanity band in FULL BPHS mode too."""
+    inputs, _ = _real_chart_inputs(full_bphs=True)
+    result = shadbala(inputs)
+    for g, r in result.items():
+        assert 2.0 <= r["total_rupas"] <= 15.0, f"{g}: {r['total_rupas']}"
+        assert r["is_strong"] == (r["total_rupas"] >= r["required_rupas"])
+
+
+# ── vimshopaka ───────────────────────────────────────────────────────────────
+
+def test_vimshopaka_bounds_and_presence():
+    pos = _dummy_positions()
+    d1_signs = {g: int(pos[g]["lon"] // 30) for g in SHADBALA_GRAHAS}
+    for g in SHADBALA_GRAHAS:
+        v = vimshopaka_bala(g, pos[g]["lon"], d1_signs)
+        assert 0.0 <= v <= 20.0, g
+    for full in (False, True):
+        inputs, _ = _real_chart_inputs(full_bphs=full)
+        result = shadbala(inputs)
+        for g, r in result.items():
+            assert 0.0 <= r["vimshopaka"] <= 20.0, g
+
+
+def test_vimshopaka_dignity_scaling():
+    """The D1 rung alone moves the score: exalted Sun ≥ debilitated Sun."""
+    d1_ex = {g: 0 for g in SHADBALA_GRAHAS}
+    d1_deb = dict(d1_ex, sun=6)
+    exalted = vimshopaka_bala("sun", 10.0, d1_ex)        # 10° Aries
+    debilitated = vimshopaka_bala("sun", 190.0, d1_deb)  # 10° Libra
+    assert exalted > debilitated
+    assert 0.0 <= debilitated and exalted <= 20.0
+
+
+# ── bhava bala ───────────────────────────────────────────────────────────────
+
+def test_bhava_bala_structure_and_components():
+    inputs, cusps = _real_chart_inputs(full_bphs=True)
+    sb = shadbala(inputs)
+    bb = bhava_bala(sb, cusps, inputs.positions)
+    assert set(bb) == set(range(1, 13))
+    for house, e in bb.items():
+        for key in ("bhavadhipati", "bhava_dig", "bhava_drishti", "total"):
+            assert key in e and math.isfinite(e[key]), f"house {house}.{key}"
+        assert e["lord"] in SHADBALA_GRAHAS
+        assert 0.0 <= e["bhava_dig"] <= 60.0
+        # Bhavadhipati bala IS the lord's shadbala total.
+        assert abs(e["bhavadhipati"] - sb[e["lord"]]["total_virupas"]) < 0.01
+        assert abs(e["total"] - (e["bhavadhipati"] + e["bhava_dig"]
+                                 + e["bhava_drishti"])) < 0.05
+
+
+def test_bhava_dig_bala_rasi_classes():
+    cusps = [15.0 + 30.0 * i for i in range(12)]  # Aries-rising madhyas
+    # House 1 madhya 15° Aries — chatushpada → strong in the 10th (285°):
+    # distance 90° → 60 − 30 = 30.
+    assert abs(bhava_dig_bala(cusps[0], cusps) - 30.0) < 1e-9
+    # 10° Capricorn (1st half, 280°) — chatushpada → 10th (285°): 5° → 58.33.
+    assert abs(bhava_dig_bala(280.0, cusps) - (60.0 - 5.0 / 3.0)) < 1e-9
+    # 15° Capricorn (285°) is the 2ND half — jalachara → 4th (105°): 180° → 0.
+    assert abs(bhava_dig_bala(cusps[9], cusps) - 0.0) < 1e-9
+    # House 8 madhya 15° Scorpio — keeta → strong in the 7th (195°): 30° → 50.
+    assert abs(bhava_dig_bala(cusps[7], cusps) - 50.0) < 1e-9
+    # House 4 madhya 15° Cancer — jalachara → its own house → 60.
+    assert abs(bhava_dig_bala(cusps[3], cusps) - 60.0) < 1e-9
+    # House 3 madhya 15° Gemini — nara → strong in the 1st: 60° → 40.
+    assert abs(bhava_dig_bala(cusps[2], cusps) - 40.0) < 1e-9
+    # Sagittarius halves split: 10° Sag is nara (→ 1st), 20° Sag chatushpada (→ 10th).
+    d_nara = min(abs(250.0 - 15.0), 360.0 - abs(250.0 - 15.0))
+    assert abs(bhava_dig_bala(250.0, cusps) - max(0.0, 60.0 - d_nara / 3.0)) < 1e-9
+    d_chat = min(abs(260.0 - 285.0), 360.0 - abs(260.0 - 285.0))
+    assert abs(bhava_dig_bala(260.0, cusps) - max(0.0, 60.0 - d_chat / 3.0)) < 1e-9

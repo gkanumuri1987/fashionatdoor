@@ -18,7 +18,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 from .constants import TITHIS, VARAS
-from .ephemeris import jd_to_utc, julian_day_ut, sidereal_positions, sunrise_sunset
+from .ephemeris import houses, jd_to_utc, julian_day_ut, sidereal_positions, sunrise_sunset
 from .nakshatra import nakshatra_of
 from .panchanga import panchanga
 
@@ -62,6 +62,25 @@ def scan_days(start: date, days: int, lat: float, lng: float,
         if p["yoga"]["name"] in _BAD_YOGAS:
             objections.append(f"{p['yoga']['name']} yoga")
 
+        # Classical PANCHAKA: (vara + tithi + nakshatra + lagna) mod 9 —
+        # remainders 1 (mrityu), 2 (agni), 4 (raja), 6 (chora), 8 (roga) are
+        # doshas. Vara counted Sunday=1; lagna = ascendant at sunrise.
+        panchaka = None
+        try:
+            asc = houses(eval_jd, lat, lng, ayanamsa=ayanamsa,
+                         system="whole_sign")["ascendant"]
+            vara_num = ((d.weekday() + 1) % 7) + 1        # Sunday=1..Saturday=7
+            total = (vara_num + (tithi_idx0 + 1) + (nak["index"] + 1)
+                     + (int(asc // 30) + 1))
+            rem = total % 9
+            names = {1: "mrityu", 2: "agni", 4: "raja", 6: "chora", 8: "roga"}
+            panchaka = {"remainder": rem, "dosha": names.get(rem),
+                        "clear": rem not in names}
+            if panchaka["dosha"]:
+                objections.append(f"panchaka dosha ({panchaka['dosha']})")
+        except Exception:  # polar / houses failure — panchaka omitted
+            pass
+
         tara = None
         if natal_moon_nak is not None:
             tara_count = (nak["index"] - natal_moon_nak) % 27 % 9 + 1
@@ -87,6 +106,7 @@ def scan_days(start: date, days: int, lat: float, lng: float,
             "nakshatra": nak["name"],
             "yoga": p["yoga"]["name"],
             "karana": p["karana"]["name"],
+            "panchaka": panchaka,
             "sunrise_utc": jd_to_utc(rise_jd).isoformat() if rise_jd else None,
             "tarabala": tara,
             "chandrabala": chandra,

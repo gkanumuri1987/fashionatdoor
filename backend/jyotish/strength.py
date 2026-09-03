@@ -50,8 +50,17 @@ KALA (temporal) = nathonnatha + paksha + tribhaga + vara + hora + ayana
     day counted from sunrise (the unequal day/night-hour refinement is
     omitted); the first hora belongs to the weekday lord and successive lords
     follow the hora order Sun, Venus, Mercury, Moon, Saturn, Jupiter, Mars.
-  * Abda (year-lord ~15) and masa (month-lord ~30) balas are OMITTED — they
-    need epoch year tables and are rarely decisive; documented omission.
+  * Abda (year-lord 15) and masa (month-lord 30) balas are computed from the
+    Kali ahargana when ShadbalaInputs.full_bphs=True (default False keeps the
+    legacy totals byte-identical for the pinned golden charts):
+      ahargana = jd_ut − 588465.5 (the Kali epoch, Feb 18 3102 BCE 00:00 UT).
+      WEEKDAY ANCHOR (calibrated): floor(jd + 1.5) mod 7 → 0=Sunday..6=Saturday
+      (checked: JD 2460310.5 = 2024-01-01, a Monday, → 1). The Kali epoch day
+      maps to 5 = FRIDAY, matching tradition, i.e. Python weekday 4 — so Kali
+      day N has Python weekday (4 + N) mod 7.
+      Abda: the year is 360 civil days; year_start = A − (A mod 360) with
+      A = floor(ahargana); the abda lord is the vara lord of that day (15
+      virupas). Masa: same with 30-day months (30 virupas).
   * Ayana: declination proxy = 23.45 * sin(sayana longitude), where
     sayana = sidereal + ayanamsa. North-strong grahas (Sun/Mars/Jupiter/
     Venus): 60*(23.45+decl)/46.9; south-strong (Moon/Saturn): the complement;
@@ -64,12 +73,63 @@ KALA (temporal) = nathonnatha + paksha + tribhaga + vara + hora + ayana
     (1 - separation) * 30 virupas.
 
 CHESTA (motional): Sun = its ayana bala (the doubled value); Moon = its
-  paksha bala (the doubled value) — both per BPHS. For Mars..Saturn a
-  simplified continuous form of the 8-avastha classification is used:
-  chesta = 30 + 30*(mean_speed - actual_speed)/mean_speed, clamped to 0..60,
-  so retrograde motion (negative speed) saturates at 60 (vakra) and fast
-  direct motion (atichara) approaches 0..15. Mean speeds (deg/day):
-  Mars 0.524, Mercury 1.383, Jupiter 0.083, Venus 1.2, Saturn 0.033.
+  paksha bala (the doubled value) — both per BPHS, in both modes.
+  For Mars..Saturn, TWO implementations:
+  * full_bphs=True → TRUE chesta from mean elements (the widely used rule, as
+    in Maitreya/JHora-style open implementations): chesta_kendra =
+    seeghroccha − madhya, reduced to 0..360, and if > 180 use 360 − k;
+    chesta bala = k / 3 shashtiamsas (0..60). For the OUTER planets
+    (Mars/Jupiter/Saturn) the seeghroccha is the MEAN SUN and madhya is the
+    planet's mean longitude; for MERCURY/VENUS the seeghroccha is the planet's
+    OWN mean heliocentric longitude and madhya is the mean Sun. Either way the
+    reduced kendra equals reduce(|mean_planet − mean_sun|), so retrograde
+    motion (opposition for outer planets, inferior conjunction for inner)
+    scores near 60. Mean longitudes are standard mean-element polynomials
+    referenced to J2000 (Meeus, "Astronomical Algorithms" 2nd ed., Table 31.a
+    for the planets, eq. 25.2 for the Sun; mean equinox of date,
+    T = (jd − 2451545.0)/36525). The kendra is a LONGITUDE DIFFERENCE, so the
+    ayanamsa cancels — tropical mean elements may be differenced directly
+    against each other (mean_longitude() still accepts an ayanamsa for a
+    sidereal reading).
+  * full_bphs=False (default) → the legacy speed-proxy (kept so pinned golden
+    totals stay byte-identical): chesta = 30 + 30*(mean_speed − actual_speed)
+    / mean_speed, clamped 0..60. Mean speeds (deg/day): Mars 0.524,
+    Mercury 1.383, Jupiter 0.083, Venus 1.2, Saturn 0.033 (Sun 0.9856,
+    Moon 13.176 are used only for motion-state naming).
+
+MOTION STATES (avasthas of motion, informational, always returned): the 8
+  classical names are assigned from the ratio r = actual_speed / mean_speed
+  (engine-documented thresholds; the classical texts name the states without
+  numeric bounds, so the bands below are this engine's convention):
+    r <= −0.5        → vakra       (full retrograde)
+    −0.5 < r < −0.05 → anuvakra    (slow/entering retrograde)
+    |r| <= 0.05      → vikala      (stationary)
+    0.05 < r < 0.5   → mandatara   (very slow direct)
+    0.5 <= r < 0.9   → manda       (slow)
+    0.9 <= r <= 1.1  → sama        (near mean motion)
+    1.1 < r < 1.5    → chara       (fast)
+    r >= 1.5         → atichara    (very fast)
+
+VIMSHOPAKA (shadvarga, informational, always returned): D1,D2,D3,D9,D12,D30
+  weighted 6,2,4,5,2,1 (total 20). Dignity factor per varga:
+  exalted/moolatrikona/own → 1.0; great_friend/friend → 3/4; neutral → 1/2;
+  enemy → 1/4; great_enemy/debilitated → 0. MT only exists in D1 (degree
+  band); friendship is the COMPOUND relation with temporal evaluated from D1
+  positions (same convention as saptavargaja). Score is 0..20 per graha.
+
+BHAVA BALA (bhava_bala(), separate function): per-house total of
+  * bhavadhipati bala — the house lord's shadbala total (virupas); lord of
+    the sign holding the bhava madhya.
+  * bhava dig bala — the Maitreya-style rasi-type rule: the bhava madhya's
+    RASI class picks the strong house — nara rashis (Gemini, Virgo, Libra,
+    Aquarius, 1st half Sagittarius) strong in the 1st; jalachara (Cancer,
+    Pisces, 2nd half Capricorn) in the 4th; chatushpada (Aries, Taurus, Leo,
+    2nd half Sagittarius, 1st half Capricorn) in the 10th; keeta (Scorpio)
+    in the 7th. bala = 60 − (angular distance from the strong bhava's
+    madhya)/3, floored at 0.
+  * bhava drishti bala — sum over the 7 grahas of sphuta drishti onto the
+    bhava madhya (special sign aspects of Mars/Jupiter/Saturn uplifted to 60,
+    same convention as graha drik), benefics positive, malefics negative, /4.
 
 NAISARGIKA (natural, fixed): Sun 60, Moon 51.43, Venus 42.85, Jupiter 34.28,
   Mercury 25.7, Mars 17.14, Saturn 8.57.
@@ -147,7 +207,38 @@ _NIGHT_TRIBHAGA_LORDS = ("moon", "venus", "mars")
 HORA_ORDER = ("sun", "venus", "mercury", "moon", "saturn", "jupiter", "mars")
 
 MEAN_SPEED = {"mars": 0.524, "mercury": 1.383, "jupiter": 0.083,
-              "venus": 1.2, "saturn": 0.033}
+              "venus": 1.2, "saturn": 0.033,
+              # sun/moon entries are used only for motion-state naming.
+              "sun": 0.9856, "moon": 13.176}
+
+# Mean-longitude polynomials, mean equinox of date (Meeus, "Astronomical
+# Algorithms" 2nd ed.: Table 31.a for the planets, eq. 25.2 for the Sun).
+# L = a + b*T + c*T^2 degrees, T = (jd_ut - 2451545.0) / 36525 (J2000).
+_MEAN_ELEMENTS = {
+    "sun":     (280.46646, 36000.76983, 0.0003032),
+    "mercury": (252.250906, 149474.0722491, 0.00030350),
+    "venus":   (181.979801, 58519.2130302, 0.00031014),
+    "mars":    (355.433000, 19141.6964471, 0.00031052),
+    "jupiter": (34.351519, 3036.3027748, 0.00022330),
+    "saturn":  (50.077444, 1223.5110686, 0.00051908),
+}
+
+MOTION_STATES = ("vakra", "anuvakra", "vikala", "mandatara",
+                 "manda", "sama", "chara", "atichara")
+
+# Kali epoch: Feb 18, 3102 BCE 00:00 UT — a FRIDAY (see module docstring for
+# the weekday-anchor calibration).
+KALI_EPOCH_JD = 588465.5
+_KALI_EPOCH_PY_WEEKDAY = 4  # Friday in Python's 0=Monday convention
+
+# Vimshopaka: shadvarga weights (total 20) and dignity factors.
+_VIMSHOPAKA_VARGAS = (("D1", d1, 6.0), ("D2", d2, 2.0), ("D3", d3, 4.0),
+                      ("D9", d9, 5.0), ("D12", d12, 2.0), ("D30", d30, 1.0))
+_VIMSHOPAKA_FACTOR = {
+    "exalted": 1.0, "moolatrikona": 1.0, "own": 1.0,
+    "great_friend": 0.75, "friend": 0.75, "neutral": 0.5,
+    "enemy": 0.25, "great_enemy": 0.0, "debilitated": 0.0,
+}
 
 _TARAS = ("mars", "mercury", "jupiter", "venus", "saturn")
 
@@ -164,6 +255,12 @@ class ShadbalaInputs:
     grahas (rahu/ketu tolerated but ignored).
     weekday: Python convention (0=Monday .. 6=Sunday) of the civil birth date.
     ayanamsa_value: degrees, to recover sayana longitudes for ayana bala.
+    full_bphs: OPTIONAL (default False). When True, chesta bala for
+    Mars..Saturn uses the TRUE mean-element rule and kala bala gains the
+    abda (15) + masa (30) components. The default keeps the legacy numeric
+    totals byte-identical (the golden-chart snapshots pin them); flipping it
+    on is the full-BPHS mode. Purely additive keys (motion_state, vimshopaka)
+    are returned in BOTH modes.
     """
     positions: dict[str, dict]
     lagna_lon: float
@@ -175,6 +272,7 @@ class ShadbalaInputs:
     is_day_birth: bool
     weekday: int
     ayanamsa_value: float
+    full_bphs: bool = False
 
 
 # ── small helpers ────────────────────────────────────────────────────────────
@@ -362,14 +460,101 @@ def yuddha_adjustments(positions: dict[str, dict]) -> dict[str, float]:
     return adj
 
 
+def abda_masa_ahargana(jd_ut: float) -> float:
+    """Kali ahargana: elapsed days since the Kali epoch (JD 588465.5)."""
+    return jd_ut - KALI_EPOCH_JD
+
+
+def _kali_day_lord(day_number: int) -> str:
+    """Vara lord of Kali day N (day 0 = the epoch day, a Friday)."""
+    return VARA_LORDS[(_KALI_EPOCH_PY_WEEKDAY + day_number) % 7]
+
+
+def abda_lord(jd_ut: float) -> str:
+    """Lord of the current 360-day Kali year (vara lord of its first day)."""
+    a = math.floor(abda_masa_ahargana(jd_ut))
+    return _kali_day_lord(a - a % 360)
+
+
+def masa_lord(jd_ut: float) -> str:
+    """Lord of the current 30-day Kali month (vara lord of its first day)."""
+    a = math.floor(abda_masa_ahargana(jd_ut))
+    return _kali_day_lord(a - a % 30)
+
+
+def abda_bala(graha: str, jd_ut: float) -> float:
+    return 15.0 if abda_lord(jd_ut) == graha else 0.0
+
+
+def masa_bala(graha: str, jd_ut: float) -> float:
+    return 30.0 if masa_lord(jd_ut) == graha else 0.0
+
+
 # ── chesta ───────────────────────────────────────────────────────────────────
 
+def mean_longitude(graha: str, jd_ut: float, ayanamsa_value: float = 0.0) -> float:
+    """Mean longitude (deg) from standard mean elements (Meeus Table 31.a /
+    eq. 25.2, mean equinox of date, J2000-referenced polynomials).
+
+    Tropical by default; pass ayanamsa_value to get the sidereal reading.
+    For the planets this is the mean HELIOCENTRIC longitude (which doubles as
+    the classical madhya for the outer planets and as the seeghroccha for
+    Mercury/Venus); "sun" gives the geometric mean Sun."""
+    a, b, c = _MEAN_ELEMENTS[graha]
+    t = (jd_ut - 2451545.0) / 36525.0
+    return (a + b * t + c * t * t - ayanamsa_value) % 360.0
+
+
+def chesta_kendra(graha: str, jd_ut: float) -> float:
+    """Reduced chesta kendra (0..180 deg) for Mars..Saturn.
+
+    Outer planets: kendra = seeghroccha(mean Sun) − madhya(mean planet);
+    Mercury/Venus: kendra = seeghroccha(own mean helio) − madhya(mean Sun).
+    Reduced to 0..360, and 360−k when k>180 — both orderings collapse to
+    reduce(|mean_planet − mean_sun|). The ayanamsa cancels in the difference,
+    so tropical mean elements are differenced directly."""
+    k = (mean_longitude(graha, jd_ut) - mean_longitude("sun", jd_ut)) % 360.0
+    return 360.0 - k if k > 180.0 else k
+
+
+def motion_state(graha: str, speed: float) -> str:
+    """One of the 8 avasthas of motion from actual vs mean daily speed.
+
+    Thresholds are this engine's documented convention (see module docstring);
+    classically named only for the 5 taras, but sun/moon are classified too
+    (they never retrograde, so they land in the direct bands)."""
+    r = speed / MEAN_SPEED[graha]
+    if r <= -0.5:
+        return "vakra"
+    if r < -0.05:
+        return "anuvakra"
+    if r <= 0.05:
+        return "vikala"
+    if r < 0.5:
+        return "mandatara"
+    if r < 0.9:
+        return "manda"
+    if r <= 1.1:
+        return "sama"
+    if r < 1.5:
+        return "chara"
+    return "atichara"
+
+
 def chesta_bala(graha: str, positions: dict[str, dict],
-                ayana: float, paksha: float) -> float:
+                ayana: float, paksha: float,
+                jd_ut: float | None = None) -> float:
+    """Chesta bala. Sun→ayana, Moon→paksha (per BPHS) in both modes.
+
+    For Mars..Saturn: with jd_ut given, the TRUE mean-element rule
+    (chesta = reduced kendra / 3, see chesta_kendra); with jd_ut=None the
+    legacy speed-proxy (kept for the pinned golden totals)."""
     if graha == "sun":
         return ayana  # BPHS: Sun's chesta = its ayana bala
     if graha == "moon":
         return paksha  # BPHS: Moon's chesta = its paksha bala
+    if jd_ut is not None:
+        return chesta_kendra(graha, jd_ut) / 3.0
     mean = MEAN_SPEED[graha]
     actual = positions[graha]["speed"]
     return _clamp(30.0 + 30.0 * (mean - actual) / mean, 0.0, 60.0)
@@ -397,18 +582,22 @@ def sphuta_drishti(separation: float) -> float:
     return 0.0
 
 
-def drik_bala(graha: str, positions: dict[str, dict]) -> float:
-    """(benefic drishti sum − malefic drishti sum) / 4; may be negative."""
+def _drishti_on_point(point_lon: float, positions: dict[str, dict],
+                      exclude: str | None = None) -> float:
+    """(benefic drishti − malefic drishti) onto a longitude, / 4.
+
+    Shared by graha drik bala (exclude = the aspected graha) and bhava
+    drishti bala (exclude=None: all 7 grahas aspect the bhava madhya).
+    Special sign aspects of Mars/Jupiter/Saturn are uplifted to 60."""
     moon_waxing = _moon_is_waxing(positions)
-    lon_to = positions[graha]["lon"]
-    sign_to = _sign(lon_to)
+    sign_to = _sign(point_lon)
     benefic_sum = 0.0
     malefic_sum = 0.0
     for other in SHADBALA_GRAHAS:
-        if other == graha:
+        if other == exclude:
             continue
         lon_from = positions[other]["lon"]
-        d = (lon_to - lon_from) % 360.0
+        d = (point_lon - lon_from) % 360.0
         value = sphuta_drishti(d)
         sign_count = (sign_to - _sign(lon_from)) % 12 + 1
         if sign_count in _SPECIAL_SIGN_ASPECTS.get(other, ()):
@@ -419,6 +608,41 @@ def drik_bala(graha: str, positions: dict[str, dict]) -> float:
         else:
             malefic_sum += value
     return (benefic_sum - malefic_sum) / 4.0
+
+
+def drik_bala(graha: str, positions: dict[str, dict]) -> float:
+    """(benefic drishti sum − malefic drishti sum) / 4; may be negative."""
+    return _drishti_on_point(positions[graha]["lon"], positions, exclude=graha)
+
+
+# ── vimshopaka ───────────────────────────────────────────────────────────────
+
+def vimshopaka_bala(graha: str, lon: float, d1_signs: dict[str, int]) -> float:
+    """Shadvarga vimshopaka, 0..20 (weights 6,2,4,5,2,1 over D1,D2,D3,D9,
+    D12,D30; dignity factors per the module docstring)."""
+    ex_sign, _ = EXALTATION[graha]
+    deb_sign = (ex_sign + 6) % 12
+    total = 0.0
+    for varga_name, func, weight in _VIMSHOPAKA_VARGAS:
+        vsign = func(lon)
+        if varga_name == "D1":
+            mt = MOOLATRIKONA.get(graha)
+            deg = (lon % 360.0) % 30.0
+            if mt and vsign == mt[0] and mt[1] <= deg < mt[2]:
+                total += weight  # moolatrikona (degree-defined, D1 only)
+                continue
+        if vsign == ex_sign:
+            total += weight
+            continue
+        if vsign == deb_sign:
+            continue  # factor 0
+        lord = SIGN_LORD[vsign]
+        if lord == graha:
+            total += weight
+            continue
+        rel = compound_relation(graha, lord, d1_signs[graha], d1_signs[lord])
+        total += weight * _VIMSHOPAKA_FACTOR[rel]
+    return total
 
 
 # ── assembly ─────────────────────────────────────────────────────────────────
@@ -457,9 +681,13 @@ def shadbala(chart_inputs: ShadbalaInputs) -> dict[str, dict]:
             "ayana": ayana,
             "yuddha": yuddha[g],
         }
+        if ci.full_bphs:
+            kala["abda"] = abda_bala(g, ci.jd_ut)
+            kala["masa"] = masa_bala(g, ci.jd_ut)
         kala["total"] = sum(kala.values())
 
-        chesta = chesta_bala(g, pos, ayana, paksha)
+        chesta = chesta_bala(g, pos, ayana, paksha,
+                             jd_ut=ci.jd_ut if ci.full_bphs else None)
         naisargika = NAISARGIKA_BALA[g]
         drik = drik_bala(g, pos)
 
@@ -479,6 +707,67 @@ def shadbala(chart_inputs: ShadbalaInputs) -> dict[str, dict]:
             "required_rupas": required,
             "ratio": round(total_rupas / required, 3),
             "is_strong": total_rupas >= required,
+            # Purely additive keys (returned in both modes):
+            "motion_state": motion_state(g, pos[g]["speed"]),
+            "vimshopaka": round(vimshopaka_bala(g, lon, d1_signs), 2),
+        }
+    return out
+
+
+# ── bhava bala ───────────────────────────────────────────────────────────────
+
+def _bhava_strong_house(madhya: float) -> int:
+    """Strong house (1/4/7/10) for a bhava madhya by its rasi's creature class
+    (nara→1, jalachara→4, keeta→7, chatushpada→10); see module docstring."""
+    s = _sign(madhya)
+    first_half = ((madhya % 360.0) % 30.0) < 15.0
+    if s in (2, 5, 6, 10) or (s == 8 and first_half):
+        return 1   # nara (incl. 1st half Sagittarius)
+    if s in (3, 11) or (s == 9 and not first_half):
+        return 4   # jalachara (incl. 2nd half Capricorn)
+    if s == 7:
+        return 7   # keeta (Scorpio)
+    return 10      # chatushpada (Aries, Taurus, Leo, 2nd half Sag, 1st half Cap)
+
+
+def bhava_dig_bala(madhya: float, cusps: list[float]) -> float:
+    """60 − (angular distance from the strong bhava's madhya)/3, floored at 0."""
+    strong = _bhava_strong_house(madhya)
+    return max(0.0, 60.0 - _angular_distance(madhya, cusps[strong - 1]) / 3.0)
+
+
+def bhava_drishti_bala(madhya: float, positions: dict[str, dict]) -> float:
+    """Sphuta drishti of all 7 grahas onto the bhava madhya (benefic +,
+    malefic −, /4); may be negative."""
+    return _drishti_on_point(madhya, positions)
+
+
+def bhava_bala(shadbala_result: dict[str, dict], cusps: list[float],
+               positions: dict[str, dict]) -> dict[int, dict]:
+    """Full BPHS-style bhava bala for houses 1..12.
+
+    shadbala_result: the dict returned by shadbala() (bhavadhipati bala reads
+    each house lord's "total_virupas").
+    cusps: 12 bhava madhya longitudes, index 0 = house 1 (whole-sign callers
+    may pass sign starts; the components are evaluated at whatever point is
+    given).
+    positions: the same {graha: {"lon", "speed"}} mapping shadbala() takes.
+
+    Returns {house: {"bhavadhipati", "bhava_dig", "bhava_drishti", "total"}}.
+    """
+    out: dict[int, dict] = {}
+    for house in range(1, 13):
+        madhya = cusps[house - 1] % 360.0
+        lord = SIGN_LORD[_sign(madhya)]
+        adhipati = float(shadbala_result[lord]["total_virupas"])
+        dig = bhava_dig_bala(madhya, cusps)
+        drishti = bhava_drishti_bala(madhya, positions)
+        out[house] = {
+            "lord": lord,
+            "bhavadhipati": round(adhipati, 2),
+            "bhava_dig": round(dig, 2),
+            "bhava_drishti": round(drishti, 2),
+            "total": round(adhipati + dig + drishti, 2),
         }
     return out
 

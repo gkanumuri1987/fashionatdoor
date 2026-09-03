@@ -38,6 +38,9 @@ is present but muted — mention briefly and honestly). A dictum flagged
 "cancelled_by" is substantially neutralized — present the affliction as
 overcome, never as an active curse. Judge primarily from the
 dignity/combustion/retrograde qualifiers, and make it personal and readable.
+Any point listed in boundary_alerts sits within arc-minutes of a sign/
+nakshatra/pada boundary — a tiny birth-time error flips it, so soften any
+claim that hangs on that placement and say why once, briefly.
 When use_chandra_lagna is true the birth time was unknown: judge from the Moon
 (Chandra lagna) and say so once, plainly. In the dharma and remedies sections,
 when an ishta_devata is given, present that deity as the chart's own worship
@@ -69,6 +72,8 @@ def generate_reading(chart: dict, section: str, language: str = "en") -> dict:
         "moon_sign": chart["moon_sign_name"],
         "time_accuracy": chart["input"]["time_accuracy"],
     }
+    if chart.get("boundary_alerts"):
+        facts["boundary_alerts"] = chart["boundary_alerts"]
     for key in ("functional_lords", "shadbala_summary", "use_chandra_lagna"):
         if chart.get(key):
             facts[key] = chart[key]

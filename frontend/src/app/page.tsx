@@ -42,8 +42,8 @@ export default function Home() {
   const [readingBusy, setReadingBusy] = useState(false);
   const [readingError, setReadingError] = useState("");
   const [palmLink, setPalmLink] = useState("");
-  const [dashaSystem, setDashaSystem] = useState<"vimshottari" | "yogini" | "ashtottari">("vimshottari");
-  const [altDashas, setAltDashas] = useState<Record<string, {lord?: string; yogini?: string; years: number; start: string; end: string}[]>>({});
+  const [dashaSystem, setDashaSystem] = useState<"vimshottari" | "yogini" | "ashtottari" | "kalachakra" | "narayana">("vimshottari");
+  const [altDashas, setAltDashas] = useState<Record<string, {lord?: string; yogini?: string; sign_name?: string; years: number; start: string; end: string}[]>>({});
   const [dashaBusy, setDashaBusy] = useState(false);
   const [palmCopied, setPalmCopied] = useState<null | boolean>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -70,7 +70,7 @@ export default function Home() {
     }
   }
 
-  async function pickDashaSystem(sys: "vimshottari" | "yogini" | "ashtottari") {
+  async function pickDashaSystem(sys: "vimshottari" | "yogini" | "ashtottari" | "kalachakra" | "narayana") {
     setDashaSystem(sys);
     if (sys === "vimshottari" || altDashas[sys] || !chart) return;
     setDashaBusy(true);
@@ -314,7 +314,7 @@ export default function Home() {
             <div>
               <div className="mb-3 flex items-center gap-2 text-xs">
                 <span className="text-[#9c8f6f]">{t("dasha_system")}:</span>
-                {(["vimshottari", "yogini", "ashtottari"] as const).map((sys) => (
+                {(["vimshottari", "yogini", "ashtottari", "kalachakra", "narayana"] as const).map((sys) => (
                   <button key={sys} onClick={() => pickDashaSystem(sys)}
                           className={`rounded-md border border-[#3d2f5c] px-3 py-1 capitalize ${dashaSystem === sys ? "bg-[#3d2f5c]" : ""}`}>
                     {sys}
@@ -329,14 +329,14 @@ export default function Home() {
                 <div className="overflow-x-auto rounded-lg border border-[#3d2f5c]">
                   <table className="w-full text-sm">
                     <thead><tr className="bg-[#241640] text-left text-[#c9a227]">
-                      <th className="px-3 py-2">{dashaSystem === "yogini" ? "Yogini" : "Lord"}</th>
+                      <th className="px-3 py-2">{dashaSystem === "yogini" ? "Yogini" : (dashaSystem === "kalachakra" || dashaSystem === "narayana") ? "Rashi" : "Lord"}</th>
                       <th className="px-3 py-2">Years</th>
                       <th className="px-3 py-2">Start</th><th className="px-3 py-2">End</th>
                     </tr></thead>
                     <tbody>
                       {altDashas[dashaSystem].map((m, i) => (
                         <tr key={i} className="border-t border-[#3d2f5c]/60">
-                          <td className="px-3 py-2 capitalize">{m.yogini ? `${m.yogini} (${m.lord})` : m.lord}</td>
+                          <td className="px-3 py-2 capitalize">{m.yogini ? `${m.yogini} (${m.lord})` : (m.sign_name ?? m.lord)}</td>
                           <td className="px-3 py-2">{m.years}</td>
                           <td className="px-3 py-2">{m.start.slice(0, 10)}</td>
                           <td className="px-3 py-2">{m.end.slice(0, 10)}</td>

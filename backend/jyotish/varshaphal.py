@@ -348,3 +348,57 @@ def varshaphal(natal_chart: dict, year_number: int) -> dict:
             "deeptamsa orbs."
         ),
     }
+
+
+# ── Nakta & Yamaya (transfer/collection of light) — Tajika Nilakanthi ───────
+def nakta_yamaya(positions: dict[str, dict]) -> list[dict]:
+    """Beyond ithasala/ishrafa: NAKTA — a fast planet C separates from A and
+    applies to B (transferring A's light to B) while A and B share no ithasala
+    themselves; YAMAYA — a SLOWER planet C receives applications from both A
+    and B (collecting their light). Both simplified to degree aspects within
+    deeptamsa orbs, applying/separating judged by relative speed (documented
+    simplification, same convention as the ithasala detector)."""
+    grahas = [g for g in ("moon", "mercury", "venus", "sun", "mars",
+                          "jupiter", "saturn") if g in positions]
+
+    def _sep(a: str, b: str) -> float:
+        d = abs((positions[a]["lon"] - positions[b]["lon"]) % 360.0)
+        return min(d, 360.0 - d)
+
+    def _orb(a: str, b: str) -> float:
+        return (DEEPTAMSA[a] + DEEPTAMSA[b]) / 2.0
+
+    def _applying(fast: str, slow: str) -> bool:
+        # closing any major Tajika angle
+        for angle in (0, 60, 90, 120, 180):
+            sep = _sep(fast, slow)
+            if abs(sep - angle) <= _orb(fast, slow):
+                rel = positions[fast]["speed"] - positions[slow]["speed"]
+                closing = (sep - angle) * (1 if rel > 0 else -1)
+                return rel != 0 and abs(sep - angle) > 1e-9 and (
+                    (sep > angle and rel > 0) or (sep < angle and rel < 0))
+        return False
+
+    def _in_aspect(a: str, b: str) -> bool:
+        return any(abs(_sep(a, b) - ang) <= _orb(a, b) for ang in (0, 60, 90, 120, 180))
+
+    out = []
+    for c in grahas:
+        others = [g for g in grahas if g != c]
+        for i, a in enumerate(others):
+            for b in others[i + 1:]:
+                if _in_aspect(a, b):
+                    continue  # direct ithasala possible — no transfer needed
+                c_fastest = abs(positions[c]["speed"]) > max(
+                    abs(positions[a]["speed"]), abs(positions[b]["speed"]))
+                c_slowest = abs(positions[c]["speed"]) < min(
+                    abs(positions[a]["speed"]), abs(positions[b]["speed"]))
+                if c_fastest and _in_aspect(c, a) and _applying(c, b) and not _applying(c, a):
+                    out.append({"type": "nakta", "transferer": c,
+                                "from": a, "to": b,
+                                "note": f"{c} carries {a}'s light to {b}"})
+                elif c_slowest and _applying(a, c) and _applying(b, c):
+                    out.append({"type": "yamaya", "collector": c,
+                                "from": [a, b],
+                                "note": f"{c} collects the light of {a} and {b}"})
+    return out

@@ -121,5 +121,9 @@ class ChartV1(BaseModel):
     use_chandra_lagna: Optional[bool] = None
     kp: Optional[dict] = None
     lagna_sensitivity: Optional[dict] = None
+    kala: Optional[dict] = None
+    upagrahas: Optional[dict] = None
+    boundary_alerts: Optional[list] = None
+    calendar: Optional[dict] = None
 
     model_config = {"populate_by_name": True}
