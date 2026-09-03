@@ -1,14 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { NorthChart, SouthChart } from "@/components/KundliCharts";
 import { DashaTimeline, PanchangaYogas, PlanetTable } from "@/components/ChartDetails";
-import AuthBar from "@/components/AuthBar";
 import SavedProfiles, { type BirthProfile } from "@/components/SavedProfiles";
 import type { ChartV1, ReadingPage } from "@/lib/types";
-import { LangSwitcher, useLang } from "@/lib/i18n";
-import { copyText } from "@/lib/clipboard";
+import { useLang } from "@/lib/i18n";
 
 interface Place { name: string; lat: number; lng: number }
 
@@ -88,18 +85,6 @@ export default function Home() {
     finally { setDashaBusy(false); }
   }
 
-  async function mintPalmLink() {
-    try {
-      const res = await fetch("/api/palm/sessions", { method: "POST" });
-      const data = await res.json();
-      const url = `${window.location.origin}${data.path}`;
-      setPalmLink(url);
-      setPalmCopied(await copyText(url) ? true : null);
-    } catch {
-      setPalmLink("");
-    }
-  }
-
   useEffect(() => {
     if (placeQuery.trim().length < 3 || (place && placeQuery === place.name)) {
       setPlaces([]);
@@ -152,52 +137,11 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <div className="mb-2 flex items-center justify-end gap-3">
-        <LangSwitcher />
-        <AuthBar />
-      </div>
       <header className="mb-8 text-center">
         <h1 className="heading-display text-5xl">{t("app_title")}</h1>
         <div className="ornament mt-2 text-xs">✦</div>
         <p className="mt-1 text-sm text-[var(--ink-muted)]">
 {t("tagline")}</p>
-        <nav className="mt-3 flex items-center justify-center gap-4 text-sm">
-          <span className="font-semibold text-[var(--gold)]">{t("nav_kundli")}</span>
-          <Link href="/match" className="text-[var(--ink-soft)] hover:text-[var(--gold)]">{t("nav_milan")}</Link>
-          <Link href="/vastu" className="text-[var(--ink-soft)] hover:text-[var(--gold)]">{t("nav_vastu")}</Link>
-          <button onClick={mintPalmLink} className="text-[var(--ink-soft)] hover:text-[var(--gold)]">
-{t("nav_palm")}</button>
-        </nav>
-        {palmLink && (
-          <div className="card mx-auto mt-3 max-w-xl p-3 text-xs">
-            <span className="text-[var(--ink-muted)]">{t("share_link")} </span>
-            <code className="break-all text-[var(--gold)]">{palmLink}</code>
-            <div className="mt-2 flex flex-wrap justify-center gap-2">
-              <button
-                onClick={async () => setPalmCopied(await copyText(palmLink))}
-                className="rounded-md bg-[var(--gold)] px-3 py-1 font-semibold text-[var(--on-gold)] hover:bg-[var(--gold-bright)]"
-              >
-                {palmCopied ? t("copied") : t("copy")}
-              </button>
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(`${t("palm_share_msg")} ${palmLink}`)}`}
-                target="_blank" rel="noopener noreferrer"
-                className="rounded-md border border-[#25D366] px-3 py-1 text-[#25D366] hover:bg-[#25D366]/10"
-              >
-                {t("share_whatsapp")}
-              </a>
-              {typeof navigator !== "undefined" && "share" in navigator && (
-                <button
-                  onClick={() => navigator.share({ text: t("palm_share_msg"), url: palmLink }).catch(() => {})}
-                  className="rounded-md border border-[var(--line)] px-3 py-1 text-[var(--ink-soft)] hover:bg-[var(--surface-raised)]"
-                >
-                  {t("share_native")}
-                </button>
-              )}
-            </div>
-            {palmCopied === false && <p className="mt-1 text-orange-300">{t("copy_failed")}</p>}
-          </div>
-        )}
       </header>
 
       <section className="card p-6">

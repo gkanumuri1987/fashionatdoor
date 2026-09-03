@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, Mandali, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import { LangProvider } from "@/lib/i18n";
+import SideNav from "@/components/SideNav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -47,7 +48,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en"
           className={`${inter.variable} ${fraunces.variable} ${mandali.variable} ${notoDevanagari.variable}`}>
       <body className="font-sans antialiased">
-        <LangProvider>{children}</LangProvider>
+        <LangProvider>
+          <SideNav />
+          <div className="lg:pl-60">{children}</div>
+        </LangProvider>
       </body>
     </html>
   );

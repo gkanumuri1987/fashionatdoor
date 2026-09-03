@@ -4,9 +4,8 @@
  *  deterministic classical rules judge → AI narrates the computed findings.
  *  The plan image is analyzed in memory server-side and never stored. */
 
-import Link from "next/link";
 import { useState } from "react";
-import { LangSwitcher, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 import { compressImage } from "@/lib/image";
 
 const DIRECTIONS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
@@ -58,14 +57,10 @@ export default function VastuPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
-      <div className="mb-2 flex justify-end"><LangSwitcher /></div>
       <header className="mb-8 text-center">
         <h1 className="heading-display text-4xl">{t("vastu_title")}</h1>
         <div className="ornament mt-2 text-xs">✦</div>
         <p className="mt-1 text-sm text-[var(--ink-muted)]">{t("vastu_sub")}</p>
-        <Link href="/" className="mt-2 inline-block text-xs text-[var(--gold)] underline">
-          {t("back_to_chart")}
-        </Link>
       </header>
 
       <section className="card space-y-4 p-6">

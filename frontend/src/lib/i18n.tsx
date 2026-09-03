@@ -86,6 +86,12 @@ const T: Record<string, Entry> = {
   vastu_zone: { en: "Zone", te: "దిక్కు", hi: "दिशा" },
   vastu_verdict: { en: "Verdict", te: "ఫలితం", hi: "निर्णय" },
   vastu_not_stored: { en: "Your plan was analyzed in memory and was not stored.", te: "మీ ప్లాన్ మెమరీలో మాత్రమే విశ్లేషించబడింది, నిల్వ చేయబడలేదు.", hi: "आपका प्लान केवल मेमोरी में विश्लेषित हुआ, संग्रहीत नहीं हुआ।" },
+  palm_page_desc: {
+    en: "Create a private link, send it to anyone — they photograph their palm and the reading appears right there. The link lives for 48 hours; photos are never stored.",
+    te: "ఒక ప్రైవేట్ లింక్ సృష్టించి ఎవరికైనా పంపండి — వారు అరచేతి ఫోటో తీస్తే ఫలితం అక్కడే కనిపిస్తుంది. లింక్ 48 గంటలు చెల్లుతుంది; ఫోటోలు నిల్వ చేయబడవు.",
+    hi: "एक निजी लिंक बनाएँ और किसी को भी भेजें — वे हथेली की फोटो लेंगे और फल वहीं दिखेगा। लिंक 48 घंटे मान्य; फोटो कभी संग्रहीत नहीं होते।",
+  },
+  palm_mint_btn: { en: "✋ Create palm link", te: "✋ లింక్ సృష్టించండి", hi: "✋ लिंक बनाएँ" },
   why_receipts: { en: "Why? — see the chart receipts", te: "ఎందుకు? — కుండలి ఆధారాలు చూడండి", hi: "क्यों? — कुंडली के प्रमाण देखें" },
   verdict_supportive: { en: "supportive", te: "అనుకూలం", hi: "अनुकूल" },
   verdict_mixed: { en: "mixed", te: "మిశ్రమం", hi: "मिश्रित" },

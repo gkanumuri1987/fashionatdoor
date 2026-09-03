@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { BirthForm, type BirthValue } from "@/components/BirthForm";
-import { LangSwitcher, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 
 interface Koota {
   koota: string; max: number; points: number; boy: string; girl: string;
@@ -86,11 +85,9 @@ export default function MatchPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
       <header className="mb-8 text-center">
-        <div className="mb-2 flex justify-end"><LangSwitcher /></div>
         <h1 className="heading-display text-4xl">{t("milan_title")}</h1>
         <div className="ornament mt-2 text-xs">✦</div>
         <p className="mt-1 text-sm text-[var(--ink-muted)]">{t("milan_tagline")}</p>
-        <Link href="/" className="mt-2 inline-block text-xs text-[var(--gold)] underline">{t("back_to_chart")}</Link>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2">
