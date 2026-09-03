@@ -255,6 +255,7 @@ const T: Record<string, Entry> = {
   chat_earn: { en: "Earn credits by sharing", te: "షేర్ చేసి క్రెడిట్లు పొందండి", hi: "शेयर कर क्रेडिट कमाएँ" },
   plan_lifetime_plus: { en: "Lifetime Plus", te: "లైఫ్‌టైమ్ ప్లస్", hi: "लाइफटाइम प्लस" },
   plan_f_ai: { en: "AI jaathakam assistant — ask anything", te: "AI జాతక సహాయకుడు — ఏదైనా అడగండి", hi: "AI जातक सहायक — कुछ भी पूछें" },
+  coming_soon: { en: "Coming soon", te: "త్వరలో", hi: "जल्द ही" },
   pay_card: { en: "Pay by card", te: "కార్డ్‌తో చెల్లించండి", hi: "कार्ड से भुगतान" },
   pay_upi: { en: "Pay ₹ UPI / card", te: "₹ UPI / కార్డ్", hi: "₹ UPI / कार्ड" },
   pay_success: { en: "Payment received — premium is active! 🎉", te: "చెల్లింపు అందింది — ప్రీమియం యాక్టివ్! 🎉", hi: "भुगतान प्राप्त — प्रीमियम सक्रिय! 🎉" },

@@ -234,11 +234,9 @@ export default function SubscriptionPage() {
                 )}
               </div>
             ) : (
-              <button onClick={() => choose(p.key, p.price, p.period)}
-                      disabled={busy !== "" || signedIn === false || Boolean(isPremium)}
-                      className={p.popular ? "btn-gold w-full" : "btn-ghost w-full"}>
-                {busy === p.key ? "…" : t("sub_choose")}
-              </button>
+              <div className="w-full rounded-lg border border-dashed border-[var(--line)] py-2 text-center text-sm text-[var(--ink-muted)]">
+                ⏳ {t("coming_soon")}
+              </div>
             )}
           </div>
         ))}
