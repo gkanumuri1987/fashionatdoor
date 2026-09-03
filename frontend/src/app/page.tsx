@@ -6,7 +6,7 @@ import { DashaTimeline, PanchangaYogas, PlanetTable } from "@/components/ChartDe
 import DateDMY from "@/components/DateDMY";
 import SavedProfiles, { type BirthProfile } from "@/components/SavedProfiles";
 import ChatAssistant from "@/components/ChatAssistant";
-import { captureReferralParam, claimPendingReferral } from "@/lib/account";
+import { captureReferralParam, claimPendingReferral, useAccount } from "@/lib/account";
 import type { ChartV1, ReadingPage } from "@/lib/types";
 import { useLang } from "@/lib/i18n";
 
@@ -25,6 +25,7 @@ const READING_SECTIONS: [string, string][] = [
 
 export default function Home() {
   const { lang, t } = useLang();
+  const { signedIn } = useAccount();
   const [date, setDate] = useState("1990-05-15");
   const [time, setTime] = useState("10:30");
   const [timeAccuracy, setTimeAccuracy] = useState("exact");
@@ -112,6 +113,10 @@ export default function Home() {
   }, [placeQuery, place]);
 
   async function generate() {
+    if (signedIn === false) {
+      setError(t("gate_title"));
+      return;
+    }
     if (!place) {
       setError(t("pick_place"));
       return;
@@ -250,16 +255,23 @@ export default function Home() {
         {timeAccuracy !== "exact" && (
           <p className="mt-3 text-xs text-orange-300">{t("accuracy_warning")}</p>
         )}
-        <div className="mt-4 flex items-center gap-3">
-          <button
-            onClick={generate}
-            disabled={loading}
-            className="btn-gold"
-          >
-            {loading ? t("computing") : t("generate")}
-          </button>
-          {error && <span className="text-sm text-red-400">{error}</span>}
-        </div>
+        {signedIn === false ? (
+          <div className="mt-4 rounded-lg border border-[var(--line-gold)] bg-[var(--gold)]/10 p-4">
+            <p className="text-sm font-semibold text-[var(--gold)]">🔒 {t("gate_title")}</p>
+            <p className="mt-1 text-xs text-[var(--ink-soft)]">{t("gate_body")}</p>
+          </div>
+        ) : (
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              onClick={generate}
+              disabled={loading}
+              className="btn-gold"
+            >
+              {loading ? t("computing") : t("generate")}
+            </button>
+            {error && <span className="text-sm text-red-400">{error}</span>}
+          </div>
+        )}
       </section>
       <SavedProfiles
         draft={place ? {

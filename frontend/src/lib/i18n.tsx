@@ -113,6 +113,12 @@ const T: Record<string, Entry> = {
   cal_gulika: { en: "Gulika kalam", te: "గుళిక కాలం", hi: "गुलिक काल" },
   cal_abhijit: { en: "Abhijit muhurta", te: "అభిజిత్ ముహూర్తం", hi: "अभिजीत मुहूर्त" },
   cal_ends: { en: "till", te: "వరకు", hi: "तक" },
+  gate_title: { en: "Create your free account to generate a jaathakam", te: "జాతకం తయారు చేయడానికి ఉచిత ఖాతా సృష్టించండి", hi: "जातक बनाने के लिए मुफ़्त खाता बनाएँ" },
+  gate_body: { en: "Your charts and readings are saved to your account, on every device. Sign in from the menu — it takes one email code.", te: "మీ జాతకాలు, ఫలితాలు మీ ఖాతాలో సేవ్ అవుతాయి — ప్రతి పరికరంలో. మెనూ నుండి సైన్ ఇన్ చేయండి — ఒక ఇమెయిల్ కోడ్ చాలు.", hi: "आपके जातक और फल आपके खाते में सेव होते हैं — हर डिवाइस पर। मेनू से साइन इन करें — बस एक ईमेल कोड।" },
+  nav_about: { en: "About", te: "మా గురించి", hi: "हमारे बारे में" },
+  about_join_title: { en: "Begin your journey — free", te: "మీ ప్రయాణం ప్రారంభించండి — ఉచితం", hi: "अपनी यात्रा शुरू करें — मुफ़्त" },
+  about_join_body: { en: "Sign up with just your email. Your first jaathakam, readings, calendar and palm links are free — get to know your future, the computed way.", te: "మీ ఇమెయిల్‌తో సైన్ అప్ చేయండి. మీ మొదటి జాతకం, ఫలితాలు, క్యాలెండర్, హస్త లింకులు ఉచితం — మీ భవిష్యత్తును ఖచ్చితమైన లెక్కలతో తెలుసుకోండి.", hi: "सिर्फ़ ईमेल से साइन अप करें। पहला जातक, फल, कैलेंडर और हस्त लिंक मुफ़्त — अपना भविष्य सटीक गणना से जानें।" },
+  about_join_btn: { en: "Sign up free", te: "ఉచితంగా సైన్ అప్", hi: "मुफ़्त साइन अप" },
   ay_info_title: { en: "What is Ayanamsa?", te: "అయనాంశ అంటే ఏమిటి?", hi: "अयनांश क्या है?" },
   ay_info_body: {
     en: "Vedic astrology reads the REAL star positions (sidereal). The seasons-based Western zodiac has drifted ~24° from the stars over centuries — Ayanamsa is that correction. Every kundli needs one; schools differ only by fractions of a degree, which matters just at sign/pada boundaries.",
