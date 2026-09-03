@@ -170,9 +170,10 @@ export default function SavedProfiles({
         </div>
       )}
       {draft && atLimit && (
-        <p className="mb-3 rounded-lg border border-[var(--line-gold)] bg-[var(--gold)]/10 px-3 py-2 text-xs text-[var(--gold)]">
-          ✦ {t("limit_reached")}
-        </p>
+        <a href="/subscription"
+           className="mb-3 block rounded-lg border border-[var(--line-gold)] bg-[var(--gold)]/10 px-3 py-2 text-xs text-[var(--gold)] hover:bg-[var(--gold)]/15">
+          ✦ {t("limit_reached")} →
+        </a>
       )}
       {msg && <p className="mb-2 text-xs text-[var(--ink-muted)]">{msg}</p>}
 
