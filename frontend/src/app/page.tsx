@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { NorthChart, SouthChart } from "@/components/KundliCharts";
 import { DashaTimeline, PanchangaYogas, PlanetTable } from "@/components/ChartDetails";
+import AuthBar from "@/components/AuthBar";
+import SavedProfiles, { type BirthProfile } from "@/components/SavedProfiles";
 import type { ChartV1 } from "@/lib/types";
 
 interface Place { name: string; lat: number; lng: number }
@@ -117,6 +119,9 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
+      <div className="mb-2 flex justify-end">
+        <AuthBar />
+      </div>
       <header className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-[#c9a227]">Jyotish AI</h1>
         <p className="mt-1 text-sm text-[#9c8f6f]">
@@ -206,6 +211,22 @@ export default function Home() {
           {error && <span className="text-sm text-red-400">{error}</span>}
         </div>
       </section>
+      <SavedProfiles
+        draft={place ? {
+          name: "", birth_date: date, birth_time: time, time_accuracy: timeAccuracy,
+          place_name: place.name, lat: place.lat, lng: place.lng, ayanamsa,
+        } : null}
+        onLoad={(p: BirthProfile) => {
+          setDate(p.birth_date);
+          setTime(p.birth_time.slice(0, 5));
+          setTimeAccuracy(p.time_accuracy);
+          setAyanamsa(p.ayanamsa);
+          setPlace({ name: p.place_name, lat: p.lat, lng: p.lng });
+          setPlaceQuery(p.place_name);
+          setChart(null);
+        }}
+      />
+
 
       {chart && (
         <section className="mt-8">
