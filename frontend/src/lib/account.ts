@@ -11,6 +11,8 @@ export interface Account {
   is_premium: boolean;
   credits: number;
   referral_code: string | null;
+  last_login_at?: string | null;
+  login_count?: number;
 }
 
 export function chatUnlimited(a: Account | null): boolean {
@@ -38,9 +40,18 @@ export function useAccount() {
       setSignedIn(Boolean(data.user));
       if (data.user) refresh();
     });
-    const { data: sub } = sb.auth.onAuthStateChange((_e, session) => {
+    const { data: sub } = sb.auth.onAuthStateChange((event, session) => {
       setSignedIn(Boolean(session?.user));
-      if (session?.user) refresh(); else setAccount(null);
+      if (session?.user) {
+        refresh();
+        if (event === "SIGNED_IN") {
+          // Stamp login activity once per real sign-in (best-effort).
+          try {
+            const ua = typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 200) : "";
+            sb.rpc("touch_login", { ua }).then(() => {}, () => {});
+          } catch { /* pre-migration */ }
+        }
+      } else setAccount(null);
     });
     return () => sub.subscription.unsubscribe();
   }, [sb, refresh]);

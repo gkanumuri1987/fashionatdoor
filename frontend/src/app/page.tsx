@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useEffect } from "react";
 import AuthBar from "@/components/AuthBar";
-import { captureReferralParam, claimPendingReferral } from "@/lib/account";
+import { captureReferralParam, claimPendingReferral, useAccount } from "@/lib/account";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
@@ -73,6 +73,7 @@ const SOURCES = ["Brihat Parashara Hora Shastra", "Phaladeepika", "Saravali",
 
 export default function LandingPage() {
   const { lang, t } = useLang();
+  const { signedIn } = useAccount();
   const sb = supabase();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -145,7 +146,9 @@ export default function LandingPage() {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link href="/kundli" className="btn-gold text-base">✧ Reveal my jaathakam</Link>
-          <Link href="/subscription" className="btn-ghost text-base">✦ See plans</Link>
+          <Link href={signedIn ? "/profile" : "/subscription"} className="btn-ghost text-base">
+            {signedIn ? "👤 My account" : "✦ See plans"}
+          </Link>
         </div>
       </header>
 
@@ -263,7 +266,8 @@ export default function LandingPage() {
         </p>
       </section>
 
-      {/* ── Plans teaser ── */}
+      {/* ── Plans teaser (guests only) ── */}
+      {!signedIn && (
       <section className="card mt-14 border-[var(--line-gold)] p-6 text-center">
         <h2 className="heading-display text-3xl">Your first jaathakam is free.</h2>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-[var(--ink-soft)]">
@@ -275,8 +279,10 @@ export default function LandingPage() {
         </p>
         <Link href="/subscription" className="btn-gold mt-5 inline-flex">✦ Explore plans</Link>
       </section>
+      )}
 
-      {/* ── Sign-up ── */}
+      {/* ── Sign-up (guests only) ── */}
+      {!signedIn && (
       <section className="mx-auto mt-14 max-w-xl text-center">
         <h2 className="heading-display text-3xl">{t("about_join_title")}</h2>
         <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">{t("about_join_body")}</p>
@@ -296,6 +302,7 @@ export default function LandingPage() {
         )}
         {err && <p className="mt-2 text-xs text-red-400">{err}</p>}
       </section>
+      )}
 
       <footer className="mt-14 text-center text-xs text-[var(--ink-muted)]">
         {t("disclaimer")}

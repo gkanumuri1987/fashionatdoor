@@ -216,7 +216,7 @@ export default function Home() {
               </ul>
             )}
           </label>
-          <label className="relative block text-sm">
+          <label className={`relative block text-sm ${showAyInfo ? "z-50" : ""}`}>
             <span className="flex items-center gap-1.5 text-[var(--ink-muted)]">
               {t("ayanamsa")}
               <button type="button" onClick={(e) => { e.preventDefault(); setShowAyInfo((v) => !v); }}
@@ -235,8 +235,7 @@ export default function Home() {
               <option value="yukteshwar">Yukteshwar ✨</option>
             </select>
             {showAyInfo && (
-              <div className="card absolute right-0 top-full z-20 mt-2 w-80 p-4 text-xs leading-relaxed"
-                   onClick={(e) => e.preventDefault()}>
+              <div className="card absolute right-0 top-full z-50 mt-2 w-80 p-4 text-xs leading-relaxed shadow-2xl">
                 <div className="mb-1 flex items-start justify-between">
                   <b className="text-[var(--gold)]">{t("ay_info_title")}</b>
                   <button type="button" onClick={(e) => { e.preventDefault(); setShowAyInfo(false); }}
@@ -244,9 +243,11 @@ export default function Home() {
                 </div>
                 <p className="text-[var(--ink-soft)]">{t("ay_info_short")}</p>
                 <p className="mt-2 text-[var(--good)]">✓ {t("ay_recommend")}</p>
-                <a href="/#ayanamsa" className="mt-2 inline-block border-t border-[var(--line-soft)] pt-2 text-[var(--gold)] underline">
+                <button type="button"
+                        onClick={() => { window.location.href = "/#ayanamsa"; }}
+                        className="mt-2 inline-block border-t border-[var(--line-soft)] pt-2 text-left text-[var(--gold)] underline">
                   {t("ay_learn_more")} →
-                </a>
+                </button>
               </div>
             )}
           </label>
