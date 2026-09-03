@@ -43,6 +43,7 @@ export default function Home() {
   const [altDashas, setAltDashas] = useState<Record<string, {lord?: string; yogini?: string; sign_name?: string; years: number; start: string; end: string}[]>>({});
   const [dashaBusy, setDashaBusy] = useState(false);
   const [page, setPage] = useState<ReadingPage | null>(null);
+  const [showAyInfo, setShowAyInfo] = useState(false);
   const [showWhy, setShowWhy] = useState(false);
   const [palmCopied, setPalmCopied] = useState<null | boolean>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -185,14 +186,40 @@ export default function Home() {
               </ul>
             )}
           </label>
-          <label className="block text-sm">
-            <span className="text-[var(--ink-muted)]">{t("ayanamsa")}</span>
+          <label className="relative block text-sm">
+            <span className="flex items-center gap-1.5 text-[var(--ink-muted)]">
+              {t("ayanamsa")}
+              <button type="button" onClick={(e) => { e.preventDefault(); setShowAyInfo((v) => !v); }}
+                      aria-label={t("ay_info_title")}
+                      className="flex h-4 w-4 items-center justify-center rounded-full border border-[var(--line)] text-[10px] text-[var(--gold)] hover:border-[var(--line-gold)]">
+                i
+              </button>
+            </span>
             <select value={ayanamsa} onChange={(e) => setAyanamsa(e.target.value)}
                     className="input mt-1">
-              <option value="lahiri">Lahiri (Chitrapaksha)</option>
+              <option value="lahiri">Lahiri (Chitrapaksha) ★ {t("recommended")}</option>
               <option value="raman">Raman</option>
               <option value="kp">KP (Krishnamurti)</option>
             </select>
+            {showAyInfo && (
+              <div className="card absolute right-0 top-full z-20 mt-2 w-80 p-4 text-xs leading-relaxed"
+                   onClick={(e) => e.preventDefault()}>
+                <div className="mb-1 flex items-start justify-between">
+                  <b className="text-[var(--gold)]">{t("ay_info_title")}</b>
+                  <button type="button" onClick={(e) => { e.preventDefault(); setShowAyInfo(false); }}
+                          className="text-[var(--ink-muted)]">✕</button>
+                </div>
+                <p className="text-[var(--ink-soft)]">{t("ay_info_body")}</p>
+                <ul className="mt-2 space-y-1.5">
+                  <li><b className="text-[var(--gold)]">★ Lahiri</b> — <span className="text-[var(--ink-soft)]">{t("ay_lahiri")}</span></li>
+                  <li><b className="text-[var(--ink)]">Raman</b> — <span className="text-[var(--ink-soft)]">{t("ay_raman")}</span></li>
+                  <li><b className="text-[var(--ink)]">KP</b> — <span className="text-[var(--ink-soft)]">{t("ay_kp")}</span></li>
+                </ul>
+                <p className="mt-2 border-t border-[var(--line-soft)] pt-2 text-[var(--good)]">
+                  ✓ {t("ay_recommend")}
+                </p>
+              </div>
+            )}
           </label>
         </div>
         {timeAccuracy !== "exact" && (
