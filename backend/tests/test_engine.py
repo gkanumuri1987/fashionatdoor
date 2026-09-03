@@ -241,3 +241,22 @@ def test_pre_sunrise_birth_takes_previous_vara():
     day = compute_chart(date(1990, 5, 15), time(10, 30),
                         lat=17.385, lng=78.4867, tz_name="Asia/Kolkata")
     assert day["panchanga"]["vara"]["name"] == "Mangalavara"
+
+
+# ── v1.2 Tier-2 layers in the chart ─────────────────────────────────────────
+
+def test_chart_v12_jaimini_kp_chalita(chart):
+    jm = chart["jaimini"]
+    ks = jm["chara_karakas"]["karakas"]
+    assert set(ks) == {"AK", "AmK", "BK", "MK", "PiK", "PK", "GK", "DK"}
+    assert "ketu" not in [k["graha"] for k in ks.values()]
+    assert jm["arudha_padas"]["AL"] == jm["arudha_padas"]["A1"]
+    assert jm["ishta_devata"]["deity"]
+    assert len(jm["chara_dasha"]) == 12
+    ch = chart["bhava_chalita"]
+    assert len(ch["houses"]) == 12 and len(ch["grahas"]) == 9
+    kp = chart["kp"]
+    assert len(kp["cusps"]) == 12
+    for g, e in kp["planets"].items():
+        assert e["star_lord"] and e["sub_lord"] and e["sub_sub_lord"]
+    assert chart["use_chandra_lagna"] is False

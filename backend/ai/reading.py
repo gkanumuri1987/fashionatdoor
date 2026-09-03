@@ -38,6 +38,10 @@ is present but muted — mention briefly and honestly). A dictum flagged
 "cancelled_by" is substantially neutralized — present the affliction as
 overcome, never as an active curse. Judge primarily from the
 dignity/combustion/retrograde qualifiers, and make it personal and readable.
+When use_chandra_lagna is true the birth time was unknown: judge from the Moon
+(Chandra lagna) and say so once, plainly. In the dharma and remedies sections,
+when an ishta_devata is given, present that deity as the chart's own worship
+direction (Jaimini karakamsa) — the most personal remedy there is.
 
 {PROMPT_RULES}
 
@@ -65,9 +69,18 @@ def generate_reading(chart: dict, section: str, language: str = "en") -> dict:
         "moon_sign": chart["moon_sign_name"],
         "time_accuracy": chart["input"]["time_accuracy"],
     }
-    for key in ("functional_lords", "shadbala_summary"):
+    for key in ("functional_lords", "shadbala_summary", "use_chandra_lagna"):
         if chart.get(key):
             facts[key] = chart[key]
+    jm = chart.get("jaimini") or {}
+    if jm:
+        facts["jaimini"] = {
+            "atmakaraka": jm.get("chara_karakas", {}).get("karakas", {}).get("AK"),
+            "karakamsa": jm.get("karakamsa"),
+            "ishta_devata": jm.get("ishta_devata"),
+            "arudha_lagna_sign": jm.get("arudha_padas", {}).get("AL"),
+            "upapada_sign": jm.get("arudha_padas", {}).get("UL"),
+        }
 
     # "What's active now": the dasha-outlook section additionally receives the
     # LIVE computed transit context (never model-recalled) — gochara over the

@@ -115,5 +115,10 @@ class ChartV1(BaseModel):
     shadbala_summary: Optional[dict] = None
     ashtakavarga: Optional[dict] = None
     graha_yuddha: Optional[list] = None
+    # v1.2: Tier-2 layers
+    jaimini: Optional[dict] = None
+    bhava_chalita: Optional[dict] = None
+    use_chandra_lagna: Optional[bool] = None
+    kp: Optional[dict] = None
 
     model_config = {"populate_by_name": True}

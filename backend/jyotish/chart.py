@@ -18,8 +18,13 @@ from .dasha import current_period, vimshottari
 from .dignity import combustion_flags, compound_relation, dignity_of
 from .ephemeris import (ayanamsa_value, houses, jd_to_utc, julian_day_ut,
                         sidereal_positions, sunrise_sunset)
+from .bhava import bhava_chalita
 from .geo import to_utc
+from .jaimini import (arudha_padas, chara_dasha, chara_karakas, ishta_devata,
+                      karakamsa)
+from .kp import cusp_sublords, planet_significators, star_sub_subsub
 from .lords import functional_nature
+from .varga import d9
 from .nakshatra import nakshatra_of
 from .panchanga import panchanga
 from .strength import ShadbalaInputs, ishta_kashta, shadbala
@@ -154,6 +159,42 @@ def compute_chart(birth_date: date, birth_time: time, lat: float, lng: float,
     dasha = vimshottari(positions["moon"]["lon"], jd)
     now_jd = julian_day_ut(datetime.now(timezone.utc))
 
+    # ── Jaimini layer ────────────────────────────────────────────────────────
+    graha_signs = {g: int(positions[g]["lon"] // 30) for g in GRAHAS}
+    karakas = chara_karakas(positions)
+    ak = karakas["karakas"]["AK"]["graha"]
+    kamsa = karakamsa(ak, positions)
+    d9_signs = {g: d9(positions[g]["lon"]) for g in GRAHAS}
+    jaimini_block = {
+        "chara_karakas": karakas,
+        "arudha_padas": arudha_padas(lagna_sign, graha_signs),
+        "karakamsa": kamsa,
+        "ishta_devata": ishta_devata(kamsa["sign"], d9_signs),
+        "chara_dasha": chara_dasha(lagna_sign, graha_signs, jd),
+    }
+
+    # ── Bhava chalita (degree-based membership; Sripati madhya) ──────────────
+    try:
+        sripati = houses(jd, lat, lng, ayanamsa=ayanamsa, system="sripati")
+        chalita = bhava_chalita(sripati["cusps"], positions)
+    except Exception:  # pragma: no cover — high-latitude degeneracy
+        chalita = None
+
+    # ── KP layer: star/sub/sub-sub per graha + Placidus cusp sublords ────────
+    kp_block = None
+    try:
+        placidus = houses(jd, lat, lng, ayanamsa=ayanamsa, system="placidus")
+        kp_block = {
+            "note": "KP uses the Placidus cusps below regardless of the "
+                    "chart's display house system; pair with ayanamsa='kp' "
+                    "for strict Krishnamurti practice.",
+            "planets": {g: star_sub_subsub(positions[g]["lon"]) for g in GRAHAS},
+            "cusps": cusp_sublords(placidus["cusps"]),
+            "significators": planet_significators(positions, placidus["cusps"]),
+        }
+    except Exception:  # pragma: no cover — polar Placidus degeneracy
+        kp_block = None
+
     bhavas = []
     for h in range(1, 13):
         sign = (lagna_sign + h - 1) % 12
@@ -209,6 +250,12 @@ def compute_chart(birth_date: date, birth_time: time, lat: float, lng: float,
         },
         "ashtakavarga": {"bhinna": bav, "sarva": sav, "sarva_total": sum(sav)},
         "graha_yuddha": wars,
+        "jaimini": jaimini_block,
+        "bhava_chalita": chalita,
+        "kp": kp_block,
+        # Unknown birth time → the Chandra-lagna view (houses from the Moon)
+        # is the honest fallback; the flag tells the AI layer to judge from it.
+        "use_chandra_lagna": time_accuracy == "unknown",
     }
 
 

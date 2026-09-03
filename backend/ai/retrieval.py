@@ -113,6 +113,12 @@ def archetypes_for_chart(chart: dict) -> list[dict]:
     the grahas that need strengthening."""
     arch = _load("purana_archetypes")
     pivotal: list[tuple[str, str]] = [("lagna lord", chart["lagna"]["lord"])]
+    # Jaimini Ishta Devata (from karakamsa) — the chart's OWN worship
+    # direction; the strongest personal remedy anchor there is.
+    ij = (chart.get("jaimini") or {}).get("ishta_devata") or {}
+    if ij.get("indicator_graha"):
+        pivotal.append((f"ishta devata ({ij.get('deity', 'karakamsa indication')})",
+                        ij["indicator_graha"]))
     pivotal.append(("moon nakshatra lord", chart["grahas"]["moon"]["nakshatra"]["lord"]))
     if chart.get("current_dasha"):
         pivotal.append(("current mahadasha lord", chart["current_dasha"]["maha"]))

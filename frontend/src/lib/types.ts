@@ -31,6 +31,22 @@ export interface DashaPeriod {
 }
 
 export interface ChartV1 {
+  jaimini?: {
+    chara_karakas?: { karakas?: Record<string, { graha: string; deg_in_sign?: number }> };
+    arudha_padas?: Record<string, number>;
+    karakamsa?: { sign: number; sign_name: string };
+    ishta_devata?: { deity?: string; indicator_graha?: string; basis?: string };
+    chara_dasha?: { sign_name: string; years: number; start: string; end: string }[];
+  };
+  kp?: {
+    planets?: Record<string, { star_lord: string; sub_lord: string; sub_sub_lord: string }>;
+    cusps?: { house?: number; star_lord?: string; sub_lord?: string }[];
+  };
+  bhava_chalita?: {
+    houses: { house: number; madhya: number; start: number; end: number }[];
+    grahas: Record<string, { house: number; in_sandhi: boolean }>;
+  };
+  use_chandra_lagna?: boolean;
   schema: string;
   engine_version: string;
   input: {

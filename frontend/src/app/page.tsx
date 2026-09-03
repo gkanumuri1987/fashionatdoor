@@ -12,7 +12,10 @@ import { copyText } from "@/lib/clipboard";
 
 interface Place { name: string; lat: number; lng: number }
 
-const TABS = ["Chart", "Planets", "Dasha", "Panchanga", "Reading"] as const;
+const SIGN_NAMES = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
+                    "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+
+const TABS = ["Chart", "Planets", "Dasha", "Panchanga", "Advanced", "Reading"] as const;
 
 const READING_SECTIONS: [string, string][] = [
   ["personality", "Personality"], ["career", "Career"], ["wealth", "Wealth"],
@@ -39,6 +42,9 @@ export default function Home() {
   const [readingBusy, setReadingBusy] = useState(false);
   const [readingError, setReadingError] = useState("");
   const [palmLink, setPalmLink] = useState("");
+  const [dashaSystem, setDashaSystem] = useState<"vimshottari" | "yogini" | "ashtottari">("vimshottari");
+  const [altDashas, setAltDashas] = useState<Record<string, {lord?: string; yogini?: string; years: number; start: string; end: string}[]>>({});
+  const [dashaBusy, setDashaBusy] = useState(false);
   const [palmCopied, setPalmCopied] = useState<null | boolean>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -62,6 +68,22 @@ export default function Home() {
     } finally {
       setReadingBusy(false);
     }
+  }
+
+  async function pickDashaSystem(sys: "vimshottari" | "yogini" | "ashtottari") {
+    setDashaSystem(sys);
+    if (sys === "vimshottari" || altDashas[sys] || !chart) return;
+    setDashaBusy(true);
+    try {
+      const res = await fetch("/api/dashas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chart, system: sys }),
+      });
+      const data = await res.json();
+      if (res.ok) setAltDashas((a) => ({ ...a, [sys]: data.mahadashas }));
+    } catch { /* selector falls back to vimshottari view */ }
+    finally { setDashaBusy(false); }
   }
 
   async function mintPalmLink() {
@@ -112,6 +134,8 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Chart computation failed");
       setChart(data);
+      setAltDashas({});
+      setDashaSystem("vimshottari");
       setTab("Chart");
     } catch (e) {
       setError(e instanceof Error ? e.message : t("generic_error"));
@@ -285,8 +309,124 @@ export default function Home() {
             </div>
           )}
           {tab === "Planets" && <PlanetTable chart={chart} />}
-          {tab === "Dasha" && <DashaTimeline chart={chart} />}
+          {tab === "Dasha" && (
+            <div>
+              <div className="mb-3 flex items-center gap-2 text-xs">
+                <span className="text-[#9c8f6f]">{t("dasha_system")}:</span>
+                {(["vimshottari", "yogini", "ashtottari"] as const).map((sys) => (
+                  <button key={sys} onClick={() => pickDashaSystem(sys)}
+                          className={`rounded-md border border-[#3d2f5c] px-3 py-1 capitalize ${dashaSystem === sys ? "bg-[#3d2f5c]" : ""}`}>
+                    {sys}
+                  </button>
+                ))}
+              </div>
+              {dashaSystem === "vimshottari" ? (
+                <DashaTimeline chart={chart} />
+              ) : dashaBusy ? (
+                <p className="text-sm text-[#9c8f6f]">{t("loading_dasha")}</p>
+              ) : altDashas[dashaSystem] ? (
+                <div className="overflow-x-auto rounded-lg border border-[#3d2f5c]">
+                  <table className="w-full text-sm">
+                    <thead><tr className="bg-[#241640] text-left text-[#c9a227]">
+                      <th className="px-3 py-2">{dashaSystem === "yogini" ? "Yogini" : "Lord"}</th>
+                      <th className="px-3 py-2">Years</th>
+                      <th className="px-3 py-2">Start</th><th className="px-3 py-2">End</th>
+                    </tr></thead>
+                    <tbody>
+                      {altDashas[dashaSystem].map((m, i) => (
+                        <tr key={i} className="border-t border-[#3d2f5c]/60">
+                          <td className="px-3 py-2 capitalize">{m.yogini ? `${m.yogini} (${m.lord})` : m.lord}</td>
+                          <td className="px-3 py-2">{m.years}</td>
+                          <td className="px-3 py-2">{m.start.slice(0, 10)}</td>
+                          <td className="px-3 py-2">{m.end.slice(0, 10)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-[#9c8f6f]">{t("generic_error")}</p>
+              )}
+            </div>
+          )}
           {tab === "Panchanga" && <PanchangaYogas chart={chart} />}
+          {tab === "Advanced" && (
+            <div className="space-y-5 text-sm">
+              {chart.jaimini && (
+                <div className="rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5">
+                  <h3 className="mb-3 font-semibold text-[#c9a227]">{t("jaimini_title")}</h3>
+                  <div className="mb-3 grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-lg border border-[#3d2f5c] p-3">
+                      <div className="text-xs text-[#9c8f6f]">{t("ishta_devata")}</div>
+                      <div className="mt-1 text-[#ede6d6]">
+                        {chart.jaimini.ishta_devata?.deity}
+                        <span className="ml-1 text-xs text-[#9c8f6f]">
+                          (via {chart.jaimini.ishta_devata?.indicator_graha})
+                        </span>
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-[#3d2f5c] p-3">
+                      <div className="text-xs text-[#9c8f6f]">{t("arudha_lagna")} / {t("upapada")}</div>
+                      <div className="mt-1 text-[#ede6d6]">
+                        AL: {SIGN_NAMES[chart.jaimini.arudha_padas?.AL ?? 0]} · UL: {SIGN_NAMES[chart.jaimini.arudha_padas?.UL ?? 0]}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-[#9c8f6f]">{t("chara_karakas")}</div>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {Object.entries(chart.jaimini.chara_karakas?.karakas ?? {}).map(([role, k]) => (
+                      <span key={role} className="rounded-full border border-[#3d2f5c] px-2 py-0.5 text-xs">
+                        <b className="text-[#c9a227]">{role}</b>{" "}
+                        <span className="capitalize">{(k as {graha: string}).graha}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {chart.kp && (
+                <div className="rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5">
+                  <h3 className="mb-3 font-semibold text-[#c9a227]">{t("kp_title")}</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead><tr className="text-left text-[#c9a227]">
+                        <th className="px-2 py-1">Graha</th><th className="px-2 py-1">Star lord</th>
+                        <th className="px-2 py-1">Sub</th><th className="px-2 py-1">Sub-sub</th>
+                      </tr></thead>
+                      <tbody>
+                        {Object.entries(chart.kp.planets ?? {}).map(([g, e]) => {
+                          const kp = e as {star_lord: string; sub_lord: string; sub_sub_lord: string};
+                          return (
+                            <tr key={g} className="border-t border-[#3d2f5c]/40 capitalize">
+                              <td className="px-2 py-1">{g}</td><td className="px-2 py-1">{kp.star_lord}</td>
+                              <td className="px-2 py-1">{kp.sub_lord}</td><td className="px-2 py-1">{kp.sub_sub_lord}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+              {chart.bhava_chalita && (
+                <div className="rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5">
+                  <h3 className="mb-3 font-semibold text-[#c9a227]">{t("bhava_chalita_title")}</h3>
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {Object.entries(chart.bhava_chalita.grahas ?? {}).map(([g, m]) => {
+                      const mem = m as {house: number; in_sandhi: boolean};
+                      const rasiHouse = chart.grahas[g]?.house;
+                      const moved = rasiHouse !== undefined && rasiHouse !== mem.house;
+                      return (
+                        <span key={g} className={`rounded-full border px-2 py-0.5 capitalize ${moved ? "border-[#c9a227] text-[#c9a227]" : "border-[#3d2f5c]"}`}>
+                          {g}: {mem.house}{moved ? ` (rasi ${rasiHouse})` : ""}{mem.in_sandhi ? " ⚠" : ""}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-2 text-xs text-[#9c8f6f]">⚠ = {t("in_sandhi")}</p>
+                </div>
+              )}
+            </div>
+          )}
           {tab === "Reading" && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2">

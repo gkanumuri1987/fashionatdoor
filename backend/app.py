@@ -262,3 +262,54 @@ async def palm_upload(token: str, request: Request,
         raise HTTPException(status_code=502, detail=result["_error_message"])
     s = palm_sessions.save_result(token, result)
     return s
+
+
+# ── Tier-2: alternate dasha systems ─────────────────────────────────────────
+
+class DashaRequest(BaseModel):
+    chart: dict
+    system: str = Field(default="yogini", pattern="^(yogini|ashtottari)$")
+
+
+@app.post("/api/dashas")
+def alternate_dashas(body: DashaRequest):
+    """Yogini / Ashtottari periods computed from an existing ChartV1."""
+    from jyotish.dasha_extra import ashtottari_dasha, yogini_dasha
+    try:
+        moon_lon = body.chart["grahas"]["moon"]["lon"]
+        sun_lon = body.chart["grahas"]["sun"]["lon"]
+        birth_jd = body.chart["julian_day_ut"]
+    except (KeyError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid chart payload: {exc}")
+    if body.system == "yogini":
+        return yogini_dasha(moon_lon, birth_jd)
+    lagna_lord = body.chart["lagna"]["lord"]
+    lagna_lord_sign = body.chart["grahas"].get(lagna_lord, {}).get("sign")
+    rahu_sign = body.chart["grahas"]["rahu"]["sign"]
+    return ashtottari_dasha(moon_lon, sun_lon, birth_jd,
+                            rahu_sign=rahu_sign, lagna_lord_sign=lagna_lord_sign)
+
+
+# ── Tier-2: muhurta chooser ─────────────────────────────────────────────────
+
+class MuhurtaRequest(BaseModel):
+    start_date: str = Field(description="YYYY-MM-DD")
+    days: int = Field(default=14, ge=1, le=60)
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+    natal_moon_nakshatra: int | None = Field(default=None, ge=0, le=26)
+    natal_moon_sign: int | None = Field(default=None, ge=0, le=11)
+    ayanamsa: str = Field(default="lahiri", pattern="^(lahiri|raman|kp)$")
+
+
+@app.post("/api/muhurta")
+def muhurta(body: MuhurtaRequest):
+    from jyotish.muhurta import scan_days
+    try:
+        start = _date.fromisoformat(body.start_date)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {"days": scan_days(start, body.days, body.lat, body.lng,
+                              natal_moon_nak=body.natal_moon_nakshatra,
+                              natal_moon_sign=body.natal_moon_sign,
+                              ayanamsa=body.ayanamsa)}

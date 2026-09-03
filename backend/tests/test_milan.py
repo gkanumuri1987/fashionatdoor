@@ -103,3 +103,34 @@ def test_manglik_reported_for_both(charts):
         assert "is_manglik" in mg
         assert 1 <= mg["from_lagna"]["house"] <= 12
         assert 1 <= mg["from_moon"]["house"] <= 12
+
+
+# ── Dashakoota ───────────────────────────────────────────────────────────────
+
+def test_rajju_classification():
+    from jyotish.milan import _rajju_of, dashakoota
+    assert _rajju_of(0) == "pada"      # Ashwini
+    assert _rajju_of(4) == "siro"      # Mrigashira
+    assert _rajju_of(13) == "siro"     # Chitra
+    assert _rajju_of(3) == "kantha"    # Rohini
+    # All 27 nakshatras classified.
+    assert all(_rajju_of(i) != "unknown" for i in range(27))
+    d = dashakoota(4, 13)              # both siro
+    assert d["rajju"]["dosha"] and d["rajju"]["severity"] == "grave"
+
+
+def test_vedha_pairs_symmetric():
+    from jyotish.milan import dashakoota
+    assert dashakoota(0, 17)["vedha"]["dosha"]     # Ashwini-Jyeshtha
+    assert dashakoota(17, 0)["vedha"]["dosha"]
+    assert not dashakoota(0, 5)["vedha"]["dosha"]
+
+
+def test_mahendra_and_stree_deergha():
+    from jyotish.milan import dashakoota
+    # Boy 3 nakshatras beyond girl +1 inclusive = 4 → mahendra.
+    d = dashakoota(3, 0)
+    assert d["mahendra"]["present"] and d["mahendra"]["count"] == 4
+    assert not d["stree_deergha"]["present"]
+    d2 = dashakoota(14, 0)             # count 15 > 13
+    assert d2["stree_deergha"]["present"]

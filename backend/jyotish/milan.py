@@ -280,6 +280,7 @@ def match(boy: dict, girl: dict) -> dict:
         "girl": {"moon_sign": girl["moon_sign_name"], "nakshatra": NAKSHATRAS[g_nak],
                  "manglik": _manglik(girl)},
         "manglik_note": _manglik_verdict(_manglik(boy), _manglik(girl)),
+        "dashakoota": dashakoota(b_nak, g_nak),
         "doshas": [k["koota"] for k in kootas if k.get("dosha")],
         "disclaimer": "Guna milan is one traditional lens; doshas carry classical "
                       "exceptions and a low score alone is not a verdict on a marriage.",
@@ -297,3 +298,64 @@ def _manglik_verdict(bm: dict, gm: dict) -> str:
                     + "; ".join(m["cancellations"]))
         return f"The {who}'s chart is Manglik; the other is not — traditionally weighed carefully."
     return "Neither chart is Manglik."
+
+
+# ── Dashakoota additions (South Indian practice) ─────────────────────────────
+# Rajju is held the most important of these; a same-rajju match is a classical
+# objection (Siro rajju gravest). Vedha pairs "pierce" each other. Mahendra
+# supports longevity/progeny; Stree-deergha asks the boy's nakshatra to be
+# well beyond the girl's.
+
+_RAJJU = {
+    "pada": {0, 8, 9, 17, 18, 26},        # Ashwini, Ashlesha, Magha, Jyeshtha, Mula, Revati
+    "kati": {1, 7, 10, 16, 19, 25},       # Bharani, Pushya, P.Phalguni, Anuradha, P.Ashadha, U.Bhadrapada
+    "nabhi": {2, 6, 11, 15, 20, 24},      # Krittika, Punarvasu, U.Phalguni, Vishakha, U.Ashadha, P.Bhadrapada
+    "kantha": {3, 5, 12, 14, 21, 23},     # Rohini, Ardra, Hasta, Swati, Shravana, Shatabhisha
+    "siro": {4, 13, 22},                  # Mrigashira, Chitra, Dhanishta
+}
+
+# Classical vedha (piercing) nakshatra pairs; Chitra stands alone (no full-pair
+# vedha in the common 13-pair table — documented simplification).
+_VEDHA_PAIRS = [
+    (0, 17), (1, 16), (2, 15), (3, 14), (4, 22), (5, 21), (6, 20),
+    (7, 19), (8, 18), (9, 26), (10, 25), (11, 24), (12, 23),
+]
+
+
+def _rajju_of(nak: int) -> str:
+    for name, members in _RAJJU.items():
+        if nak in members:
+            return name
+    return "unknown"
+
+
+def dashakoota(boy_nak: int, girl_nak: int) -> dict:
+    """The four Dashakoota checks beyond Ashtakoota overlap: Rajju, Vedha,
+    Mahendra, Stree-deergha. (Dina/Gana/Yoni/Rasi/Vashya/Rasyadhipati already
+    surface through the Ashtakoota tables.)"""
+    b_rajju, g_rajju = _rajju_of(boy_nak), _rajju_of(girl_nak)
+    rajju_dosha = b_rajju == g_rajju
+    vedha = any({boy_nak, girl_nak} == {a, b} for a, b in _VEDHA_PAIRS)
+    # Mahendra: boy's nakshatra counted from the girl's at 4,7,10,... (steps of 3)
+    count_g_to_b = (boy_nak - girl_nak) % 27 + 1
+    mahendra = count_g_to_b in (4, 7, 10, 13, 16, 19, 22, 25)
+    # Stree-deergha: the same count should exceed 13 (variant: 9 — noted).
+    stree_deergha = count_g_to_b > 13
+    return {
+        "rajju": {"boy": b_rajju, "girl": g_rajju, "dosha": rajju_dosha,
+                  "severity": ("grave" if rajju_dosha and b_rajju == "siro" else
+                               "significant" if rajju_dosha else None),
+                  "note": "Same rajju is a classical objection; Siro rajju gravest."
+                          if rajju_dosha else "Different rajjus — favourable."},
+        "vedha": {"dosha": vedha,
+                  "note": "Nakshatras mutually pierce (vedha) — classical objection."
+                          if vedha else "No vedha between the nakshatras."},
+        "mahendra": {"present": mahendra, "count": count_g_to_b,
+                     "note": "Supports longevity and protection." if mahendra else
+                             "Not formed (informational, not a dosha)."},
+        "stree_deergha": {"present": stree_deergha, "count": count_g_to_b,
+                          "note": "Count from girl's to boy's nakshatra exceeds 13 — "
+                                  "favourable (some traditions accept >9)."
+                                  if stree_deergha else
+                                  "Count 13 or below — weaker on this koota (variant threshold 9)."},
+    }

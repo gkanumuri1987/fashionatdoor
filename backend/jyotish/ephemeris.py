@@ -35,7 +35,10 @@ _PLANET_IDS = {
     "jupiter": swe.JUPITER, "venus": swe.VENUS, "saturn": swe.SATURN,
 }
 
-_HOUSE_SYSTEMS = {"whole_sign": b"W", "placidus": b"P", "sripati": b"B"}
+# NOTE: swisseph 'B' is Alcabitius — NOT Sripati. Sripati bhava madhya are
+# Porphyry cusps ('O'); the bhava then SPANS sandhi-to-sandhi (midpoints
+# between madhyas) — assembled in bhava.py.
+_HOUSE_SYSTEMS = {"whole_sign": b"W", "placidus": b"P", "sripati": b"O"}
 
 
 def _base_flags() -> int:
