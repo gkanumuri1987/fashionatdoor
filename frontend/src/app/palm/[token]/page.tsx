@@ -6,6 +6,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useLang, LANG_LABELS, type Lang } from "@/lib/i18n";
+import { compressImage } from "@/lib/image";
 
 interface Session {
   token: string; status: string; expires_at: number;
@@ -33,9 +34,10 @@ export default function PalmPage({ params }: { params: Promise<{ token: string }
       .catch(() => setNotFound(true));
   }, [token]);
 
-  function onPick(list: FileList | null) {
+  async function onPick(list: FileList | null) {
     if (!list) return;
-    const picked = Array.from(list).slice(0, 2);
+    const picked = await Promise.all(
+      Array.from(list).slice(0, 2).map((f) => compressImage(f)));
     setFiles(picked);
     setPreviews(picked.map((f) => URL.createObjectURL(f)));
   }

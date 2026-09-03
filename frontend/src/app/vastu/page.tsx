@@ -7,6 +7,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { LangSwitcher, useLang } from "@/lib/i18n";
+import { compressImage } from "@/lib/image";
 
 const DIRECTIONS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
                     "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
@@ -69,8 +70,9 @@ export default function VastuPage() {
       <section className="space-y-4 rounded-xl border border-[#3d2f5c] bg-[#1a1030]/60 p-5">
         <div className="rounded-xl border border-dashed border-[#3d2f5c] p-5 text-center">
           <input id="plan-input" type="file" accept="image/*" className="hidden"
-                 onChange={(e) => {
-                   const f = e.target.files?.[0] ?? null;
+                 onChange={async (e) => {
+                   const raw = e.target.files?.[0] ?? null;
+                   const f = raw ? await compressImage(raw) : null;
                    setFile(f);
                    setPreview(f ? URL.createObjectURL(f) : "");
                  }} />

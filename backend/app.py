@@ -244,15 +244,29 @@ async def palm_upload(token: str, request: Request,
     from store import palm_sessions
     if palm_sessions.get_session(token) is None:
         raise HTTPException(status_code=404, detail="Session not found or expired")
+    from imaging import MAX_UPLOAD_BYTES, normalize_image
     form = await request.form()
     images: list[bytes] = []
+    problems: list[str] = []
     for value in form.values():
-        if hasattr(value, "read"):
-            raw = await value.read()
-            if raw and len(raw) <= 12 * 1024 * 1024:
-                images.append(raw)
+        if not hasattr(value, "read"):
+            continue
+        raw = await value.read()
+        if not raw:
+            continue
+        if len(raw) > MAX_UPLOAD_BYTES:
+            problems.append(f"a photo is {len(raw) // (1024*1024)} MB — please "
+                            "use your camera app's smaller size or retake")
+            continue
+        norm = normalize_image(raw)
+        if norm is None:
+            problems.append("a photo is in a format this device couldn't read "
+                            "— please retake with the camera or use JPG/PNG")
+            continue
+        images.append(norm)
     if not images:
-        raise HTTPException(status_code=400, detail="No photo received")
+        raise HTTPException(status_code=400,
+                            detail="; ".join(problems) or "No photo received")
     if language not in ("en", "te", "hi"):
         language = "en"
 
@@ -345,14 +359,22 @@ async def vastu_analyze(plan: UploadFile = File(...),
         raise HTTPException(status_code=400, detail="top_direction must be a compass point (N, NE, …)")
     if language not in ("en", "te", "hi"):
         language = "en"
+    from imaging import MAX_UPLOAD_BYTES, normalize_image
     raw = await plan.read()
-    if not raw or len(raw) > 15 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Plan image missing or over 15 MB")
+    if not raw:
+        raise HTTPException(status_code=400, detail="Plan image missing")
+    if len(raw) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=400,
+                            detail=f"Plan image is {len(raw) // (1024*1024)} MB — "
+                                   "please use a smaller export or photo")
+    norm = normalize_image(raw)
+    if norm is None:
+        raise HTTPException(status_code=400,
+                            detail="Could not read this image format — please "
+                                   "upload a JPG or PNG of the floor plan")
     from ai.vastu import analyze_floor_plan
-    mime = plan.content_type or "image/jpeg"
-    if not mime.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Upload an image of the floor plan")
-    result = analyze_floor_plan(raw, top_direction, language=language, mime_type=mime)
+    result = analyze_floor_plan(norm, top_direction, language=language,
+                                mime_type="image/jpeg")
     if result.get("_error"):
         raise HTTPException(status_code=502, detail=result["_error_message"])
     return result
