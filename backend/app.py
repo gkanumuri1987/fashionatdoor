@@ -470,3 +470,26 @@ def siddhanta_compare(body: TransitRequest):
         return compare_with_drik(jd, ayanamsa=ay)
     except (KeyError, TypeError) as exc:
         raise HTTPException(status_code=400, detail=f"Invalid chart payload: {exc}")
+
+
+# ── Panchanga & festival calendar ───────────────────────────────────────────
+
+class CalendarRequest(BaseModel):
+    year: int = Field(ge=1900, le=2100)
+    month: int = Field(ge=1, le=12)
+    tradition: str = Field(default="telugu", pattern="^(telugu|tamil|kannada|hindi)$")
+    location: str = Field(default="in", pattern="^(in|uk|us_east|us_west|au)$")
+    ayanamsa: str = Field(default="lahiri", pattern="^(lahiri|raman|kp)$")
+
+
+@app.post("/api/calendar")
+def calendar_month(body: CalendarRequest):
+    """Monthly panchanga calendar with festivals, computed at the selected
+    location's LOCAL sunrise — dates shift correctly across timezones."""
+    from jyotish.festivals import build_month
+    try:
+        return build_month(body.year, body.month, tradition=body.tradition,
+                           location=body.location, ayanamsa=body.ayanamsa)
+    except Exception as exc:  # pragma: no cover
+        logger.error("calendar failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Calendar computation failed")

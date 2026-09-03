@@ -13,6 +13,7 @@ const ITEMS: { href: string; key: string; icon: string }[] = [
   { href: "/", key: "nav_kundli", icon: "✧" },
   { href: "/match", key: "nav_milan", icon: "❋" },
   { href: "/vastu", key: "nav_vastu", icon: "⌂" },
+  { href: "/calendar", key: "nav_calendar", icon: "🗓" },
   { href: "/palmistry", key: "nav_palm", icon: "✋" },
 ];
 
