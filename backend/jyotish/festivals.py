@@ -188,15 +188,27 @@ def build_month(year: int, month: int, tradition: str = "telugu",
         paksha, tithi_num, tithi_idx0 = _tithi_parts(elong)
         nak = nakshatra_of(pos["moon"]["lon"])
 
-        # End times (local clock).
+        # End times (local clock) + whether the end falls on the NEXT civil
+        # day (+1 marker) + what follows — the printed-panchangam idiom
+        # "Panchami till 14:32, then Shashthi": starts are implicit because
+        # each tithi begins exactly when the previous one ends.
+        t_end = t_end_next_day = next_tithi = None
         try:
-            t_end = _local(tithi_end(eval_jd, ayanamsa=ayanamsa)["ends_jd"], tz).strftime("%H:%M")
+            te = tithi_end(eval_jd, ayanamsa=ayanamsa)
+            end_local = _local(te["ends_jd"], tz)
+            t_end = end_local.strftime("%H:%M")
+            t_end_next_day = end_local.date() > d
+            next_tithi = TITHIS[(tithi_idx0 + 1) % 30]
         except Exception:
-            t_end = None
+            pass
+        n_end = n_end_next_day = None
         try:
-            n_end = _local(nakshatra_end(eval_jd, ayanamsa=ayanamsa)["ends_jd"], tz).strftime("%H:%M")
+            ne = nakshatra_end(eval_jd, ayanamsa=ayanamsa)
+            n_local = _local(ne["ends_jd"], tz)
+            n_end = n_local.strftime("%H:%M")
+            n_end_next_day = n_local.date() > d
         except Exception:
-            n_end = None
+            pass
 
         # Amanta masa (cached across days).
         if masa_cache is None or eval_jd >= masa_cache["end_jd"] - 1e-6:
@@ -217,16 +229,28 @@ def build_month(year: int, month: int, tradition: str = "telugu",
                 prev_sankranti = {"jd": eval_jd - 15, "sign_entered_idx": sun_sign}
         tamil_day = int(eval_jd - prev_sankranti["jd"]) + 1
 
-        # Rahu kalam (needs sunset + next sunrise).
-        rahu = None
+        # Good / avoid windows in LOCAL time: Abhijit muhurta (the 8th of the
+        # day's 15 muhurtas — the classical daily good window) vs Rahu kalam,
+        # Yamaganda, Gulika kalam.
+        rahu = yama = gulika_k = abhijit = None
         if rise_jd is not None and set_jd is not None:
             try:
                 _, nxt = sunrise_sunset(jd_noon + 1.0, lat, lng)
                 velas = kala_velas(rise_jd, set_jd, nxt or set_jd + 0.5, d.weekday())
-                rk = velas["rahu_kala"]
-                rahu = (datetime.fromisoformat(rk["start_utc"]).astimezone(tz).strftime("%H:%M")
-                        + "–" +
-                        datetime.fromisoformat(rk["end_utc"]).astimezone(tz).strftime("%H:%M"))
+
+                def _win(w: dict) -> str:
+                    a = datetime.fromisoformat(w["start_utc"]).astimezone(tz)
+                    b = datetime.fromisoformat(w["end_utc"]).astimezone(tz)
+                    return f"{a.strftime('%H:%M')}–{b.strftime('%H:%M')}"
+
+                rahu = _win(velas["rahu_kala"])
+                yama = _win(velas["yamaganda"])
+                gulika_k = _win(velas["gulika_kala"])
+                day_len = set_jd - rise_jd
+                ab_start = rise_jd + 7.0 * day_len / 15.0
+                ab_end = rise_jd + 8.0 * day_len / 15.0
+                abhijit = (_local(ab_start, tz).strftime("%H:%M") + "–"
+                           + _local(ab_end, tz).strftime("%H:%M"))
             except Exception:
                 pass
 
@@ -236,8 +260,16 @@ def build_month(year: int, month: int, tradition: str = "telugu",
             "sunrise": _local(rise_jd, tz).strftime("%H:%M") if rise_jd else None,
             "sunset": _local(set_jd, tz).strftime("%H:%M") if set_jd else None,
             "tithi": {"name": TITHIS[tithi_idx0], "paksha": paksha,
-                      "number": tithi_num, "ends": t_end},
-            "nakshatra": {"name": nak["name"], "ends": n_end},
+                      "number": tithi_num, "ends": t_end,
+                      "ends_next_day": t_end_next_day, "next": next_tithi},
+            "nakshatra": {"name": nak["name"], "ends": n_end,
+                          "ends_next_day": n_end_next_day},
+            "moon_phase": ("full" if (paksha == "shukla" and tithi_num == 15)
+                           else "new" if (paksha == "krishna" and tithi_num == 15)
+                           else None),
+            "good_time": {"abhijit": abhijit},
+            "avoid_times": {"rahu_kalam": rahu, "yamaganda": yama,
+                            "gulika_kalam": gulika_k},
             "masa": masa_name, "masa_adhika": bool(masa_cache.get("adhika")),
             "tamil_month": tamil_month, "tamil_day": tamil_day,
             "festivals": [],
@@ -250,6 +282,12 @@ def build_month(year: int, month: int, tradition: str = "telugu",
         for k in ("_jd_sunrise", "_jd_sunset", "_jd_noon"):
             day.pop(k, None)
 
+    masas_in_month: list[str] = []
+    for day in days:
+        label = ("Adhika " + day["masa"]) if day["masa_adhika"] else day["masa"]
+        if label not in masas_in_month:
+            masas_in_month.append(label)
+
     mid_jd = julian_day_ut(datetime(year, month, 15, tzinfo=timezone.utc))
     scheme = "tamil_solar" if tradition == "tamil" else "telugu_lunar"
     return {
@@ -257,6 +295,7 @@ def build_month(year: int, month: int, tradition: str = "telugu",
         "year": year, "month": month,
         "tradition": tradition, "location": loc["label"], "timezone": loc["tz"],
         "samvatsara": samvatsara(mid_jd, scheme)["name"],
+        "masas": masas_in_month,
         "days": days,
         "note": ("Tithi and nakshatra are as prevailing at LOCAL sunrise "
                  f"({loc['label']}); Shivaratri/Janmashtami follow the local "

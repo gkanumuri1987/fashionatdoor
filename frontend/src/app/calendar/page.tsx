@@ -22,17 +22,25 @@ const TRADITIONS = [
 ];
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+/* Distinct accent per amanta masa when an English month spans two (or three)
+   Hindu months — stripe + label + legend share the color. */
+const MASA_COLORS = ["#8b7bd8", "#4fd1c5", "#f08fb0"];
+
 interface CalDay {
   date: string; day: number; weekday: number; vara: string;
   sunrise: string | null; sunset: string | null;
-  tithi: { name: string; paksha: string; number: number; ends: string | null };
-  nakshatra: { name: string; ends: string | null };
+  tithi: { name: string; paksha: string; number: number; ends: string | null;
+           ends_next_day?: boolean; next?: string | null };
+  nakshatra: { name: string; ends: string | null; ends_next_day?: boolean };
+  moon_phase?: "full" | "new" | null;
+  good_time?: { abhijit: string | null };
+  avoid_times?: { rahu_kalam: string | null; yamaganda: string | null; gulika_kalam: string | null };
   masa: string; masa_adhika: boolean; tamil_month: string; tamil_day: number;
   festivals: { key: string; name: string; name_en: string }[];
 }
 interface CalMonth {
   year: number; month: number; tradition: string; location: string;
-  timezone: string; samvatsara: string; days: CalDay[]; note: string;
+  timezone: string; samvatsara: string; masas: string[]; days: CalDay[]; note: string;
 }
 
 export default function CalendarPage() {
@@ -97,10 +105,26 @@ export default function CalendarPage() {
         <h1 className="heading-display text-4xl print:text-2xl">{t("cal_title")}</h1>
         <div className="ornament mt-2 text-xs print:hidden">✦</div>
         {cal && (
-          <p className="mt-2 text-sm text-[var(--ink-soft)]">
-            {MONTHS[cal.month - 1]} {cal.year} · <span className="text-[var(--gold)]">{cal.samvatsara}</span>
-            {" "}samvatsara · {cal.location} ({cal.timezone})
-          </p>
+          <>
+            <p className="mt-2 text-sm text-[var(--ink-soft)]">
+              {MONTHS[cal.month - 1]} {cal.year} · <span className="text-[var(--gold)]">{cal.samvatsara}</span>
+              {" "}samvatsara · {cal.location} ({cal.timezone})
+            </p>
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-3 text-xs">
+              {cal.masas.map((m, i) => (
+                <span key={m} className="inline-flex items-center gap-1.5"
+                      style={{ color: MASA_COLORS[i % MASA_COLORS.length] }}>
+                  <span className="inline-block h-2.5 w-2.5 rounded-sm"
+                        style={{ background: MASA_COLORS[i % MASA_COLORS.length] }} />
+                  {m}
+                </span>
+              ))}
+              <span className="text-[var(--ink-faint)]">· 🌕 Purnima · 🌑 Amavasya ·{" "}
+                <span className="text-[var(--good)]">✓ {t("cal_good")}</span> ·{" "}
+                <span className="text-[var(--bad)]">✗ {t("cal_avoid")}</span>
+              </span>
+            </div>
+          </>
         )}
       </header>
 
@@ -157,32 +181,59 @@ export default function CalendarPage() {
             {cal.days.map((d) => {
               const festive = d.festivals.length > 0;
               const sunday = d.weekday === 6;
+              const masaLabel = `${d.masa_adhika ? "Adhika " : ""}${d.masa}`;
+              const masaColor = MASA_COLORS[Math.max(0, cal.masas.indexOf(masaLabel)) % MASA_COLORS.length];
               return (
                 <div key={d.date}
-                     className={`card min-h-[7.2rem] p-2 text-[11px] leading-tight print:min-h-[6rem] print:rounded print:p-1.5 ${
+                     style={{ boxShadow: `inset 3px 0 0 ${masaColor}` }}
+                     className={`card min-h-[8.5rem] p-2 text-[11px] leading-tight print:min-h-[7rem] print:rounded print:p-1.5 ${
                        festive ? "border-[var(--line-gold)] shadow-[0_0_18px_-8px_rgba(217,171,46,0.5)]" : ""}`}>
                   <div className="flex items-baseline justify-between">
                     <span className={`font-display text-lg font-semibold ${
                       festive ? "text-[var(--gold)]" : sunday ? "text-[var(--warn)]" : "text-[var(--ink)]"}`}>
                       {d.day}
+                      {d.moon_phase === "full" && <span className="ml-1 text-sm" title="Purnima">🌕</span>}
+                      {d.moon_phase === "new" && <span className="ml-1 text-sm" title="Amavasya">🌑</span>}
                     </span>
-                    <span className="text-[9px] text-[var(--ink-faint)]">
-                      {tradition === "tamil"
-                        ? `${d.tamil_month} ${d.tamil_day}`
-                        : `${d.masa_adhika ? "Adhika " : ""}${d.masa}`}
+                    <span className="text-[9px]" style={{ color: masaColor }}>
+                      {tradition === "tamil" ? `${d.tamil_month} ${d.tamil_day}` : masaLabel}
                     </span>
                   </div>
                   <div className="mt-1 text-[var(--ink-soft)]">
                     {d.tithi.name}
-                    {d.tithi.ends && <span className="text-[var(--ink-faint)]"> →{d.tithi.ends}</span>}
+                    {d.tithi.ends && (
+                      <span className="text-[var(--ink-faint)]">
+                        {" "}→{d.tithi.ends}{d.tithi.ends_next_day ? "⁺¹" : ""}
+                      </span>
+                    )}
                   </div>
+                  {d.tithi.next && (
+                    <div className="text-[9px] italic text-[var(--ink-faint)]">
+                      {t("cal_then")} {d.tithi.next}
+                    </div>
+                  )}
                   <div className="text-[var(--ink-muted)]">
                     {d.nakshatra.name}
-                    {d.nakshatra.ends && <span className="text-[var(--ink-faint)]"> →{d.nakshatra.ends}</span>}
+                    {d.nakshatra.ends && (
+                      <span className="text-[var(--ink-faint)]">
+                        {" "}→{d.nakshatra.ends}{d.nakshatra.ends_next_day ? "⁺¹" : ""}
+                      </span>
+                    )}
                   </div>
                   <div className="mt-0.5 text-[9px] text-[var(--ink-faint)]">
                     ☀ {d.sunrise}–{d.sunset}
                   </div>
+                  {d.good_time?.abhijit && (
+                    <div className="text-[9px] text-[var(--good)]" title={t("cal_good")}>
+                      ✓ {d.good_time.abhijit}
+                    </div>
+                  )}
+                  {d.avoid_times?.rahu_kalam && (
+                    <div className="text-[9px] text-[var(--bad)]"
+                         title={`Rahu ${d.avoid_times.rahu_kalam} · Yamaganda ${d.avoid_times.yamaganda ?? "—"} · Gulika ${d.avoid_times.gulika_kalam ?? "—"}`}>
+                      ✗ R {d.avoid_times.rahu_kalam}
+                    </div>
+                  )}
                   {d.festivals.map((f) => (
                     <div key={f.key}
                          className="mt-1 rounded bg-[var(--gold)]/15 px-1.5 py-0.5 font-semibold text-[var(--gold)]">
