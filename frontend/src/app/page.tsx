@@ -12,13 +12,39 @@ import { captureReferralParam, claimPendingReferral } from "@/lib/account";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
-const QUESTIONS = [
-  "When will I marry — and what kind of partner is written for me?",
-  "Which years will lift my career, and which ask for patience?",
+const ROTATING_QUESTIONS = [
+  "When will I marry — and who is written for me?",
+  "Which years will lift my career?",
   "What does my chart say about children?",
-  "Is this match right for our family?",
-  "Which deity is MINE to worship — by my own birth stars?",
+  "Which deity is mine, by my own birth stars?",
 ];
+
+// Browser timezone → the calendar API's location keys.
+function tzToLocation(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    if (tz.includes("Kolkata") || tz.includes("Calcutta")) return "in";
+    if (tz === "Europe/London") return "uk";
+    if (tz === "America/New_York" || tz.includes("Toronto")) return "us_east";
+    if (tz === "America/Chicago") return "us_central";
+    if (tz.includes("Los_Angeles") || tz.includes("Vancouver")) return "us_west";
+    if (tz.startsWith("Australia")) return "au";
+    if (tz === "Asia/Dubai") return "gulf";
+    if (tz === "Asia/Singapore" || tz === "Asia/Kuala_Lumpur") return "sg";
+    if (tz.startsWith("America")) return "us_east";
+    if (tz.startsWith("Europe")) return "uk";
+  } catch { /* default below */ }
+  return "in";
+}
+
+interface SkyDay {
+  date: string; vara: string; vara_local?: string;
+  tithi: { name: string; local?: string; ends: string | null };
+  nakshatra: { name: string; local?: string; ends: string | null };
+  masa_local?: string; masa: string; moon_phase?: "full" | "new" | null;
+  good_time?: { abhijit: string | null };
+  avoid_times?: { rahu_kalam: string | null };
+}
 
 const CAPABILITIES: [string, string, string, string][] = [
   ["✧", "Your complete jaathakam, in minutes",
@@ -46,15 +72,48 @@ const SOURCES = ["Brihat Parashara Hora Shastra", "Phaladeepika", "Saravali",
                  "the Puranas & epics"];
 
 export default function LandingPage() {
-  const { t } = useLang();
+  const { lang, t } = useLang();
   const sb = supabase();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState("");
+  const [sky, setSky] = useState<SkyDay | null>(null);
+  const [skyLoc, setSkyLoc] = useState("");
+  const [qIdx, setQIdx] = useState(0);
+  const [qFade, setQFade] = useState(true);
 
   useEffect(() => {
     captureReferralParam();
     claimPendingReferral();
+  }, []);
+
+  // Live sky for the visitor's own timezone — real computation, real proof.
+  useEffect(() => {
+    const now = new Date();
+    const loc = tzToLocation();
+    const tradition = lang === "hi" ? "hindi" : "telugu";
+    fetch("/api/calendar", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ year: now.getFullYear(), month: now.getMonth() + 1,
+                             tradition, location: loc }),
+    }).then((r) => (r.ok ? r.json() : null)).then((m) => {
+      if (!m) return;
+      const today = now.toISOString().slice(0, 10);
+      const d = m.days.find((x: SkyDay) => x.date === today) ?? m.days[now.getDate() - 1];
+      if (d) { setSky(d); setSkyLoc(m.location); }
+    }).catch(() => {});
+  }, [lang]);
+
+  // Softly rotating curiosity line.
+  useEffect(() => {
+    const id = setInterval(() => {
+      setQFade(false);
+      setTimeout(() => {
+        setQIdx((i) => (i + 1) % ROTATING_QUESTIONS.length);
+        setQFade(true);
+      }, 400);
+    }, 4200);
+    return () => clearInterval(id);
   }, []);
 
   async function signup() {
@@ -90,23 +149,49 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* ── The questions it answers ── */}
-      <section className="mt-14">
-        <h2 className="heading-section text-center text-2xl">
-          The questions you&apos;ve always wanted to ask
-        </h2>
-        <div className="mt-5 space-y-2">
-          {QUESTIONS.map((q) => (
-            <div key={q} className="card px-4 py-3 text-sm text-[var(--ink-soft)]">
-              <span className="mr-2 text-[var(--gold)]">❝</span>{q}
+      {/* ── Today's sky — computed live for the visitor's own timezone ── */}
+      {sky && (
+        <section className="mt-14">
+          <div className="card mx-auto max-w-2xl overflow-hidden p-0">
+            <div className="flex items-center justify-between border-b border-[var(--line-soft)] bg-[var(--gold)]/8 px-5 py-2.5">
+              <span className="text-xs font-semibold uppercase tracking-widest text-[var(--gold)]">
+                ● Today&apos;s sky — computed live
+              </span>
+              <span className="text-[10px] text-[var(--ink-faint)]">{skyLoc}</span>
             </div>
-          ))}
-        </div>
-        <p className="mt-4 text-center text-sm text-[var(--ink-muted)]">
-          Your jaathakam has been holding the answers all along — now you can ask it directly,
-          and it replies with <span className="text-[var(--gold)]">your real planetary periods and their dates</span>.
-        </p>
-      </section>
+            <div className="grid grid-cols-2 gap-4 px-5 py-4 text-center sm:grid-cols-4">
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-[var(--ink-faint)]">Tithi</div>
+                <div className="mt-0.5 text-sm text-[var(--ink)]">
+                  {sky.tithi.local ?? sky.tithi.name}
+                  {sky.moon_phase === "full" && " 🌕"}{sky.moon_phase === "new" && " 🌑"}
+                </div>
+                {sky.tithi.ends && <div className="text-[10px] text-[var(--ink-muted)]">till {sky.tithi.ends}</div>}
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-[var(--ink-faint)]">Nakshatra</div>
+                <div className="mt-0.5 text-sm text-[var(--ink)]">{sky.nakshatra.local ?? sky.nakshatra.name}</div>
+                {sky.nakshatra.ends && <div className="text-[10px] text-[var(--ink-muted)]">till {sky.nakshatra.ends}</div>}
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-[var(--ink-faint)]">Good time</div>
+                <div className="mt-0.5 text-sm text-[var(--good)]">✓ {sky.good_time?.abhijit ?? "—"}</div>
+              </div>
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-[var(--ink-faint)]">Rahu kalam</div>
+                <div className="mt-0.5 text-sm text-[var(--bad)]">✗ {sky.avoid_times?.rahu_kalam ?? "—"}</div>
+              </div>
+            </div>
+          </div>
+          <p className="mx-auto mt-5 max-w-xl text-center text-base leading-relaxed text-[var(--ink-soft)]">
+            This is today, read from the real sky over <span className="text-[var(--gold)]">your</span> city.
+            Your birth minute had a sky of its own —
+            <span className={`block pt-1 text-[var(--gold)] transition-opacity duration-500 ${qFade ? "opacity-100" : "opacity-0"}`}>
+              “{ROTATING_QUESTIONS[qIdx]}” — it already holds the answer.
+            </span>
+          </p>
+        </section>
+      )}
 
       {/* ── Accuracy & scriptures ── */}
       <section className="card mt-14 p-6">
