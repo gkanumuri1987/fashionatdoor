@@ -123,6 +123,24 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Chart computation failed");
       setChart(data);
+      // Account-level history: every computed chart is stored for the signed-in
+      // user (best-effort; anonymous users simply skip this).
+      try {
+        const { supabase } = await import("@/lib/supabase");
+        const sb = supabase();
+        const u = sb ? (await sb.auth.getUser()).data.user : null;
+        if (sb && u && place) {
+          sb.from("chart_history").insert({
+            user_id: u.id,
+            person_name: "",
+            birth_date: date, birth_time: time, time_accuracy: timeAccuracy,
+            place_name: place.name, lat: place.lat, lng: place.lng, ayanamsa,
+            lagna_sign: data.lagna?.sign_name ?? null,
+            moon_sign: data.moon_sign_name ?? null,
+            moon_nakshatra: data.grahas?.moon?.nakshatra?.name ?? null,
+          }).then(() => {}, () => {});
+        }
+      } catch { /* history is enrichment */ }
       fetch("/api/reading-page", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chart: data, language: lang }),

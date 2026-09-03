@@ -217,6 +217,13 @@ const T: Record<string, Entry> = {
   code_sent: { en: "Code sent — check your email.", te: "కోడ్ పంపబడింది — మీ ఇమెయిల్ చూడండి.", hi: "कोड भेजा गया — अपना ईमेल देखें।" },
   code_ph: { en: "6-digit code", te: "6-అంకెల కోడ్", hi: "6-अंकों का कोड" },
 
+  free_slot: { en: "free jaathakam used", te: "ఉచిత జాతకం వాడారు", hi: "मुफ़्त जातक उपयोग में" },
+  limit_reached: {
+    en: "Free accounts save one jaathakam. Subscribe to save jaathakams for your whole family — coming soon.",
+    te: "ఉచిత ఖాతాలో ఒక జాతకం సేవ్ చేయవచ్చు. కుటుంబం అందరి జాతకాలు సేవ్ చేయడానికి సబ్‌స్క్రిప్షన్ — త్వరలో.",
+    hi: "मुफ़्त खाते में एक जातक सेव होता है। पूरे परिवार के जातक सेव करने के लिए सब्सक्रिप्शन — जल्द ही।",
+  },
+  recent_charts: { en: "Recent charts (this account)", te: "ఇటీవలి జాతకాలు (ఈ ఖాతా)", hi: "हाल के जातक (यह खाता)" },
   saved_profiles: { en: "Saved profiles", te: "సేవ్ చేసిన ప్రొఫైల్స్", hi: "सहेजी प्रोफ़ाइलें" },
   save_current: { en: "Save current", te: "ప్రస్తుతది సేవ్ చేయండి", hi: "वर्तमान सहेजें" },
   saved_ok: { en: "Saved.", te: "సేవ్ అయింది.", hi: "सहेजा गया।" },
