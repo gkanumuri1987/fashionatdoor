@@ -22,10 +22,10 @@ from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from .calendar_hindu import samvatsara
-from .constants import NAKSHATRAS, TITHIS, VARAS
+from .constants import NAKSHATRAS, TITHIS, VARAS, YOGAS_27, karana_name
 from .ephemeris import jd_to_utc, julian_day_ut, sidereal_positions, sunrise_sunset
 from .events import masa as amanta_masa
-from .events import nakshatra_end, sankranti, tithi_end
+from .events import karana_end, nakshatra_end, sankranti, tithi_end, yoga_end
 from .kala import kala_velas
 from .nakshatra import nakshatra_of
 
@@ -213,6 +213,20 @@ def build_month(year: int, month: int, tradition: str = "telugu",
         except Exception:
             pass
 
+        # Yoga + karana (the remaining panchanga limbs — for the day detail view).
+        yoga_idx = min(26, int(((pos["sun"]["lon"] + pos["moon"]["lon"]) % 360.0)
+                               // (360.0 / 27.0)))
+        karana_idx = min(59, int(elong // 6.0))
+        y_end = k_end = None
+        try:
+            y_end = _local(yoga_end(eval_jd, ayanamsa=ayanamsa)["ends_jd"], tz).strftime("%H:%M")
+        except Exception:
+            pass
+        try:
+            k_end = _local(karana_end(eval_jd, ayanamsa=ayanamsa)["ends_jd"], tz).strftime("%H:%M")
+        except Exception:
+            pass
+
         # Amanta masa (cached across days).
         if masa_cache is None or eval_jd >= masa_cache["end_jd"] - 1e-6:
             try:
@@ -267,6 +281,8 @@ def build_month(year: int, month: int, tradition: str = "telugu",
                       "ends_next_day": t_end_next_day, "next": next_tithi},
             "nakshatra": {"name": nak["name"], "ends": n_end,
                           "ends_next_day": n_end_next_day},
+            "yoga": {"name": YOGAS_27[yoga_idx], "ends": y_end},
+            "karana": {"name": karana_name(karana_idx), "ends": k_end},
             "moon_phase": ("full" if (paksha == "shukla" and tithi_num == 15)
                            else "new" if (paksha == "krishna" and tithi_num == 15)
                            else None),

@@ -35,6 +35,8 @@ interface CalDay {
            next_local?: string };
   nakshatra: { name: string; ends: string | null; ends_next_day?: boolean; local?: string };
   vara_local?: string; masa_local?: string;
+  yoga?: { name: string; ends: string | null };
+  karana?: { name: string; ends: string | null };
   moon_phase?: "full" | "new" | null;
   good_time?: { abhijit: string | null };
   avoid_times?: { rahu_kalam: string | null; yamaganda: string | null; gulika_kalam: string | null };
@@ -54,6 +56,7 @@ export default function CalendarPage() {
   const [tradition, setTradition] = useState("telugu");
   const [location, setLocation] = useState("in");
   const [cal, setCal] = useState<CalMonth | null>(null);
+  const [selected, setSelected] = useState<CalDay | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -74,7 +77,7 @@ export default function CalendarPage() {
     }
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { load(); }, [year, month, tradition, location]);
+  useEffect(() => { load(); setSelected(null); }, [year, month, tradition, location]);
 
   function downloadICS() {
     if (!cal) return;
@@ -187,9 +190,11 @@ export default function CalendarPage() {
               const masaLabel = `${d.masa_adhika ? "Adhika " : ""}${d.masa}`;
               const masaColor = MASA_COLORS[Math.max(0, cal.masas.indexOf(masaLabel)) % MASA_COLORS.length];
               return (
-                <div key={d.date}
+                <div key={d.date} role="button" tabIndex={0}
+                     onClick={() => setSelected(d)}
+                     onKeyDown={(e) => e.key === "Enter" && setSelected(d)}
                      style={{ boxShadow: `inset 3px 0 0 ${masaColor}` }}
-                     className={`card min-h-[8.5rem] p-2 text-[11px] leading-tight print:min-h-[7rem] print:rounded print:p-1.5 ${
+                     className={`card min-h-[8.5rem] cursor-pointer p-2 text-[11px] leading-tight transition-transform hover:-translate-y-0.5 print:min-h-[7rem] print:rounded print:p-1.5 ${
                        festive ? "border-[var(--line-gold)] shadow-[0_0_18px_-8px_rgba(217,171,46,0.5)]" : ""}`}>
                   <div className="flex items-baseline justify-between">
                     <span className={`font-display text-lg font-semibold ${
@@ -253,6 +258,79 @@ export default function CalendarPage() {
             {cal.note}
           </p>
         </>
+      )}
+
+      {selected && cal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 print:hidden"
+             onClick={() => setSelected(null)}>
+          <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" />
+          <div className="card relative w-full max-w-md p-6"
+               onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setSelected(null)} aria-label="Close"
+                    className="absolute right-4 top-3 text-[var(--ink-muted)] hover:text-[var(--ink)]">✕</button>
+            <div className="text-center">
+              <div className="heading-display text-4xl">
+                {selected.day}
+                {selected.moon_phase === "full" && " 🌕"}
+                {selected.moon_phase === "new" && " 🌑"}
+              </div>
+              <div className="mt-1 text-sm text-[var(--ink-soft)]">
+                {selected.vara_local ?? selected.vara} · {selected.date}
+              </div>
+              <div className="text-xs text-[var(--gold)]">
+                {tradition === "tamil"
+                  ? `${selected.masa_local ?? selected.tamil_month} ${selected.tamil_day}`
+                  : `${selected.masa_adhika ? "Adhika " : ""}${selected.masa_local ?? selected.masa}`}
+                {" · "}{cal.samvatsara}
+              </div>
+            </div>
+
+            {selected.festivals.length > 0 && (
+              <div className="mt-4 space-y-1">
+                {selected.festivals.map((f) => (
+                  <div key={f.key} className="rounded-lg bg-[var(--gold)]/15 px-3 py-2 text-center text-sm font-semibold text-[var(--gold)]">
+                    ✦ {f.name}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <dl className="mt-4 space-y-2 text-sm">
+              {[
+                [t("cal_detail_tithi"),
+                 `${selected.tithi.local ?? selected.tithi.name}` +
+                 (selected.tithi.ends ? ` — ${t("cal_ends")} ${selected.tithi.ends}${selected.tithi.ends_next_day ? "⁺¹" : ""}` : "") +
+                 (selected.tithi.next ? `, ${t("cal_then")} ${selected.tithi.next_local ?? selected.tithi.next}` : "")],
+                [t("cal_detail_nakshatra"),
+                 `${selected.nakshatra.local ?? selected.nakshatra.name}` +
+                 (selected.nakshatra.ends ? ` — ${t("cal_ends")} ${selected.nakshatra.ends}${selected.nakshatra.ends_next_day ? "⁺¹" : ""}` : "")],
+                [t("cal_detail_yoga"),
+                 selected.yoga ? `${selected.yoga.name}${selected.yoga.ends ? ` — ${t("cal_ends")} ${selected.yoga.ends}` : ""}` : "—"],
+                [t("cal_detail_karana"),
+                 selected.karana ? `${selected.karana.name}${selected.karana.ends ? ` — ${t("cal_ends")} ${selected.karana.ends}` : ""}` : "—"],
+                [t("cal_detail_sun"), `☀ ${selected.sunrise ?? "—"} / ${selected.sunset ?? "—"}`],
+              ].map(([k, v]) => (
+                <div key={k as string} className="flex justify-between gap-4 border-b border-[var(--line-soft)] pb-1.5">
+                  <dt className="text-[var(--ink-muted)]">{k}</dt>
+                  <dd className="text-right text-[var(--ink)]">{v}</dd>
+                </div>
+              ))}
+              <div className="flex justify-between gap-4 border-b border-[var(--line-soft)] pb-1.5">
+                <dt className="text-[var(--good)]">✓ {t("cal_abhijit")}</dt>
+                <dd className="text-[var(--good)]">{selected.good_time?.abhijit ?? "—"}</dd>
+              </div>
+              {([[t("cal_rahu"), selected.avoid_times?.rahu_kalam],
+                 [t("cal_yamaganda"), selected.avoid_times?.yamaganda],
+                 [t("cal_gulika"), selected.avoid_times?.gulika_kalam]] as [string, string | null | undefined][])
+                .map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-4">
+                  <dt className="text-[var(--bad)]">✗ {k}</dt>
+                  <dd className="text-[var(--bad)]">{v ?? "—"}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
       )}
     </main>
   );
