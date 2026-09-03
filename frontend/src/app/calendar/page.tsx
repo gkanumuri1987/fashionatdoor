@@ -12,7 +12,8 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July",
                 "August", "September", "October", "November", "December"];
 const LOCATIONS = [
   { key: "in", label: "🇮🇳 India" }, { key: "uk", label: "🇬🇧 UK" },
-  { key: "us_east", label: "🇺🇸 US East" }, { key: "us_west", label: "🇺🇸 US West" },
+  { key: "us_east", label: "🇺🇸 US East" }, { key: "us_central", label: "🇺🇸 US Central" },
+  { key: "us_west", label: "🇺🇸 US West" },
   { key: "au", label: "🇦🇺 Australia" },
 ];
 const TRADITIONS = [

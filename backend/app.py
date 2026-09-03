@@ -478,7 +478,7 @@ class CalendarRequest(BaseModel):
     year: int = Field(ge=1900, le=2100)
     month: int = Field(ge=1, le=12)
     tradition: str = Field(default="telugu", pattern="^(telugu|tamil|kannada|hindi)$")
-    location: str = Field(default="in", pattern="^(in|uk|us_east|us_west|au)$")
+    location: str = Field(default="in", pattern="^(in|uk|us_east|us_central|us_west|au)$")
     ayanamsa: str = Field(default="lahiri", pattern="^(lahiri|raman|kp)$")
 
 

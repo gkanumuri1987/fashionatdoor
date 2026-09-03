@@ -34,6 +34,7 @@ LOCATIONS = {
     "in": {"tz": "Asia/Kolkata", "lat": 17.385, "lng": 78.4867, "label": "India"},
     "uk": {"tz": "Europe/London", "lat": 51.5074, "lng": -0.1278, "label": "United Kingdom"},
     "us_east": {"tz": "America/New_York", "lat": 40.7128, "lng": -74.006, "label": "US East"},
+    "us_central": {"tz": "America/Chicago", "lat": 41.8781, "lng": -87.6298, "label": "US Central"},
     "us_west": {"tz": "America/Los_Angeles", "lat": 34.0522, "lng": -118.2437, "label": "US West"},
     "au": {"tz": "Australia/Sydney", "lat": -33.8688, "lng": 151.2093, "label": "Australia"},
 }
