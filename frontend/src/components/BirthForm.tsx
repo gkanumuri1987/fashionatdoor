@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
+import DateDMY from "@/components/DateDMY";
 
 export interface BirthValue {
   date: string;
@@ -44,9 +45,8 @@ export function BirthForm({ label, value, onChange }: {
       <div className="space-y-3 text-sm">
         <label className="block">
           <span className="text-[var(--ink-muted)]">{t("dob")}</span>
-          <input type="date" value={value.date}
-                 onChange={(e) => onChange({ ...value, date: e.target.value })}
-                 className="mt-1 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-deep)] px-3 py-2" />
+          <DateDMY value={value.date}
+                   onChange={(iso) => onChange({ ...value, date: iso })} />
         </label>
         <label className="block">
           <span className="text-[var(--ink-muted)]">{t("tob")}</span>

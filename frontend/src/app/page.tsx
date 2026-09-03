@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NorthChart, SouthChart } from "@/components/KundliCharts";
 import { DashaTimeline, PanchangaYogas, PlanetTable } from "@/components/ChartDetails";
+import DateDMY from "@/components/DateDMY";
 import SavedProfiles, { type BirthProfile } from "@/components/SavedProfiles";
 import type { ChartV1, ReadingPage } from "@/lib/types";
 import { useLang } from "@/lib/i18n";
@@ -149,8 +150,7 @@ export default function Home() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block text-sm">
             <span className="text-[var(--ink-muted)]">{t("dob")}</span>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-                   className="input mt-1" />
+            <DateDMY value={date} onChange={setDate} />
           </label>
           <label className="block text-sm">
             <span className="text-[var(--ink-muted)]">{t("tob")}</span>
