@@ -12,7 +12,7 @@ export const LANG_LABELS: Record<Lang, string> = { en: "English", te: "తెల
 type Entry = Record<Lang, string>;
 
 const T: Record<string, Entry> = {
-  app_title: { en: "Jyotish AI", te: "జ్యోతిష్ AI", hi: "ज्योतिष AI" },
+  app_title: { en: "Jaathaka", te: "జాతక", hi: "जातक" },
   tagline: {
     en: "Vedic birth chart — computed with Swiss Ephemeris, never guessed by AI",
     te: "వేద జన్మ కుండలి — స్విస్ ఎఫెమెరిస్‌తో ఖచ్చితంగా లెక్కించబడింది, AI ఊహ కాదు",

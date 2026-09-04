@@ -35,9 +35,9 @@ const notoDevanagari = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
-  title: "Jyotish AI — Vedic Birth Chart & Life Reading",
+  title: "Jaathaka — Vedic Birth Chart & Jyothishyam",
   description:
-    "Accurate Vedic kundli computed with Swiss Ephemeris — nakshatras, dashas, yogas — with AI readings grounded in classical texts.",
+    "Jaathaka — your Vedic jaathakam computed to arc-second precision (never AI-guessed): kundli, readings, Jyothishyam, Kundli Milan, panchanga calendar.",
 };
 
 export const viewport: Viewport = {

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
+import { JaathakaMark } from "@/components/Logo";
 
 export default function ResetPasswordPage() {
   const { t } = useLang();

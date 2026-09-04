@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useEffect } from "react";
 import AuthBar from "@/components/AuthBar";
+import { JaathakaMark } from "@/components/Logo";
 import { captureReferralParam, claimPendingReferral, useAccount } from "@/lib/account";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
@@ -131,8 +132,9 @@ export default function LandingPage() {
     <main className="mx-auto max-w-4xl px-4 py-12">
       {/* ── Hero: curiosity ── */}
       <header className="text-center">
+        <div className="mb-4 flex justify-center"><JaathakaMark size={64} /></div>
         <p className="text-xs uppercase tracking-[0.3em] text-[var(--gold)]">
-          జ్యోతిషం · ज्योतिष · Jyotisha
+          జాతక · जातक · Jaathaka
         </p>
         <h1 className="heading-display mt-3 text-5xl leading-tight">
           The sky remembers the minute you were born.

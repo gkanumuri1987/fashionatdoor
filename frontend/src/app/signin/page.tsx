@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
+import { JaathakaMark } from "@/components/Logo";
 
 type Mode = "signin" | "signup" | "forgot" | "otp";
 
@@ -106,6 +107,7 @@ export default function SignInPage() {
   return (
     <main className="mx-auto flex min-h-[80vh] max-w-md flex-col justify-center px-4 py-12">
       <header className="text-center">
+        <div className="mb-3 flex justify-center"><JaathakaMark size={52} /></div>
         <h1 className="heading-display text-4xl">{t("app_title")}</h1>
         <div className="ornament mt-3 text-xs">✦</div>
         <p className="mt-3 text-sm text-[var(--ink-muted)]">

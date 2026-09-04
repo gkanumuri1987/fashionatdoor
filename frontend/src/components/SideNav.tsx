@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import AuthBar from "@/components/AuthBar";
+import Logo, { JaathakaMark } from "@/components/Logo";
 import { LangSwitcher, useLang } from "@/lib/i18n";
 
 const ITEMS: { href: string; key: string; icon: string }[] = [
@@ -53,10 +54,9 @@ export default function SideNav() {
     <>
       {/* ── Desktop rail ── */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-[var(--line-soft)] bg-[var(--surface-deep)]/80 backdrop-blur-xl lg:flex">
-        <Link href="/" className="px-5 pb-2 pt-6">
-          <span className="heading-display text-2xl">{t("app_title")}</span>
+        <Link href="/" className="px-5 pb-3 pt-6">
+          <Logo size={30} />
         </Link>
-        <div className="ornament mb-4 scale-75 text-[10px]">✦</div>
         <div className="flex-1 overflow-y-auto px-3">
           <NavLinks />
         </div>
@@ -68,7 +68,7 @@ export default function SideNav() {
 
       {/* ── Mobile top bar ── */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-[var(--line-soft)] bg-[var(--surface-deep)]/85 px-4 py-3 backdrop-blur-xl lg:hidden">
-        <Link href="/" className="heading-display text-xl">{t("app_title")}</Link>
+        <Link href="/"><Logo size={26} /></Link>
         <button onClick={() => setOpen(true)} aria-label="Open menu"
                 className="rounded-lg border border-[var(--line)] px-3 py-1.5 text-[var(--ink-soft)]">
           ☰
@@ -82,7 +82,7 @@ export default function SideNav() {
                onClick={() => setOpen(false)} />
           <div className="absolute inset-y-0 left-0 flex w-72 flex-col border-r border-[var(--line-soft)] bg-[var(--surface-solid)] p-4">
             <div className="mb-4 flex items-center justify-between">
-              <span className="heading-display text-xl">{t("app_title")}</span>
+              <Logo size={26} />
               <button onClick={() => setOpen(false)} aria-label="Close menu"
                       className="rounded-lg px-2 py-1 text-[var(--ink-muted)]">✕</button>
             </div>
