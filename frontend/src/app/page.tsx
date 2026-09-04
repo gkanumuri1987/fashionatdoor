@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useEffect } from "react";
 import AuthBar from "@/components/AuthBar";
+import Icon, { type IconName } from "@/components/Icon";
 import { JaathakaMark } from "@/components/Logo";
 import { captureReferralParam, claimPendingReferral, useAccount } from "@/lib/account";
 import { useLang } from "@/lib/i18n";
@@ -47,23 +48,23 @@ interface SkyDay {
   avoid_times?: { rahu_kalam: string | null };
 }
 
-const CAPABILITIES: [string, string, string, string][] = [
-  ["✧", "Your complete jaathakam, in minutes",
+const CAPABILITIES: [IconName, string, string, string][] = [
+  ["chart", "Your complete jaathakam, in minutes",
    "Birth date, time, place — and your full kundli appears: North or South style, every planet, every nakshatra, your dashas mapped across your whole life with real dates.",
    "/kundli"],
-  ["🗨", "Talk to your jaathakam",
+  ["chat", "Talk to your jaathakam",
    "Ask it anything, in Telugu, Hindi or English — marriage, career, children, 'summarize my life'. The answers come from YOUR chart's actual planetary periods, with the dates to prove it. It feels like sitting with a learned family jyotishi who has studied your chart for hours.",
    "/kundli"],
-  ["❋", "Marriage matching the full traditional way",
+  ["match", "Marriage matching the full traditional way",
    "All 36 gunas, the southern Dashakoota checks, honest Manglik analysis with its classical exceptions — and a warm reading of what the match truly holds.",
    "/match"],
-  ["🗓", "Your family's festival calendar — wherever you live",
+  ["calendar", "Your family's festival calendar — wherever you live",
    "Ugadi, Deepavali, Varalakshmi Vratam on the RIGHT day for Dallas, London, Sydney or Hyderabad — with tithis, good times and Rahu kalam in your own clock, in your own script. Print it, pin it, share it.",
    "/calendar"],
-  ["✋", "Palm reading by a simple link",
+  ["palm", "Palm reading by a simple link",
    "Send a link to anyone — they photograph their palm and the reading appears right there. Lines, mounts, hand shape — read honestly, never invented.",
    "/palmistry"],
-  ["⌂", "Vastu from a floor-plan photo",
+  ["vastu", "Vastu from a floor-plan photo",
    "Upload your home's plan, tell us which way it faces — every room is judged by the classical placement rules, with practical remedies where something sits wrong.",
    "/vastu"],
 ];
@@ -147,9 +148,12 @@ export default function LandingPage() {
           takes you two minutes to see yours.</span>
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link href="/kundli" className="btn-gold text-base">✧ Reveal my jaathakam</Link>
-          <Link href={signedIn ? "/profile" : "/subscription"} className="btn-ghost text-base">
-            {signedIn ? "👤 My account" : "✦ See plans"}
+          <Link href="/kundli" className="btn-gold inline-flex items-center gap-2 text-base">
+            <Icon name="chart" className="h-[18px] w-[18px]" /> Reveal my jaathakam
+          </Link>
+          <Link href={signedIn ? "/profile" : "/subscription"} className="btn-ghost inline-flex items-center gap-2 text-base">
+            <Icon name={signedIn ? "account" : "plans"} className="h-[18px] w-[18px]" />
+            {signedIn ? "My account" : "See plans"}
           </Link>
         </div>
       </header>
@@ -256,8 +260,13 @@ export default function LandingPage() {
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {CAPABILITIES.map(([icon, title, body, href]) => (
             <Link key={title} href={href}
-                  className="card block p-5 transition-transform hover:-translate-y-0.5">
-              <h3 className="font-semibold text-[var(--gold)]">{icon} {title}</h3>
+                  className="card group block p-5 transition-transform hover:-translate-y-0.5">
+              <h3 className="flex items-start gap-3 font-semibold text-[var(--gold)]">
+                <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--line-gold)] bg-[var(--gold)]/8 text-[var(--gold)] transition-colors group-hover:bg-[var(--gold)]/14">
+                  <Icon name={icon} className="h-[18px] w-[18px]" />
+                </span>
+                <span className="pt-1.5">{title}</span>
+              </h3>
               <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">{body}</p>
             </Link>
           ))}
@@ -279,7 +288,9 @@ export default function LandingPage() {
           once-and-forever Lifetime option. Share your link with friends and earn
           free questions every time someone joins.
         </p>
-        <Link href="/subscription" className="btn-gold mt-5 inline-flex">✦ Explore plans</Link>
+        <Link href="/subscription" className="btn-gold mt-5 inline-flex items-center gap-2">
+          <Icon name="plans" className="h-[18px] w-[18px]" /> Explore plans
+        </Link>
       </section>
       )}
 

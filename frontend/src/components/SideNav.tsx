@@ -7,18 +7,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import AuthBar from "@/components/AuthBar";
-import Logo, { JaathakaMark } from "@/components/Logo";
+import Icon, { type IconName } from "@/components/Icon";
+import Logo from "@/components/Logo";
 import { LangSwitcher, useLang } from "@/lib/i18n";
 
-const ITEMS: { href: string; key: string; icon: string }[] = [
-  { href: "/", key: "nav_about", icon: "🏠" },
-  { href: "/kundli", key: "nav_kundli", icon: "✧" },
-  { href: "/match", key: "nav_milan", icon: "❋" },
-  { href: "/vastu", key: "nav_vastu", icon: "⌂" },
-  { href: "/calendar", key: "nav_calendar", icon: "🗓" },
-  { href: "/palmistry", key: "nav_palm", icon: "✋" },
-  { href: "/subscription", key: "nav_subscription", icon: "✦" },
-  { href: "/profile", key: "nav_profile", icon: "👤" },
+const ITEMS: { href: string; key: string; icon: IconName }[] = [
+  { href: "/", key: "nav_about", icon: "about" },
+  { href: "/kundli", key: "nav_kundli", icon: "chart" },
+  { href: "/match", key: "nav_milan", icon: "match" },
+  { href: "/vastu", key: "nav_vastu", icon: "vastu" },
+  { href: "/calendar", key: "nav_calendar", icon: "calendar" },
+  { href: "/palmistry", key: "nav_palm", icon: "palm" },
+  { href: "/subscription", key: "nav_subscription", icon: "plans" },
+  { href: "/profile", key: "nav_profile", icon: "account" },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -35,7 +36,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                     ? "bg-[var(--gold)]/12 font-semibold text-[var(--gold)] shadow-[inset_2px_0_0_var(--gold)]"
                     : "text-[var(--ink-soft)] hover:bg-[var(--surface-raised)] hover:text-[var(--ink)]"
                 }`}>
-            <span className="w-5 text-center text-base" aria-hidden>{it.icon}</span>
+            <Icon name={it.icon} className={`h-[18px] w-[18px] shrink-0 ${active ? "text-[var(--gold)]" : "text-[var(--ink-faint)]"}`} />
             {t(it.key)}
           </Link>
         );
