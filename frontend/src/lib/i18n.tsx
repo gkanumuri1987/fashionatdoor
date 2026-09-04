@@ -241,6 +241,8 @@ const T: Record<string, Entry> = {
   reading_palm: { en: "Reading your palm…", te: "మీ అరచేతిని చదువుతోంది…", hi: "आपकी हथेली पढ़ी जा रही है…" },
   get_reading: { en: "Get my reading", te: "నా ఫలితం పొందండి", hi: "मेरा फल पाएँ" },
   photo_not_stored: { en: "Your photo was analyzed in memory and was not stored.", te: "మీ ఫోటో మెమరీలో మాత్రమే విశ్లేషించబడింది, నిల్వ చేయబడలేదు.", hi: "आपकी फोटो केवल मेमोरी में विश्लेषित हुई, संग्रहीत नहीं हुई।" },
+  palm_features_seen: { en: "What your palm shows", te: "మీ అరచేతి చూపేది", hi: "आपकी हथेली क्या दर्शाती है" },
+  palm_source_note: { en: "Each reading is drawn from the classical Hasta Samudrika Shastra tradition, applied only to the features actually visible in your photo.", te: "ప్రతి ఫలితం సాంప్రదాయ హస్త సాముద్రిక శాస్త్రం ఆధారంగా, మీ ఫోటోలో స్పష్టంగా కనిపించే గుర్తులకే వర్తింపజేయబడుతుంది.", hi: "प्रत्येक फल शास्त्रीय हस्त सामुद्रिक शास्त्र परंपरा से लिया गया है, केवल आपकी फोटो में स्पष्ट रूप से दिखने वाली रेखाओं पर लागू।" },
 
   sign_in: { en: "Sign in", te: "సైన్ ఇన్", hi: "साइन इन" },
   sign_out: { en: "Sign out", te: "సైన్ అవుట్", hi: "साइन आउट" },

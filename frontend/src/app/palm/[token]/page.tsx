@@ -13,6 +13,10 @@ interface Session {
   result: null | {
     usable: boolean; reason?: string; retake_hint?: string;
     reading?: string; language?: string;
+    findings?: {
+      hand_element?: { label: string; meaning: string } | null;
+      findings?: { feature: string; observation: string; meaning: string; source: string }[];
+    };
   };
 }
 
@@ -88,6 +92,25 @@ export default function PalmPage({ params }: { params: Promise<{ token: string }
           <div className="card whitespace-pre-wrap p-5 text-sm leading-relaxed">
             {result.reading}
           </div>
+          {result.findings?.findings && result.findings.findings.length > 0 && (
+            <div className="card p-5">
+              <h3 className="heading-section text-sm uppercase tracking-wider text-[var(--gold)]">
+                {t("palm_features_seen")}
+              </h3>
+              <ul className="mt-3 space-y-2.5 text-sm">
+                {result.findings.findings.map((f, i) => (
+                  <li key={i} className="border-l-2 border-[var(--line-gold)] pl-3">
+                    <span className="font-semibold text-[var(--ink)]">{f.feature}</span>
+                    {f.observation && f.observation !== "present" && (
+                      <span className="text-[var(--ink-muted)]"> · {f.observation}</span>
+                    )}
+                    <div className="text-[var(--ink-soft)]">{f.meaning}</div>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-[10px] text-[var(--ink-faint)]">{t("palm_source_note")}</p>
+            </div>
+          )}
           <p className="text-center text-xs text-[var(--ink-muted)]">{t("photo_not_stored")}</p>
         </section>
       ) : (
