@@ -374,6 +374,7 @@ const T: Record<string, Entry> = {
   save_current: { en: "Save current", te: "ప్రస్తుతది సేవ్ చేయండి", hi: "वर्तमान सहेजें" },
   saved_ok: { en: "Saved.", te: "సేవ్ అయింది.", hi: "सहेजा गया।" },
   no_profiles: { en: "No saved profiles yet.", te: "ఇంకా సేవ్ చేసిన ప్రొఫైల్స్ లేవు.", hi: "अभी कोई सहेजी प्रोफ़ाइल नहीं।" },
+  confirm_delete: { en: "Delete this jaathakam? This cannot be undone.", te: "ఈ జాతకాన్ని తొలగించాలా? దీన్ని తిరిగి పొందలేరు.", hi: "यह जातक हटाएँ? इसे पूर्ववत नहीं किया जा सकता।" },
   name_ph: { en: "Name (e.g. Amma)", te: "పేరు (ఉదా. అమ్మ)", hi: "नाम (जैसे अम्मा)" },
 };
 

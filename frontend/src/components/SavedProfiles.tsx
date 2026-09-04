@@ -137,7 +137,16 @@ export default function SavedProfiles({
 
   async function remove(id: string) {
     if (!sb) return;
+    if (typeof window !== "undefined" && !window.confirm(t("confirm_delete"))) return;
     await sb.from("birth_profiles").delete().eq("id", id);
+    refresh();
+  }
+
+  async function removeHistory(id: string) {
+    if (!sb) return;
+    if (typeof window !== "undefined" && !window.confirm(t("confirm_delete"))) return;
+    await sb.from("chart_history").delete().eq("id", id);
+    setHistory((hs) => hs.filter((h) => h.id !== id));  // optimistic
     refresh();
   }
 
@@ -210,9 +219,9 @@ export default function SavedProfiles({
           </p>
           <ul className="divide-y divide-[var(--line-soft)]">
             {history.map((h) => (
-              <li key={h.id} className="py-1.5 text-xs">
+              <li key={h.id} className="flex items-center justify-between gap-2 py-1.5 text-xs">
                 <button onClick={() => loadHistory(h)}
-                        className="w-full text-left hover:text-[var(--gold)]">
+                        className="min-w-0 flex-1 text-left hover:text-[var(--gold)]">
                   <span className="text-[var(--ink-soft)]">
                     {h.person_name || "—"} · {toDDMMYYYY(h.birth_date)} {h.birth_time.slice(0, 5)}
                     {" · "}{h.place_name.split(",")[0]}
@@ -222,6 +231,13 @@ export default function SavedProfiles({
                       {h.lagna_sign} lagna{h.moon_nakshatra ? ` · ${h.moon_nakshatra}` : ""}
                     </span>
                   )}
+                </button>
+                <button
+                  onClick={() => removeHistory(h.id)}
+                  className="shrink-0 text-[var(--ink-faint)] hover:text-red-500"
+                  aria-label={`Delete ${h.person_name || "chart"}`}
+                >
+                  ✕
                 </button>
               </li>
             ))}
