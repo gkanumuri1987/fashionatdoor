@@ -13,10 +13,12 @@ from __future__ import annotations
 import json
 import re
 
-from .client import call_ai, call_ai_vision
-from .guardrails import PROMPT_RULES, scrub
+from palmistry.rules import interpret as interpret_palm
 
-PROMPT_VERSION = "1.0.0"
+from .client import call_ai, call_ai_vision
+from .guardrails import PROMPT_RULES, sanitize
+
+PROMPT_VERSION = "1.1.0"  # deterministic Samudrika findings layer added
 
 _EXTRACT_SYSTEM = """You are a careful palmistry feature extractor. You look at
 palm photographs and report ONLY what is clearly visible. You never guess.
@@ -53,19 +55,19 @@ MIN_OVERALL_CONFIDENCE = 0.45
 # Individual lines below this confidence are dropped from the narrative input.
 MIN_FEATURE_CONFIDENCE = 0.4
 
-_NARRATIVE_SYSTEM = f"""You are a warm, experienced palm reader writing from an
-EXTRACTED FEATURE REPORT. You interpret ONLY the features in the report — if a
-line or mount is marked unknown or not visible, you do not mention it or you say
-it was not clearly visible. Classical palmistry meanings only (heart line —
-emotional nature; head line — thinking style; life line — vitality NOT lifespan;
-fate/sun/mercury — career, recognition, communication; mounts — planetary
-temperaments; hand element — basic disposition).
+_NARRATIVE_SYSTEM = f"""You are a warm, experienced palm reader writing from a
+COMPUTED CLASSICAL FINDINGS report. Each finding already carries its classical
+meaning (from Hasta Samudrika Shastra) — your job is ONLY to weave those given
+meanings into flowing, personal prose. You NEVER add a meaning, line, mount, or
+mark that is not in the findings, and you never invent palmistry lore of your
+own — every interpretive statement must trace to a supplied finding.
 
 {PROMPT_RULES}
-Additional palm rules: the life line NEVER indicates lifespan or death — say so
-explicitly if its length might be misread; features excluded as "not clearly
-visible" are acknowledged honestly, never invented. 350-500 words, flowing prose, warm
-and specific to the reported features. Write in the requested language."""
+Additional palm rules: the life line NEVER indicates lifespan or death — state
+this plainly if you discuss it; anything not in the findings simply was not
+clearly visible, acknowledged honestly and never invented. 350-500 words,
+flowing prose, warm and specific to the findings. Cite the tradition sparingly
+(e.g. "in the Samudrika tradition"). Write in the requested language."""
 
 
 def _parse_json(text: str) -> dict | None:
@@ -124,18 +126,24 @@ def analyze_palm(images: list[bytes], language: str = "en") -> dict:
             if isinstance(c, (int, float)) and c < MIN_FEATURE_CONFIDENCE:
                 lines[lname] = {"visible": False,
                                 "notes": "not clearly visible — excluded"}
+    # DETERMINISTIC interpretation: map the extracted features to their classical
+    # Samudrika meanings HERE (not in the LLM). The narrative then only phrases
+    # these computed findings — mirroring the vastu/jyotish two-layer discipline.
+    computed = interpret_palm(features)
     prompt = (
         f"LANGUAGE: {lang_names.get(language, 'English')}\n\n"
-        "=== EXTRACTED PALM FEATURES (the only features that exist) ===\n"
-        + json.dumps(features, ensure_ascii=False)
+        "=== COMPUTED CLASSICAL FINDINGS (each already carries its meaning — "
+        "phrase ONLY these, add nothing) ===\n"
+        + json.dumps(computed, ensure_ascii=False)
     )
-    result = call_ai(_NARRATIVE_SYSTEM, prompt, temperature=0.6)
+    result = call_ai(_NARRATIVE_SYSTEM, prompt, temperature=0.55)
     if result.get("_error"):
         return result
-    cleaned = scrub(result["text"])
+    cleaned = sanitize(result["text"], facts_text=json.dumps(computed, ensure_ascii=False))
     return {
         "usable": True,
         "features": features,
+        "findings": computed,
         "reading": cleaned["text"],
         "violations_removed": cleaned["violations"],
         "language": language,
