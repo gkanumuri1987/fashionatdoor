@@ -7,7 +7,7 @@ import DateDMY from "@/components/DateDMY";
 import SavedProfiles, { type BirthProfile } from "@/components/SavedProfiles";
 import ChatAssistant from "@/components/ChatAssistant";
 import Jyothishyam from "@/components/Jyothishyam";
-import { captureReferralParam, claimPendingReferral, useAccount } from "@/lib/account";
+import { captureReferralParam, claimPendingReferral, isApproved, useAccount } from "@/lib/account";
 import type { ChartV1, ReadingPage } from "@/lib/types";
 import { useLang } from "@/lib/i18n";
 
@@ -26,7 +26,9 @@ const READING_SECTIONS: [string, string][] = [
 
 export default function Home() {
   const { lang, t } = useLang();
-  const { signedIn } = useAccount();
+  const { signedIn, account } = useAccount();
+  const approved = isApproved(account);
+  const rejected = account?.approval_status === "rejected";
   const [date, setDate] = useState("1990-05-15");
   const [time, setTime] = useState("10:30");
   const [timeAccuracy, setTimeAccuracy] = useState("exact");
@@ -116,6 +118,10 @@ export default function Home() {
   async function generate() {
     if (signedIn === false) {
       setError(t("gate_title"));
+      return;
+    }
+    if (!approved) {
+      setError(t("approval_pending_title"));
       return;
     }
     if (!place) {
@@ -260,6 +266,17 @@ export default function Home() {
           <div className="mt-4 rounded-lg border border-[var(--line-gold)] bg-[var(--gold)]/10 p-4">
             <p className="text-sm font-semibold text-[var(--gold)]">🔒 {t("gate_title")}</p>
             <p className="mt-1 text-xs text-[var(--ink-soft)]">{t("gate_body")}</p>
+          </div>
+        ) : !approved ? (
+          <div className={`mt-4 rounded-lg border p-4 ${rejected
+            ? "border-[var(--bad)]/40 bg-[var(--bad)]/10"
+            : "border-[var(--warn)]/40 bg-[var(--warn)]/10"}`}>
+            <p className={`text-sm font-semibold ${rejected ? "text-[var(--bad)]" : "text-[var(--warn)]"}`}>
+              {rejected ? "⛔" : "⏳"} {t("approval_pending_title")}
+            </p>
+            <p className="mt-1 text-xs text-[var(--ink-soft)]">
+              {rejected ? t("approval_rejected_body") : t("approval_pending_body")}
+            </p>
           </div>
         ) : (
           <div className="mt-4 flex items-center gap-3">

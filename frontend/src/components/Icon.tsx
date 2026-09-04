@@ -7,7 +7,7 @@
 
 export type IconName =
   | "about" | "chart" | "chat" | "match" | "vastu"
-  | "calendar" | "palm" | "plans" | "account" | "sparkle";
+  | "calendar" | "palm" | "plans" | "account" | "sparkle" | "shield";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   // A domed temple pavilion — the home/story page.
@@ -83,6 +83,13 @@ const PATHS: Record<IconName, React.ReactNode> = {
   // Four-point spark — accents / plans teaser.
   sparkle: (
     <path d="M12 3l1.8 6.2L20 11l-6.2 1.8L12 19l-1.8-6.2L4 11l6.2-1.8z" />
+  ),
+  // Shield with a check — admin / approvals.
+  shield: (
+    <>
+      <path d="M12 3.2l7 2.6v5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9v-5z" />
+      <path d="M9 12l2 2 4-4.2" />
+    </>
   ),
 };
 

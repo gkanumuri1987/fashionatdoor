@@ -5,11 +5,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AuthBar from "@/components/AuthBar";
 import Icon, { type IconName } from "@/components/Icon";
 import Logo from "@/components/Logo";
+import { OWNER_EMAIL } from "@/lib/account";
 import { LangSwitcher, useLang } from "@/lib/i18n";
+import { supabase } from "@/lib/supabase";
 
 const ITEMS: { href: string; key: string; icon: IconName }[] = [
   { href: "/", key: "nav_about", icon: "about" },
@@ -21,6 +23,24 @@ const ITEMS: { href: string; key: string; icon: IconName }[] = [
   { href: "/subscription", key: "nav_subscription", icon: "plans" },
   { href: "/profile", key: "nav_profile", icon: "account" },
 ];
+const ADMIN_ITEM: { href: string; key: string; icon: IconName } =
+  { href: "/admin", key: "nav_admin", icon: "shield" };
+
+function useIsOwner(): boolean {
+  const [owner, setOwner] = useState(false);
+  useEffect(() => {
+    const sb = supabase();
+    if (!sb) return;
+    sb.auth.getUser().then(({ data }) => {
+      setOwner((data.user?.email ?? "").toLowerCase() === OWNER_EMAIL);
+    });
+    const { data: sub } = sb.auth.onAuthStateChange((_e, session) => {
+      setOwner((session?.user?.email ?? "").toLowerCase() === OWNER_EMAIL);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+  return owner;
+}
 
 function NavFooter() {
   return (
@@ -36,9 +56,11 @@ function NavFooter() {
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { t } = useLang();
+  const isOwner = useIsOwner();
+  const items = isOwner ? [...ITEMS, ADMIN_ITEM] : ITEMS;
   return (
     <nav className="flex flex-col gap-1">
-      {ITEMS.map((it) => {
+      {items.map((it) => {
         const active = pathname === it.href;
         return (
           <Link key={it.href} href={it.href} onClick={onNavigate}

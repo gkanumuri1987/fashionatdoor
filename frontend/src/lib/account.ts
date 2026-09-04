@@ -16,6 +16,7 @@ export interface Account {
   is_premium: boolean;
   credits: number;
   referral_code: string | null;
+  approval_status?: string;   // 'pending' | 'approved' | 'rejected' (absent = pre-migration)
   last_login_at?: string | null;
   login_count?: number;
 }
@@ -23,6 +24,14 @@ export interface Account {
 export function chatUnlimited(a: Account | null): boolean {
   if (!a) return false;
   return a.is_premium || a.plan === "monthly_plus" || a.plan === "lifetime_plus";
+}
+
+/** Whether the account may generate/save a kundli. Fails OPEN when the field is
+ *  absent (before migration 009 is applied) so the app is never bricked; only an
+ *  explicit 'pending'/'rejected' blocks. */
+export function isApproved(a: Account | null): boolean {
+  if (!a) return true;                       // not loaded / pre-migration
+  return !a.approval_status || a.approval_status === "approved";
 }
 
 export function useAccount() {
@@ -42,7 +51,7 @@ export function useAccount() {
       let acct = (row as Account) ??
         { plan: "free", is_premium: false, credits: 0, referral_code: null };
       if (email && email === OWNER_EMAIL) {
-        acct = { ...acct, plan: "lifetime_plus", is_premium: true };
+        acct = { ...acct, plan: "lifetime_plus", is_premium: true, approval_status: "approved" };
       }
       setAccount(acct);
     } catch {
@@ -50,7 +59,8 @@ export function useAccount() {
       try {
         const { data: u } = await sb.auth.getUser();
         if ((u.user?.email ?? "").toLowerCase() === OWNER_EMAIL) {
-          setAccount({ plan: "lifetime_plus", is_premium: true, credits: 999, referral_code: null });
+          setAccount({ plan: "lifetime_plus", is_premium: true, credits: 999,
+                       referral_code: null, approval_status: "approved" });
         }
       } catch { /* stays null */ }
     }

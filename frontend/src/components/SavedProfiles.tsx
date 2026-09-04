@@ -122,7 +122,9 @@ export default function SavedProfiles({
     });
     setBusy(false);
     if (error) {
-      if (error.message.includes("FREE_LIMIT_REACHED")) {
+      if (error.message.includes("NOT_APPROVED")) {
+        setMsg(t("approval_pending_body"));
+      } else if (error.message.includes("FREE_LIMIT_REACHED")) {
         setMsg(t("limit_reached"));
       } else if (error.code === "42P01") {
         setMsg("Profiles table missing — run db_migrations in Supabase.");
