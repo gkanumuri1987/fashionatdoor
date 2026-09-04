@@ -1,46 +1,42 @@
 "use client";
 
-/** Jaathaka logo — a curvy crescent that flows into an orbital swirl (the
- *  path of the grahas) with a guiding star, all in gold leaf. Renders the mark
- *  alone or with the wordmark. Pure inline SVG, theme-independent. */
+/** Jaathaka logo — a waxing crescent cradling a guiding sparkle-star, with a
+ *  single graha-dot in orbit. Curvy, iconic, scales cleanly to a favicon.
+ *  Pure inline SVG, theme-independent, gold-leaf gradient. */
 
 export function JaathakaMark({ size = 40, className = "" }: { size?: number; className?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none"
+    <svg width={size} height={size} viewBox="0 0 120 120" fill="none"
          className={className} aria-hidden role="img"
          xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="jk-gold" x1="15" y1="8" x2="85" y2="92"
+        <linearGradient id="jk-gold" x1="18" y1="8" x2="104" y2="112"
                         gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#f6e08e" />
-          <stop offset="0.5" stopColor="#d9ab2e" />
-          <stop offset="1" stopColor="#a5760f" />
+          <stop offset="0" stopColor="#f8ea9e" />
+          <stop offset="0.5" stopColor="#dcae2f" />
+          <stop offset="1" stopColor="#9c6f0d" />
         </linearGradient>
-        <radialGradient id="jk-star" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#fff4c8" />
-          <stop offset="1" stopColor="#e9c04a" />
+        <radialGradient id="jk-star" cx="0.5" cy="0.42" r="0.6">
+          <stop offset="0" stopColor="#fff6d2" />
+          <stop offset="1" stopColor="#ecc453" />
         </radialGradient>
       </defs>
 
-      {/* Crescent moon — the outer curvy body */}
-      <path d="M64 12
-               A40 40 0 1 0 64 88
-               A32 32 0 1 1 64 12 Z"
+      {/* Waxing crescent — a smooth curvy sickle opening to the upper-right */}
+      <path d="M70 8
+               A54 54 0 1 0 70 112
+               A42 42 0 1 1 70 8 Z"
             fill="url(#jk-gold)" />
 
-      {/* Orbital swirl — a flowing tail curving out of the crescent (the graha path) */}
-      <path d="M50 50
-               C 62 40, 82 42, 88 58
-               C 92 70, 80 84, 66 82"
-            stroke="url(#jk-gold)" strokeWidth="5.5" strokeLinecap="round" fill="none"
-            opacity="0.92" />
-
-      {/* Guiding star at the orbit's crest */}
-      <path d="M84 24
-               l2.4 6.2 6.6 0.6 -5 4.4 1.6 6.4 -5.6 -3.6 -5.6 3.6 1.6 -6.4 -5 -4.4 6.6 -0.6 Z"
+      {/* Guiding sparkle-star cradled in the crescent's hollow, with a long
+          lower ray so it reads as a guiding star, not a generic 5-point */}
+      <path d="M82 40
+               l4.6 12.4 12.8 1.2 -9.8 8.4 3 12.6
+               -10.6 -6.8 -10.6 6.8 3 -12.6 -9.8 -8.4 12.8 -1.2 Z"
             fill="url(#jk-star)" />
-      {/* small twinkle */}
-      <circle cx="70" cy="60" r="2.2" fill="#fff4c8" opacity="0.9" />
+
+      {/* A single graha in orbit — the computed-motion accent */}
+      <circle cx="34" cy="40" r="3.4" fill="#fff6d2" opacity="0.92" />
     </svg>
   );
 }
