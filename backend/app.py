@@ -656,6 +656,7 @@ class ForecastRequest(BaseModel):
     tz: str = Field(default="Asia/Kolkata")
     lat: float | None = None
     lng: float | None = None
+    language: str = Field(default="en", pattern="^(en|te|hi)$")
 
 
 @app.post("/api/jyothishyam", dependencies=[Depends(rate_limiter("jyothishyam", 60))])
@@ -663,7 +664,8 @@ def jyothishyam(body: ForecastRequest):
     from jyotish.forecast import personal_forecast
     try:
         return personal_forecast(body.chart, interests=body.interests,
-                                 tz_name=body.tz, lat=body.lat, lng=body.lng)
+                                 tz_name=body.tz, lat=body.lat, lng=body.lng,
+                                 language=body.language)
     except (KeyError, TypeError) as exc:
         raise HTTPException(status_code=400, detail=f"Invalid chart payload: {exc}")
     except Exception as exc:  # pragma: no cover

@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { resolveTimingLabeled } from "@/lib/locations";
 
 export default function TodayPopup() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const sb = supabase();
   const { account, signedIn } = useAccount();
   const [today, setToday] = useState<null | {
@@ -48,7 +48,7 @@ export default function TodayPopup() {
       const loc = resolveTimingLabeled((u.user?.user_metadata?.residence as string) ?? null);
       const fRes = await fetch("/api/jyothishyam", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chart, interests, tz: loc.tz, lat: loc.lat, lng: loc.lng }),
+        body: JSON.stringify({ chart, interests, tz: loc.tz, lat: loc.lat, lng: loc.lng, language: lang }),
       });
       if (!fRes.ok) return;
       const f = await fRes.json();
@@ -72,15 +72,15 @@ export default function TodayPopup() {
         <p className="mt-1 text-xs text-[var(--gold)]">{today.weekday} · {today.vara_deity}</p>
         {place && <p className="text-[10px] text-[var(--ink-faint)]">📍 {t("jyo_times_for")} {place}</p>}
         <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
-          <span className="text-[var(--ink-muted)]">Tithi</span>
+          <span className="text-[var(--ink-muted)]">{t("jyo_tithi")}</span>
           <span className="text-[var(--ink-soft)]">{today.tithi.name} ({today.tithi.group})</span>
-          <span className="text-[var(--ink-muted)]">Nakshatra</span>
+          <span className="text-[var(--ink-muted)]">{t("jyo_nakshatra")}</span>
           <span className="text-[var(--ink-soft)]">{today.nakshatra.name} · {today.nakshatra.class}</span>
-          <span className="text-[var(--ink-muted)]">Tarabala</span>
+          <span className="text-[var(--ink-muted)]">{t("jyo_tarabala")}</span>
           <span className={today.tarabala.favourable ? "text-[var(--good)]" : "text-[var(--bad)]"}>
             {today.tarabala.name}
           </span>
-          <span className="text-[var(--ink-muted)]">New ventures</span>
+          <span className="text-[var(--ink-muted)]">{t("jyo_new_ventures")}</span>
           <span className={today.new_ventures === "favourable" ? "text-[var(--good)]"
                            : today.new_ventures === "avoid" ? "text-[var(--bad)]" : "text-[var(--warn)]"}>
             {t(`jyo_${today.new_ventures.replace(" ", "_")}`)}

@@ -32,6 +32,7 @@ from .ephemeris import (jd_to_utc, julian_day_ut, sidereal_positions,
 from .kala import kala_velas
 from .remedy_rationale import remedy_for
 from .nakshatra import nakshatra_of
+from . import forecast_locale as floc
 
 # ── Vara → deity + affairs ──────────────────────────────────────────────────
 VARA_DEITY = {
@@ -139,7 +140,7 @@ def _nak_class(nak_idx: int) -> tuple[str, str]:
 
 
 def _day_forecast(chart: dict, d: date, tz: ZoneInfo, lat: float, lng: float,
-                  interests: list[str], ayanamsa: str) -> dict:
+                  interests: list[str], ayanamsa: str, language: str = "en") -> dict:
     noon_local = datetime.combine(d, time(12, 0), tzinfo=tz)
     jd_noon = julian_day_ut(noon_local.astimezone(timezone.utc))
     rise_jd, set_jd = sunrise_sunset(jd_noon, lat, lng)
@@ -147,14 +148,17 @@ def _day_forecast(chart: dict, d: date, tz: ZoneInfo, lat: float, lng: float,
     pos = sidereal_positions(eval_jd, ayanamsa=ayanamsa)
 
     tidx, paksha, tnum = _tithi_parts(pos["sun"]["lon"], pos["moon"]["lon"])
-    tithi_group, tithi_note = _TITHI_GROUP[tnum]
+    tithi_group = _TITHI_GROUP[tnum][0]
+    tithi_note = floc.tithi_note(tithi_group, language)
     nak = nakshatra_of(pos["moon"]["lon"])
-    nclass, nclass_note = _nak_class(nak["index"])
+    nclass = _nak_class(nak["index"])[0]
+    nclass_note = floc.class_note(nclass, language)
 
     natal_nak = chart["grahas"]["moon"]["nakshatra"]["index"]
     natal_moon_sign = chart["moon_sign"]
     tara_i = (nak["index"] - natal_nak) % 27 % 9
-    tara_name, tara_good, tara_note = _TARA[tara_i]
+    tara_name, tara_good, _tara_note_en = _TARA[tara_i]
+    tara_note = floc.tara_note(tara_name, language)
     moon_sign = int(pos["moon"]["lon"] // 30)
     chandra_house = (moon_sign - natal_moon_sign) % 12 + 1
     chandra_good = chandra_house in (1, 3, 6, 7, 10, 11)
@@ -164,7 +168,8 @@ def _day_forecast(chart: dict, d: date, tz: ZoneInfo, lat: float, lng: float,
     yoga_name = YOGAS_27[yoga_idx]
 
     vara = d.weekday()
-    deity, affairs = VARA_DEITY[vara]
+    deity = VARA_DEITY[vara][0]
+    affairs = floc.affairs(vara, language)
 
     # Cautions
     cautions = []
@@ -179,17 +184,17 @@ def _day_forecast(chart: dict, d: date, tz: ZoneInfo, lat: float, lng: float,
         except Exception:
             pass
     if rahu:
-        cautions.append(f"Rahu kalam {rahu} — start nothing important in this window.")
+        cautions.append(floc.tmpl("caution_rahu", language, win=rahu))
     if tithi_group == "Rikta":
-        cautions.append(f"{tithi_note} — hold off launches; good for clearing & endings.")
+        cautions.append(floc.tmpl("caution_rikta", language, note=tithi_note))
     if not tara_good:
-        cautions.append(f"Tarabala {tara_name}: {tara_note}.")
+        cautions.append(floc.tmpl("caution_tara", language, name=tara_name, note=tara_note))
     if not chandra_good:
-        cautions.append("Moon is not supportive of your sign today — keep plans light.")
+        cautions.append(floc.tmpl("caution_moon", language))
     if nak["index"] in _PANCHAKA_NAKS:
-        cautions.append(f"Panchaka ({nak['name']}) — avoid roofing, travel south, buying fuel/metal.")
+        cautions.append(floc.tmpl("caution_panchaka", language, nak=nak["name"]))
     if yoga_name in _BAD_YOGAS:
-        cautions.append(f"{yoga_name} yoga — an inauspicious combination; be measured.")
+        cautions.append(floc.tmpl("caution_yoga", language, yoga=yoga_name))
 
     # Verdicts for the two kinds of action.
     new_score = (2 if tithi_group in ("Nanda", "Jaya", "Purna") else -2) \
@@ -204,23 +209,31 @@ def _day_forecast(chart: dict, d: date, tz: ZoneInfo, lat: float, lng: float,
         h = INTEREST_HOUSES.get(it)
         if not h:
             continue
-        house, label = h
+        house, _label_en = h
+        label = floc.house_label(it, language) or _label_en
         sign = (chart["lagna"]["sign"] + house - 1) % 12
         occupant = next((g for g, gd in pos.items()
                          if int(gd["lon"] // 30) == sign), None)
         focus.append({
             "interest": it, "house": house, "about": label,
-            "note": (f"A graha transits your {house}th ({label}) today — a live day for it."
-                     if occupant else f"Your {house}th of {label} is quiet today; steady progress.")
+            "note": floc.tmpl("focus_live" if occupant else "focus_quiet",
+                              language, house=house, label=label),
         })
 
     return {
         "date": d.isoformat(),
-        "weekday": VARAS[vara], "vara_deity": deity, "day_affairs": affairs,
-        "tithi": {"name": _tithi_name(tidx), "group": tithi_group, "note": tithi_note},
-        "nakshatra": {"name": nak["name"], "class": nclass, "supports": nclass_note},
+        "weekday": floc.vara_display(vara, VARAS[vara], language),
+        "vara_deity": floc.deity_display(vara, deity, language),
+        "day_affairs": affairs,
+        "tithi": {"name": floc.tithi_display(paksha, tnum, _tithi_name(tidx), language),
+                  "group": floc.group_display(tithi_group, language),
+                  "note": tithi_note},
+        "nakshatra": {"name": floc.nak_name(nak["name"], nak["index"], language),
+                      "class": floc.class_display(nclass, language),
+                      "supports": nclass_note},
         "yoga": yoga_name,
-        "tarabala": {"name": tara_name, "favourable": tara_good, "note": tara_note},
+        "tarabala": {"name": floc.tara_display(tara_name, language),
+                     "favourable": tara_good, "note": tara_note},
         "chandrabala": {"house": chandra_house, "favourable": chandra_good},
         "new_ventures": new_ventures,
         "continuations": continuations,
@@ -237,7 +250,8 @@ def _tithi_name(idx0: int) -> str:
 
 def personal_forecast(chart: dict, interests: list[str] | None = None,
                       tz_name: str = "Asia/Kolkata", lat: float | None = None,
-                      lng: float | None = None, as_of: date | None = None) -> dict:
+                      lng: float | None = None, as_of: date | None = None,
+                      language: str = "en") -> dict:
     """Daily (today) + weekly (7 days) personal Jyothishyam for a natal chart.
 
     Location defaults to the natal place unless overridden (a person abroad
@@ -249,7 +263,7 @@ def personal_forecast(chart: dict, interests: list[str] | None = None,
     tz = ZoneInfo(tz_name)
     today = as_of or datetime.now(tz).date()
 
-    days = [_day_forecast(chart, today + timedelta(days=i), tz, lat, lng, interests, ayanamsa)
+    days = [_day_forecast(chart, today + timedelta(days=i), tz, lat, lng, interests, ayanamsa, language)
             for i in range(7)]
 
     # Week highlights.
@@ -285,6 +299,5 @@ def personal_forecast(chart: dict, interests: list[str] | None = None,
             "antar_rationale": antar_r["rationale"],
         },
         "sade_sati": sade,
-        "note": "Computed from live panchanga (tithi, nakshatra, yoga, vara) "
-                "read against your birth Moon and running dasha — not invented.",
+        "note": floc.tmpl("note_footer", language),
     }

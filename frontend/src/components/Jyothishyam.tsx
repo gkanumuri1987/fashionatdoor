@@ -41,7 +41,7 @@ const VERDICT_COLOR: Record<string, string> = {
 };
 
 export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const sb = supabase();
   const { account, signedIn } = useAccount();
   const [interests, setInterests] = useState<string[]>([]);
@@ -72,17 +72,18 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
       const res = await fetch("/api/jyothishyam", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chart, interests: ints, tz: loc.tz,
-                               lat: loc.lat, lng: loc.lng }),
+                               lat: loc.lat, lng: loc.lng, language: lang }),
       });
       if (res.ok) setFc(await res.json());
     } catch { /* silent */ }
     finally { setBusy(false); }
-  }, [chart, premium, residence]);
+  }, [chart, premium, residence, lang]);
 
   useEffect(() => { if (premium) load(interests); /* eslint-disable-next-line */ }, [premium]);
 
   async function toggleInterest(it: string) {
-    const next = interests.includes(it) ? interests.filter((x) => x !== it) : [...interests, it];
+    // Single-select: one interest at a time (clicking the selected one clears it).
+    const next = interests.length === 1 && interests[0] === it ? [] : [it];
     setInterests(next);
     if (sb) sb.auth.updateUser({ data: { interests: next } });
     load(next);
@@ -110,15 +111,15 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
         <span className="text-[10px] text-[var(--ink-faint)]">{d.vara_deity}</span>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-        <span className="text-[var(--ink-muted)]">Tithi</span>
+        <span className="text-[var(--ink-muted)]">{t("jyo_tithi")}</span>
         <span className="text-[var(--ink-soft)]">{d.tithi.name} ({d.tithi.group})</span>
-        <span className="text-[var(--ink-muted)]">Nakshatra</span>
+        <span className="text-[var(--ink-muted)]">{t("jyo_nakshatra")}</span>
         <span className="text-[var(--ink-soft)]">{d.nakshatra.name} · {d.nakshatra.class}</span>
-        <span className="text-[var(--ink-muted)]">Tarabala</span>
+        <span className="text-[var(--ink-muted)]">{t("jyo_tarabala")}</span>
         <span className={d.tarabala.favourable ? "text-[var(--good)]" : "text-[var(--bad)]"}>{d.tarabala.name}</span>
-        <span className="text-[var(--ink-muted)]">New ventures</span>
+        <span className="text-[var(--ink-muted)]">{t("jyo_new_ventures")}</span>
         <span className={VERDICT_COLOR[d.new_ventures]}>{t(`jyo_${d.new_ventures.replace(" ", "_")}`)}</span>
-        <span className="text-[var(--ink-muted)]">Continuations</span>
+        <span className="text-[var(--ink-muted)]">{t("jyo_continuations")}</span>
         <span className={VERDICT_COLOR[d.continuations]}>{t(`jyo_${d.continuations.replace(" ", "_")}`)}</span>
       </div>
       {big && (
