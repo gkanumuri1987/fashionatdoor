@@ -235,16 +235,16 @@ export default function LandingPage() {
         <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)]">{t("ay_section_intro")}</p>
         <div className="mt-5 space-y-3">
           {([
-            ["★", "Lahiri (Chitrapaksha)", "ay_lahiri", true],
-            ["", "Raman", "ay_raman", false],
-            ["", "KP (Krishnamurti)", "ay_kp", false],
-            ["✨", "True Chitrapaksha", "ay_true_citra", false],
-            ["✨", "True Pushya", "ay_true_pushya", false],
-            ["✨", "Yukteshwar", "ay_yukteshwar", false],
-          ] as [string, string, string, boolean][]).map(([mark, name, key, rec]) => (
+            [true, "Lahiri (Chitrapaksha)", "ay_lahiri", true],
+            [false, "Raman", "ay_raman", false],
+            [false, "KP (Krishnamurti)", "ay_kp", false],
+            [true, "True Chitrapaksha", "ay_true_citra", false],
+            [true, "True Pushya", "ay_true_pushya", false],
+            [true, "Yukteshwar", "ay_yukteshwar", false],
+          ] as [boolean, string, string, boolean][]).map(([mark, name, key, rec]) => (
             <div key={name} className={`rounded-lg border p-4 ${rec ? "border-[var(--line-gold)] bg-[var(--gold)]/6" : "border-[var(--line-soft)]"}`}>
-              <h3 className="font-semibold text-[var(--gold)]">
-                {mark && <span className="mr-1">{mark}</span>}{name}
+              <h3 className="flex items-center font-semibold text-[var(--gold)]">
+                {mark && <Icon name="sparkle" className="mr-1.5 h-3.5 w-3.5" />}{name}
                 {rec && <span className="ml-2 rounded-full bg-[var(--gold)] px-2 py-0.5 text-[10px] text-[var(--on-gold)]">{t("recommended")}</span>}
               </h3>
               <p className="mt-1.5 text-sm leading-relaxed text-[var(--ink-soft)]">{t(key)}</p>
