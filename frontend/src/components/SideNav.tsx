@@ -22,6 +22,17 @@ const ITEMS: { href: string; key: string; icon: IconName }[] = [
   { href: "/profile", key: "nav_profile", icon: "account" },
 ];
 
+function NavFooter() {
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1 text-[11px] text-[var(--ink-faint)]">
+      <Link href="/privacy" className="hover:text-[var(--ink-soft)]">Privacy</Link>
+      <span aria-hidden>·</span>
+      <a href="https://github.com/gkanumuri1987/fashionatdoor" target="_blank"
+         rel="noopener noreferrer" className="hover:text-[var(--ink-soft)]">Source</a>
+    </div>
+  );
+}
+
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { t } = useLang();
@@ -64,6 +75,7 @@ export default function SideNav() {
         <div className="space-y-3 border-t border-[var(--line-soft)] p-4">
           <LangSwitcher />
           <AuthBar />
+          <NavFooter />
         </div>
       </aside>
 
@@ -93,6 +105,7 @@ export default function SideNav() {
             <div className="space-y-3 border-t border-[var(--line-soft)] pt-4">
               <LangSwitcher />
               <AuthBar />
+              <NavFooter />
             </div>
           </div>
         </div>
