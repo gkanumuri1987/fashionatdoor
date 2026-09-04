@@ -288,6 +288,7 @@ const T: Record<string, Entry> = {
   jyo_push_through: { en: "push through", te: "ప్రయత్నించండి", hi: "प्रयास करें" },
   jyo_go_slow: { en: "go slow", te: "నెమ్మదిగా", hi: "धीरे" },
   jyo_times_for: { en: "Panchangam for", te: "పంచాంగం —", hi: "पंचांग —" },
+  jyo_why: { en: "Why it works", te: "ఎందుకు పని చేస్తుంది", hi: "यह क्यों काम करता है" },
   jyo_change: { en: "Change", te: "మార్చు", hi: "बदलें" },
   jyo_computed_note: { en: "Computed from live panchanga against your birth chart — never AI-imagined.", te: "నిజ పంచాంగాన్ని మీ జాతకంతో లెక్కించబడింది — AI ఊహ కాదు.", hi: "वास्तविक पंचांग को आपकी कुंडली से गणना — AI कल्पना नहीं।" },
   int_career: { en: "Career", te: "వృత్తి", hi: "करियर" },

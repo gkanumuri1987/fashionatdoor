@@ -28,6 +28,7 @@ interface Forecast {
   today: Day; week: Day[];
   week_highlights: { good_days: string[]; careful_days: string[] };
   period: { maha_lord: string; week_deity: string; week_remedy: string;
+            week_rationale?: string;
             antar_lord: string; antar_deity: string; antar_remedy: string };
   note: string;
 }
@@ -190,6 +191,11 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
           <div className="card p-4 text-sm">
             <p><b className="text-[var(--gold)]">{t("jyo_week_deity")}:</b> {fc.period.week_deity}</p>
             <p className="mt-1 text-xs text-[var(--ink-soft)]">{fc.period.week_remedy}</p>
+            {fc.period.week_rationale && (
+              <p className="mt-2 rounded-lg border border-[var(--line-soft)] bg-[var(--surface-deep)] p-2.5 text-[11px] leading-relaxed text-[var(--ink-muted)]">
+                <b className="text-[var(--good)]">🔬 {t("jyo_why")}:</b> {fc.period.week_rationale}
+              </p>
+            )}
             <div className="mt-2 flex flex-wrap gap-3 text-xs">
               {fc.week_highlights.good_days.length > 0 && (
                 <span className="text-[var(--good)]">✓ {t("jyo_best")}: {fc.week_highlights.good_days.map((d) => d.slice(5)).join(", ")}</span>

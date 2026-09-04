@@ -30,6 +30,7 @@ from .constants import NAKSHATRAS, SIGNS, VARA_LORDS, VARAS
 from .ephemeris import (jd_to_utc, julian_day_ut, sidereal_positions,
                         sunrise_sunset)
 from .kala import kala_velas
+from .remedy_rationale import remedy_for
 from .nakshatra import nakshatra_of
 
 # ── Vara → deity + affairs ──────────────────────────────────────────────────
@@ -259,8 +260,8 @@ def personal_forecast(chart: dict, interests: list[str] | None = None,
     cur = chart.get("current_dasha") or {}
     maha = cur.get("maha")
     antar = cur.get("antar")
-    maha_deity = GRAHA_DEITY.get(maha, ("", ""))
-    antar_deity = GRAHA_DEITY.get(antar, ("", ""))
+    maha_r = remedy_for(maha)
+    antar_r = remedy_for(antar)
 
     # Sade sati / notable transit note.
     try:
@@ -278,8 +279,10 @@ def personal_forecast(chart: dict, interests: list[str] | None = None,
         },
         "period": {
             "maha_lord": maha, "antar_lord": antar,
-            "week_deity": maha_deity[0], "week_remedy": maha_deity[1],
-            "antar_deity": antar_deity[0], "antar_remedy": antar_deity[1],
+            "week_deity": maha_r["deity"], "week_remedy": maha_r["practice"],
+            "week_rationale": maha_r["rationale"],
+            "antar_deity": antar_r["deity"], "antar_remedy": antar_r["practice"],
+            "antar_rationale": antar_r["rationale"],
         },
         "sade_sati": sade,
         "note": "Computed from live panchanga (tithi, nakshatra, yoga, vara) "

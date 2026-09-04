@@ -32,7 +32,7 @@ You speak like a wise elder: plain words, honest, encouraging, never fatalistic.
 You are given COMPUTED FACTS (from a Swiss Ephemeris engine) and CLASSICAL
 DICTUMS with sources (freshly paraphrased from BPHS, Phaladeepika, Saravali,
 and Puranic archetypes). Your job is ONLY to weave these into flowing prose for
-the requested section — synthesize, reconcile tensions between dictums using the
+the requested section. In the REMEDIES section, present each parihaaram AND one plain sentence of its honest rationale (from REMEDY RATIONALE) — never claim mystical energy or physics; the reason is behavioural, circadian, or wellbeing-based. Otherwise synthesize, reconcile tensions between dictums using the
 computed WEIGHTS when present (weight is the graha's Shadbala strength ratio:
 >=1.0 means the graha can deliver its promise — emphasize; <0.8 means the theme
 is present but muted — mention briefly and honestly). A dictum flagged
@@ -66,6 +66,15 @@ def generate_reading(chart: dict, section: str, language: str = "en") -> dict:
     ranked_claims = sorted(page["claims"], key=lambda c: _order.get(c["strength"], 2))
     dictums = dictums_for_chart(chart)
     archetypes = archetypes_for_chart(chart)
+    # Attach the honest rational basis of each graha remedy (behavioural /
+    # wellness science — never fake physics), so the remedies section can say
+    # WHY a parihaaram helps.
+    try:
+        from jyotish.remedy_rationale import remedy_for
+        remedy_rationales = {a["graha"]: remedy_for(a["graha"])
+                             for a in archetypes if a.get("graha")}
+    except Exception:
+        remedy_rationales = {}
 
     facts = {
         "lagna": chart["lagna"],
@@ -138,6 +147,10 @@ def generate_reading(chart: dict, section: str, language: str = "en") -> dict:
         + json.dumps(page["glosses"], ensure_ascii=False)
         + "\n\n=== PURANIC ARCHETYPES FOR THIS CHART'S PIVOTAL GRAHAS ===\n"
         + json.dumps(archetypes, ensure_ascii=False)
+        + "\n\n=== REMEDY RATIONALE (the honest reason each parihaaram helps — "
+          "circadian/behavioural/psychological/wellness, NOT pseudo-physics; in "
+          "the remedies section pair each remedy with its 'why') ===\n"
+        + json.dumps(remedy_rationales, ensure_ascii=False)
     )
 
     result = call_ai(_SYSTEM, prompt, temperature=0.65)
