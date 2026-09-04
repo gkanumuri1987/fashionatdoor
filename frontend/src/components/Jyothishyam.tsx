@@ -9,7 +9,7 @@ import { chatUnlimited, useAccount } from "@/lib/account";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import type { ChartV1 } from "@/lib/types";
-import { currentTzLoc } from "@/lib/geo-tz";
+import { resolveTiming } from "@/lib/locations";
 
 const INTERESTS = ["career", "relationship", "health", "finance", "education", "spiritual"];
 
@@ -43,6 +43,7 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
   const sb = supabase();
   const { account, signedIn } = useAccount();
   const [interests, setInterests] = useState<string[]>([]);
+  const [residence, setResidence] = useState<string | null>(null);
   const [fc, setFc] = useState<Forecast | null>(null);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<"today" | "week">("today");
@@ -55,6 +56,7 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
     sb.auth.getUser().then(({ data }) => {
       const saved = (data.user?.user_metadata?.interests as string[]) ?? [];
       if (Array.isArray(saved)) setInterests(saved);
+      setResidence((data.user?.user_metadata?.residence as string) ?? null);
     });
   }, [sb]);
 
@@ -62,7 +64,7 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
     if (!premium) return;
     setBusy(true);
     try {
-      const loc = currentTzLoc();
+      const loc = resolveTiming(residence);
       const res = await fetch("/api/jyothishyam", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chart, interests: ints, tz: loc.tz,
@@ -71,7 +73,7 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
       if (res.ok) setFc(await res.json());
     } catch { /* silent */ }
     finally { setBusy(false); }
-  }, [chart, premium]);
+  }, [chart, premium, residence]);
 
   useEffect(() => { if (premium) load(interests); /* eslint-disable-next-line */ }, [premium]);
 

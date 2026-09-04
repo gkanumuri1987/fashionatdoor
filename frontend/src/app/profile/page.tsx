@@ -11,6 +11,7 @@ import AuthBar from "@/components/AuthBar";
 import SavedProfiles from "@/components/SavedProfiles";
 import { useAccount } from "@/lib/account";
 import { copyText } from "@/lib/clipboard";
+import { LOCATIONS } from "@/lib/locations";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const { account, signedIn, refresh } = useAccount();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [residence, setResidence] = useState("");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [refCopied, setRefCopied] = useState(false);
@@ -30,6 +32,7 @@ export default function ProfilePage() {
       if (data.user) {
         setEmail(data.user.email ?? "");
         setFullName((data.user.user_metadata?.full_name as string) ?? "");
+        setResidence((data.user.user_metadata?.residence as string) ?? "");
       }
     });
   }, [sb, signedIn]);
@@ -37,7 +40,9 @@ export default function ProfilePage() {
   async function saveName() {
     if (!sb) return;
     setSaving(true); setMsg("");
-    const { error } = await sb.auth.updateUser({ data: { full_name: fullName.trim() } });
+    const { error } = await sb.auth.updateUser({
+      data: { full_name: fullName.trim(), residence },
+    });
     setSaving(false);
     setMsg(error ? error.message : t("saved_ok"));
   }
@@ -78,6 +83,15 @@ export default function ProfilePage() {
                 {saving ? "…" : t("prof_save")}
               </button>
             </div>
+          </label>
+          <label className="block">
+            <span className="text-xs text-[var(--ink-muted)]">{t("prof_residence")}</span>
+            <select value={residence} onChange={(e) => setResidence(e.target.value)}
+                    className="input mt-1">
+              <option value="">{t("prof_residence_auto")}</option>
+              {LOCATIONS.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
+            </select>
+            <span className="mt-1 block text-[10px] text-[var(--ink-faint)]">{t("prof_residence_hint")}</span>
           </label>
           <div>
             <span className="text-xs text-[var(--ink-muted)]">Email</span>
