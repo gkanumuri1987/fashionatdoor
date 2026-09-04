@@ -3,6 +3,7 @@ import { Fraunces, Inter, Mandali, Noto_Sans_Devanagari } from "next/font/google
 import "./globals.css";
 import { LangProvider } from "@/lib/i18n";
 import SideNav from "@/components/SideNav";
+import TodayPopup from "@/components/TodayPopup";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans antialiased">
         <LangProvider>
           <SideNav />
+          <TodayPopup />
           <div className="lg:pl-60">{children}</div>
         </LangProvider>
       </body>

@@ -579,3 +579,26 @@ def razorpay_verify_ep(body: RazorpayVerifyRequest):
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
     return result
+
+
+# ── Personal Jyothishyam (daily + weekly; Plus feature) ─────────────────────
+
+class ForecastRequest(BaseModel):
+    chart: dict
+    interests: list[str] = Field(default_factory=list)
+    tz: str = Field(default="Asia/Kolkata")
+    lat: float | None = None
+    lng: float | None = None
+
+
+@app.post("/api/jyothishyam")
+def jyothishyam(body: ForecastRequest):
+    from jyotish.forecast import personal_forecast
+    try:
+        return personal_forecast(body.chart, interests=body.interests,
+                                 tz_name=body.tz, lat=body.lat, lng=body.lng)
+    except (KeyError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid chart payload: {exc}")
+    except Exception as exc:  # pragma: no cover
+        logger.error("jyothishyam failed: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Forecast computation failed")

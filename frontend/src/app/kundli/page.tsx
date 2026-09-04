@@ -6,6 +6,7 @@ import { DashaTimeline, PanchangaYogas, PlanetTable } from "@/components/ChartDe
 import DateDMY from "@/components/DateDMY";
 import SavedProfiles, { type BirthProfile } from "@/components/SavedProfiles";
 import ChatAssistant from "@/components/ChatAssistant";
+import Jyothishyam from "@/components/Jyothishyam";
 import { captureReferralParam, claimPendingReferral, useAccount } from "@/lib/account";
 import type { ChartV1, ReadingPage } from "@/lib/types";
 import { useLang } from "@/lib/i18n";
@@ -15,7 +16,7 @@ interface Place { name: string; lat: number; lng: number }
 const SIGN_NAMES = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
                     "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
 
-const TABS = ["Chart", "Planets", "Dasha", "Panchanga", "Advanced", "Reading", "Ask"] as const;
+const TABS = ["Chart", "Planets", "Dasha", "Panchanga", "Advanced", "Reading", "Ask", "Jyothishyam"] as const;
 
 const READING_SECTIONS: [string, string][] = [
   ["personality", "Personality"], ["career", "Career"], ["wealth", "Wealth"],
@@ -303,7 +304,7 @@ export default function Home() {
               {TABS.map((tb) => (
                 <button key={tb} onClick={() => setTab(tb)}
                         className={`pill ${tab === tb ? "pill-active" : ""}`}>
-                  {t(`tab_${tb.toLowerCase()}`)}
+                  {tb === "Jyothishyam" ? t("tab_jyo") : t(`tab_${tb.toLowerCase()}`)}
                 </button>
               ))}
             </nav>
@@ -451,6 +452,7 @@ export default function Home() {
             </div>
           )}
           {tab === "Ask" && <ChatAssistant chart={chart} />}
+          {tab === "Jyothishyam" && <Jyothishyam chart={chart} />}
           {tab === "Reading" && (
             <div className="space-y-4">
               {page && (
