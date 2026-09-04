@@ -168,7 +168,7 @@ def _save_geo_cache() -> None:
         logger.warning("geocode cache write failed: %s", exc)
 
 
-@app.get("/api/geocode", dependencies=[Depends(rate_limiter("geocode", 60))])
+@app.get("/api/geocode", dependencies=[Depends(rate_limiter("geocode", 120))])
 def geocode(q: str):
     """Place search via Nominatim (OpenStreetMap), file-cached so repeat
     cities never re-hit the API. Returns [{name, lat, lng}]."""
@@ -252,7 +252,7 @@ class ReadingRequest(BaseModel):
     language: str = Field(default="en", pattern="^(en|te|hi)$")
 
 
-@app.post("/api/reading", dependencies=[Depends(rate_limiter("reading", 40))])
+@app.post("/api/reading", dependencies=[Depends(rate_limiter("reading", 80))])
 def reading(body: ReadingRequest):
     from ai.reading import generate_reading
     result = generate_reading(body.chart, body.section, body.language)
@@ -266,7 +266,7 @@ class MatchNarrativeRequest(BaseModel):
     language: str = Field(default="en", pattern="^(en|te|hi)$")
 
 
-@app.post("/api/match/narrative", dependencies=[Depends(rate_limiter("match_narrative", 40))])
+@app.post("/api/match/narrative", dependencies=[Depends(rate_limiter("match_narrative", 80))])
 def match_narrative(body: MatchNarrativeRequest):
     from ai.reading import generate_match_narrative
     result = generate_match_narrative(body.milan, body.language)
@@ -294,7 +294,7 @@ def palm_get(token: str):
     return s
 
 
-@app.post("/api/palm/sessions/{token}/upload", dependencies=[Depends(rate_limiter("palm_upload", 20))])
+@app.post("/api/palm/sessions/{token}/upload", dependencies=[Depends(rate_limiter("palm_upload", 40))])
 async def palm_upload(token: str, request: Request,
                       language: str = "en"):
     """Accepts multipart images (fields named photo/photo2 or any files).
@@ -416,7 +416,7 @@ _VASTU_DIRECTIONS = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
                      "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"}
 
 
-@app.post("/api/vastu", dependencies=[Depends(rate_limiter("vastu", 20))])
+@app.post("/api/vastu", dependencies=[Depends(rate_limiter("vastu", 40))])
 async def vastu_analyze(plan: UploadFile = File(...),
                         top_direction: str = Form("N"),
                         language: str = Form("en")):
@@ -495,7 +495,7 @@ class RectifyRequest(BaseModel):
     step_minutes: int = Field(default=2, ge=1, le=30)
 
 
-@app.post("/api/rectify", dependencies=[Depends(rate_limiter("rectify", 15))])
+@app.post("/api/rectify", dependencies=[Depends(rate_limiter("rectify", 30))])
 def rectify_endpoint(body: RectifyRequest):
     from jyotish.rectify import rectify
     try:
@@ -513,7 +513,7 @@ class ReadingPageRequest(BaseModel):
     language: str = Field(default="en", pattern="^(en|te|hi)$")
 
 
-@app.post("/api/reading-page", dependencies=[Depends(rate_limiter("reading_page", 40))])
+@app.post("/api/reading-page", dependencies=[Depends(rate_limiter("reading_page", 80))])
 def reading_page_endpoint(body: ReadingPageRequest):
     """ReadingPageV1: strength bars, receipted claims, resolved verdicts,
     dasha timeline, glosses, uncertainty — all computed, none written by AI."""
@@ -571,7 +571,7 @@ class ChatRequest(BaseModel):
     history: list[dict] | None = None
 
 
-@app.post("/api/chat", dependencies=[Depends(rate_limiter("chat", 30))])
+@app.post("/api/chat", dependencies=[Depends(rate_limiter("chat", 60))])
 def jaathakam_chat(body: ChatRequest):
     from ai.chat import answer_question
     result = answer_question(body.chart, body.question, body.language,
@@ -658,7 +658,7 @@ class ForecastRequest(BaseModel):
     lng: float | None = None
 
 
-@app.post("/api/jyothishyam", dependencies=[Depends(rate_limiter("jyothishyam", 30))])
+@app.post("/api/jyothishyam", dependencies=[Depends(rate_limiter("jyothishyam", 60))])
 def jyothishyam(body: ForecastRequest):
     from jyotish.forecast import personal_forecast
     try:
