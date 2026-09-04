@@ -99,12 +99,12 @@ export default function AdminPage() {
         {(showActions || r.approval_status !== "approved") && (
           <button disabled={busy === r.user_id}
                   onClick={() => decide(r.user_id, "approved", r.email)}
-                  className="btn-gold px-3 py-1 text-xs">✓ {t("admin_approve")}</button>
+                  className="btn-gold px-3 py-1 text-xs">{t("admin_approve")}</button>
         )}
         {(showActions || r.approval_status === "approved") && (
           <button disabled={busy === r.user_id}
                   onClick={() => decide(r.user_id, "rejected", r.email)}
-                  className="btn-ghost px-3 py-1 text-xs">✕ {t("admin_reject")}</button>
+                  className="btn-ghost px-3 py-1 text-xs">{t("admin_reject")}</button>
         )}
       </div>
     </li>

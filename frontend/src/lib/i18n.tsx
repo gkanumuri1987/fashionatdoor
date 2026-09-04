@@ -383,7 +383,7 @@ const T: Record<string, Entry> = {
   admin_title: { en: "Admin — Registrations", te: "అడ్మిన్ — నమోదులు", hi: "एडमिन — पंजीकरण" },
   admin_intro: { en: "Approve new users before they can generate a kundli.", te: "కొత్త వినియోగదారులు కుండలి రూపొందించే ముందు వారిని ఆమోదించండి.", hi: "नए उपयोगकर्ताओं को कुंडली बनाने से पहले स्वीकृत करें।" },
   admin_pending: { en: "Awaiting approval", te: "ఆమోదం కోసం వేచి ఉన్నవి", hi: "स्वीकृति की प्रतीक्षा में" },
-  admin_none_pending: { en: "No pending registrations. 🎉", te: "పెండింగ్ నమోదులు లేవు. 🎉", hi: "कोई लंबित पंजीकरण नहीं। 🎉" },
+  admin_none_pending: { en: "No pending registrations.", te: "పెండింగ్ నమోదులు లేవు.", hi: "कोई लंबित पंजीकरण नहीं।" },
   admin_all: { en: "All registrations", te: "అన్ని నమోదులు", hi: "सभी पंजीकरण" },
   admin_approve: { en: "Approve", te: "ఆమోదించు", hi: "स्वीकृत करें" },
   admin_reject: { en: "Reject", te: "తిరస్కరించు", hi: "अस्वीकृत करें" },

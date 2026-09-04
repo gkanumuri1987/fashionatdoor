@@ -272,7 +272,7 @@ export default function Home() {
             ? "border-[var(--bad)]/40 bg-[var(--bad)]/10"
             : "border-[var(--warn)]/40 bg-[var(--warn)]/10"}`}>
             <p className={`text-sm font-semibold ${rejected ? "text-[var(--bad)]" : "text-[var(--warn)]"}`}>
-              {rejected ? "⛔" : "⏳"} {t("approval_pending_title")}
+              {t("approval_pending_title")}
             </p>
             <p className="mt-1 text-xs text-[var(--ink-soft)]">
               {rejected ? t("approval_rejected_body") : t("approval_pending_body")}
