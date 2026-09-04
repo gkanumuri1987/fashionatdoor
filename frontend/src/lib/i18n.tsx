@@ -255,6 +255,8 @@ const T: Record<string, Entry> = {
   nav_subscription: { en: "Subscription", te: "సబ్‌స్క్రిప్షన్", hi: "सब्सक्रिप्शन" },
   sub_title: { en: "Subscription", te: "సబ్‌స్క్రిప్షన్", hi: "सब्सक्रिप्शन" },
   sub_sub: { en: "Free accounts save one jaathakam. Go premium for your whole family.", te: "ఉచిత ఖాతాలో ఒక జాతకం. కుటుంబం అందరికీ ప్రీమియం తీసుకోండి.", hi: "मुफ़्त खाते में एक जातक। पूरे परिवार के लिए प्रीमियम लें।" },
+  plan_free: { en: "Free", te: "ఉచితం", hi: "मुफ़्त" },
+  plan_premium: { en: "Premium", te: "ప్రీమియం", hi: "प्रीमियम" },
   plan_monthly_basic: { en: "Basic", te: "బేసిక్", hi: "बेसिक" },
   plan_monthly_plus: { en: "Plus", te: "ప్లస్", hi: "प्लस" },
   plan_lifetime: { en: "Lifetime", te: "లైఫ్‌టైమ్", hi: "लाइफटाइम" },

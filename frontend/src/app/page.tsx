@@ -69,6 +69,35 @@ const CAPABILITIES: [IconName, string, string, string][] = [
    "/vastu"],
 ];
 
+// How Jaathaka is different from every other astrology app — point by point.
+// [icon, title, what most apps do, what Jaathaka does]
+const DIFFERENTIATORS: [IconName, string, string, string][] = [
+  ["chart", "Real astronomy, not a chatbot's guess",
+   "Most AI astrology apps ask a language model for your planets — and it quietly invents them, so every prediction is built on fiction.",
+   "We compute your planets with Swiss Ephemeris — the same professional astronomy temples use — exact to the arc-second. The AI is handed those facts and is blocked from ever stating a position or date it wasn't given."],
+  ["about", "The shastra, rule by rule",
+   "Others generate generic sun-sign horoscope prose that could fit anyone.",
+   "Your reading is matched dictum by dictum to hand-authored classical rules — Brihat Parashara Hora Shastra, Phaladeepika, Saravali, Jaimini — each cited by source and specific to YOUR chart."],
+  ["calendar", "Timing from your real dashas",
+   "A vague “good things are coming” with no actual when.",
+   "Every “when will I…” answer is a Vimshottari dasha window with real start and end dates computed from your Moon — the dates to prove it."],
+  ["vastu", "Your city, your clock — to the minute",
+   "One-size-fits-India timings, or a wrong Rahu kalam once you live abroad.",
+   "Panchanga is computed at your exact coordinates and your place's historical timezone (correct even for a 1940s birth), so Rahu kalam is right in Dallas or Hyderabad — and a good time is never shown overlapping a bad one."],
+  ["plans", "Personal remedies, honest reasons",
+   "Fear-driven doshas and paid pooja / gemstone upsells.",
+   "Your Ishta Devata is computed from your own karakamsa, and every parihaaram carries a real behavioural or circadian reason — never fear, never a sales pitch."],
+  ["palm", "Palmistry & Vastu, the same rigour",
+   "AI “reads” a palm or floor plan by imagining what might be there.",
+   "Vision only extracts what is actually visible; classical Hasta Samudrika (palm) and Vastu placement rules do the judging; the AI only narrates — and refuses an unclear photo instead of inventing."],
+  ["chat", "Honesty, built in",
+   "Apps that will confidently tell you when you'll die or what disease you'll get.",
+   "Jaathaka never predicts death or lifespan, never diagnoses illness, never gives investment tips — and says plainly when your birth time is uncertain."],
+  ["account", "Yours, and private",
+   "Your data mined, your reading forgotten the moment you close the tab.",
+   "Every jaathakam — yours and your family's — is saved to your account, in English, Telugu or Hindi, and your palm photo is analysed in memory and never stored."],
+];
+
 const SOURCES = ["Brihat Parashara Hora Shastra", "Phaladeepika", "Saravali",
                  "Jaimini Sutras", "Brihat Jataka", "Tajika Nilakanthi",
                  "the Puranas & epics"];
@@ -252,6 +281,38 @@ export default function LandingPage() {
           ))}
         </div>
         <p className="mt-4 text-sm text-[var(--good)]">✓ {t("ay_recommend")}</p>
+      </section>
+
+      {/* ── Why Jaathaka is different — point by point ── */}
+      <section className="mt-14">
+        <h2 className="heading-section text-center text-2xl">What makes Jaathaka unlike any other</h2>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-[var(--ink-soft)]">
+          Most astrology apps are a chatbot dressed in a starfield. Jaathaka is a
+          real Jyotish engine with a scholar-jyotishi's discipline. Here is the
+          difference — each and every one.
+        </p>
+        <div className="mt-6 space-y-3">
+          {DIFFERENTIATORS.map(([icon, title, others, ours]) => (
+            <div key={title} className="card p-5">
+              <h3 className="flex items-center gap-3 font-semibold text-[var(--gold)]">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--line-gold)] bg-[var(--gold)]/8 text-[var(--gold)]">
+                  <Icon name={icon} className="h-4 w-4" />
+                </span>
+                {title}
+              </h3>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-[var(--line-soft)] p-3 text-sm">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--ink-faint)]">Most apps</div>
+                  <p className="mt-1 text-[var(--ink-muted)]">{others}</p>
+                </div>
+                <div className="rounded-lg border border-[var(--line-gold)] bg-[var(--gold)]/6 p-3 text-sm">
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--gold)]">Jaathaka</div>
+                  <p className="mt-1 text-[var(--ink-soft)]">{ours}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ── Everything it does ── */}

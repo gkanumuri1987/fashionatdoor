@@ -255,8 +255,10 @@ export default function SubscriptionPage() {
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-lg border border-[var(--line-soft)] p-3">
               <div className="text-xs text-[var(--ink-muted)]">{t("acct_plan")}</div>
-              <div className="mt-0.5 capitalize text-[var(--gold)]">
-                {(account.is_premium && account.plan === "free") ? "premium" : account.plan.replaceAll("_", " ")}
+              <div className="mt-0.5 text-[var(--gold)]">
+                {account.plan && account.plan !== "free"
+                  ? t(`plan_${account.plan}`)
+                  : account.is_premium ? t("plan_premium") : t("plan_free")}
               </div>
             </div>
             <div className="rounded-lg border border-[var(--line-soft)] p-3">

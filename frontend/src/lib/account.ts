@@ -6,6 +6,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+/** The app owner is always Lifetime Plus. Recognised client-side so the account
+ *  reflects it immediately (and independently of whether the one-time SQL grant
+ *  has been run); migration 008 makes the same true server-side. */
+export const OWNER_EMAIL = "kanumuri.choudary@gmail.com";
+
 export interface Account {
   plan: string;
   is_premium: boolean;
@@ -28,10 +33,27 @@ export function useAccount() {
   const refresh = useCallback(async () => {
     if (!sb) return;
     try {
-      const { data } = await sb.rpc("my_account");
+      const [{ data }, { data: u }] = await Promise.all([
+        sb.rpc("my_account"),
+        sb.auth.getUser(),
+      ]);
       const row = Array.isArray(data) ? data[0] : data;
-      if (row) setAccount(row as Account);
-    } catch { /* pre-migration: stays null */ }
+      const email = (u.user?.email ?? "").toLowerCase();
+      let acct = (row as Account) ??
+        { plan: "free", is_premium: false, credits: 0, referral_code: null };
+      if (email && email === OWNER_EMAIL) {
+        acct = { ...acct, plan: "lifetime_plus", is_premium: true };
+      }
+      setAccount(acct);
+    } catch {
+      // Pre-migration (my_account absent): the owner still sees Lifetime Plus.
+      try {
+        const { data: u } = await sb.auth.getUser();
+        if ((u.user?.email ?? "").toLowerCase() === OWNER_EMAIL) {
+          setAccount({ plan: "lifetime_plus", is_premium: true, credits: 999, referral_code: null });
+        }
+      } catch { /* stays null */ }
+    }
   }, [sb]);
 
   useEffect(() => {
