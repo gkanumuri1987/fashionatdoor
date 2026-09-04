@@ -50,3 +50,19 @@ def test_all_locations_compute():
     for loc in LOCATIONS:
         m = build_month(2026, 6, "telugu", loc)
         assert len(m["days"]) == 30
+
+
+# ── Abhijit voided/trimmed by Rahu kalam overlap ─────────────────────────────
+
+def test_abhijit_cleared_of_rahu_kalam():
+    from datetime import datetime as _dt
+    from jyotish.festivals import _clear_of
+    def T(h, m): return _dt(2026, 1, 1, h, m)
+    # No overlap → unchanged.
+    assert _clear_of((T(12, 0), T(12, 48)), (T(9, 0), T(10, 30))) == (T(12, 0), T(12, 48))
+    # Rahu starts mid-Abhijit → keep the clear stretch BEFORE it.
+    assert _clear_of((T(12, 0), T(12, 48)), (T(12, 20), T(13, 50))) == (T(12, 0), T(12, 20))
+    # Rahu ends mid-Abhijit → keep the clear stretch AFTER it.
+    assert _clear_of((T(12, 0), T(12, 48)), (T(11, 0), T(12, 20))) == (T(12, 20), T(12, 48))
+    # Rahu fully covers Abhijit → void (None).
+    assert _clear_of((T(12, 0), T(12, 48)), (T(11, 30), T(13, 0))) is None

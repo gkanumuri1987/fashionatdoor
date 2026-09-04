@@ -177,7 +177,7 @@ export default function Home() {
 {t("tagline")}</p>
       </header>
 
-      <section className="card p-6">
+      <section className="card relative z-20 p-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <label className="block text-sm">
             <span className="text-[var(--ink-muted)]">{t("dob")}</span>
@@ -236,7 +236,7 @@ export default function Home() {
               <option value="yukteshwar">Yukteshwar ✨</option>
             </select>
             {showAyInfo && (
-              <div className="card absolute right-0 top-full z-50 mt-2 w-80 p-4 text-xs leading-relaxed shadow-2xl">
+              <div className="absolute right-0 top-full z-[60] mt-2 w-80 rounded-[var(--radius)] border border-[var(--line-gold)] bg-[var(--surface-solid)] p-4 text-xs leading-relaxed shadow-2xl">
                 <div className="mb-1 flex items-start justify-between">
                   <b className="text-[var(--gold)]">{t("ay_info_title")}</b>
                   <button type="button" onClick={(e) => { e.preventDefault(); setShowAyInfo(false); }}

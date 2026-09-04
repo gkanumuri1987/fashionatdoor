@@ -154,6 +154,25 @@ def _tithi_parts(elong: float) -> tuple[str, int, int]:
     return paksha, number, idx0
 
 
+def _clear_of(good: tuple, bad: tuple) -> tuple | None:
+    """Return the largest sub-interval of `good` that does NOT overlap `bad`
+    (both (start, end) datetimes), or None if `bad` covers `good` entirely.
+    Used to void/trim Abhijit muhurta where it coincides with Rahu kalam."""
+    g0, g1 = good
+    b0, b1 = bad
+    if b1 <= g0 or b0 >= g1:      # no overlap
+        return good
+    pieces = []
+    if b0 > g0:                    # clear stretch before the bad window
+        pieces.append((g0, min(g1, b0)))
+    if b1 < g1:                    # clear stretch after the bad window
+        pieces.append((max(g0, b1), g1))
+    pieces = [p for p in pieces if p[1] > p[0]]
+    if not pieces:
+        return None
+    return max(pieces, key=lambda p: p[1] - p[0])
+
+
 def _local(jd: float, tz: ZoneInfo) -> datetime:
     return jd_to_utc(jd).astimezone(tz)
 
@@ -250,24 +269,37 @@ def build_month(year: int, month: int, tradition: str = "telugu",
         # day's 15 muhurtas — the classical daily good window) vs Rahu kalam,
         # Yamaganda, Gulika kalam.
         rahu = yama = gulika_k = abhijit = None
+        abhijit_void = False  # Abhijit voided by Rahu kalam overlap
         if rise_jd is not None and set_jd is not None:
             try:
                 _, nxt = sunrise_sunset(jd_noon + 1.0, lat, lng)
                 velas = kala_velas(rise_jd, set_jd, nxt or set_jd + 0.5, d.weekday())
 
+                def _dt(iso: str) -> datetime:
+                    return datetime.fromisoformat(iso).astimezone(tz)
+
                 def _win(w: dict) -> str:
-                    a = datetime.fromisoformat(w["start_utc"]).astimezone(tz)
-                    b = datetime.fromisoformat(w["end_utc"]).astimezone(tz)
-                    return f"{a.strftime('%H:%M')}–{b.strftime('%H:%M')}"
+                    return f"{_dt(w['start_utc']).strftime('%H:%M')}–{_dt(w['end_utc']).strftime('%H:%M')}"
 
                 rahu = _win(velas["rahu_kala"])
                 yama = _win(velas["yamaganda"])
                 gulika_k = _win(velas["gulika_kala"])
                 day_len = set_jd - rise_jd
-                ab_start = rise_jd + 7.0 * day_len / 15.0
-                ab_end = rise_jd + 8.0 * day_len / 15.0
-                abhijit = (_local(ab_start, tz).strftime("%H:%M") + "–"
-                           + _local(ab_end, tz).strftime("%H:%M"))
+                ab_s = _local(rise_jd + 7.0 * day_len / 15.0, tz)
+                ab_e = _local(rise_jd + 8.0 * day_len / 15.0, tz)
+                # Abhijit muhurta is classically VOID when it coincides with Rahu
+                # kalam — never present an auspicious window that sits inside the
+                # day's inauspicious one. Trim Abhijit to the part clear of Rahu
+                # kalam; if nothing meaningful remains (< 6 min), it is void today.
+                r_s = _dt(velas["rahu_kala"]["start_utc"])
+                r_e = _dt(velas["rahu_kala"]["end_utc"])
+                clear = _clear_of((ab_s, ab_e), (r_s, r_e))
+                if clear is None or (clear[1] - clear[0]) < timedelta(minutes=6):
+                    abhijit = None
+                    abhijit_void = True
+                else:
+                    abhijit = (clear[0].strftime("%H:%M") + "–"
+                               + clear[1].strftime("%H:%M"))
             except Exception:
                 pass
 
@@ -286,7 +318,7 @@ def build_month(year: int, month: int, tradition: str = "telugu",
             "moon_phase": ("full" if (paksha == "shukla" and tithi_num == 15)
                            else "new" if (paksha == "krishna" and tithi_num == 15)
                            else None),
-            "good_time": {"abhijit": abhijit},
+            "good_time": {"abhijit": abhijit, "abhijit_void": abhijit_void},
             "avoid_times": {"rahu_kalam": rahu, "yamaganda": yama,
                             "gulika_kalam": gulika_k},
             "masa": masa_name, "masa_adhika": bool(masa_cache.get("adhika")),
