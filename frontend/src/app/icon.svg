@@ -1,6 +1,6 @@
 <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="g" x1="18" y1="8" x2="104" y2="112" gradientUnits="userSpaceOnUse">
+    <linearGradient id="g" x1="18" y1="10" x2="102" y2="110" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#f8ea9e"/><stop offset="0.5" stop-color="#dcae2f"/><stop offset="1" stop-color="#9c6f0d"/>
     </linearGradient>
     <radialGradient id="s" cx="0.5" cy="0.42" r="0.6">
@@ -8,7 +8,7 @@
     </radialGradient>
   </defs>
   <rect width="120" height="120" rx="27" fill="#140d26"/>
-  <path d="M70 14 A50 50 0 1 0 70 106 A39 39 0 1 1 70 14 Z" fill="url(#g)"/>
-  <path d="M82 42 l4.2 11.4 11.8 1.1 -9 7.7 2.7 11.6 -9.7-6.2 -9.7 6.2 2.7-11.6 -9-7.7 11.8-1.1 Z" fill="url(#s)"/>
-  <circle cx="37" cy="43" r="3.2" fill="#fff6d2"/>
+  <path d="M60 16 L66.9 46.4 L93.2 30.1 L76.6 53.4 L107 60 L76.6 66.6 L93.2 89.9 L66.9 73.6 L60 104 L53.1 73.6 L26.8 89.9 L43.4 66.6 L13 60 L43.4 53.4 L26.8 30.1 L53.1 46.4 Z" fill="url(#g)"/>
+  <circle cx="60" cy="60" r="11.5" fill="url(#s)"/>
+  <circle cx="98" cy="38" r="3.6" fill="#fff6d2"/>
 </svg>
