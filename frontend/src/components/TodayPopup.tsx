@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { chatUnlimited, useAccount } from "@/lib/account";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
+import { currentTzLoc } from "@/lib/geo-tz";
 
 export default function TodayPopup() {
   const { t } = useLang();
@@ -41,12 +42,12 @@ export default function TodayPopup() {
       });
       if (!chartRes.ok) return;
       const chart = await chartRes.json();
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata";
+      const loc = currentTzLoc();
       const { data: u } = await sb.auth.getUser();
       const interests = (u.user?.user_metadata?.interests as string[]) ?? [];
       const fRes = await fetch("/api/jyothishyam", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chart, interests, tz }),
+        body: JSON.stringify({ chart, interests, tz: loc.tz, lat: loc.lat, lng: loc.lng }),
       });
       if (!fRes.ok) return;
       const f = await fRes.json();

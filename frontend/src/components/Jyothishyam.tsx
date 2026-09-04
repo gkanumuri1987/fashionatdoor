@@ -9,6 +9,7 @@ import { chatUnlimited, useAccount } from "@/lib/account";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import type { ChartV1 } from "@/lib/types";
+import { currentTzLoc } from "@/lib/geo-tz";
 
 const INTERESTS = ["career", "relationship", "health", "finance", "education", "spiritual"];
 
@@ -61,10 +62,11 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
     if (!premium) return;
     setBusy(true);
     try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata";
+      const loc = currentTzLoc();
       const res = await fetch("/api/jyothishyam", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chart, interests: ints, tz }),
+        body: JSON.stringify({ chart, interests: ints, tz: loc.tz,
+                               lat: loc.lat, lng: loc.lng }),
       });
       if (res.ok) setFc(await res.json());
     } catch { /* silent */ }
