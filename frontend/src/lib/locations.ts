@@ -37,3 +37,12 @@ export function resolveTiming(residenceKey: string | null | undefined): TzLoc {
   if (saved) return { tz: saved.tz, lat: saved.lat, lng: saved.lng };
   return currentTzLoc();
 }
+
+/** Resolved timing + a human label (matched region name, or the raw tz). */
+export function resolveTimingLabeled(residenceKey: string | null | undefined): TzLoc & { label: string; source: "profile" | "device" } {
+  const saved = locByKey(residenceKey);
+  if (saved) return { tz: saved.tz, lat: saved.lat, lng: saved.lng, label: saved.label, source: "profile" };
+  const detected = currentTzLoc();
+  const match = LOCATIONS.find((l) => l.tz === detected.tz);
+  return { ...detected, label: match ? match.label : detected.tz, source: "device" };
+}

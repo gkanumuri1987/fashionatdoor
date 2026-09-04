@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { chatUnlimited, useAccount } from "@/lib/account";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
-import { resolveTiming } from "@/lib/locations";
+import { resolveTimingLabeled } from "@/lib/locations";
 
 export default function TodayPopup() {
   const { t } = useLang();
@@ -20,6 +20,7 @@ export default function TodayPopup() {
     tarabala: { name: string; favourable: boolean };
     new_ventures: string; cautions: string[];
   }>(null);
+  const [place, setPlace] = useState("");
   const [open, setOpen] = useState(false);
 
   const premium = chatUnlimited(account);
@@ -44,7 +45,7 @@ export default function TodayPopup() {
       const chart = await chartRes.json();
       const { data: u } = await sb.auth.getUser();
       const interests = (u.user?.user_metadata?.interests as string[]) ?? [];
-      const loc = resolveTiming((u.user?.user_metadata?.residence as string) ?? null);
+      const loc = resolveTimingLabeled((u.user?.user_metadata?.residence as string) ?? null);
       const fRes = await fetch("/api/jyothishyam", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chart, interests, tz: loc.tz, lat: loc.lat, lng: loc.lng }),
@@ -52,6 +53,7 @@ export default function TodayPopup() {
       if (!fRes.ok) return;
       const f = await fRes.json();
       setToday(f.today);
+      setPlace(loc.label);
       setOpen(true);
       try { localStorage.setItem(key, "1"); } catch { /* ignore */ }
     })().catch(() => {});
@@ -68,6 +70,7 @@ export default function TodayPopup() {
                 className="absolute right-4 top-3 text-[var(--ink-muted)] hover:text-[var(--ink)]">✕</button>
         <h3 className="heading-display text-2xl">✦ {t("jyo_popup_title")}</h3>
         <p className="mt-1 text-xs text-[var(--gold)]">{today.weekday} · {today.vara_deity}</p>
+        {place && <p className="text-[10px] text-[var(--ink-faint)]">📍 {t("jyo_times_for")} {place}</p>}
         <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
           <span className="text-[var(--ink-muted)]">Tithi</span>
           <span className="text-[var(--ink-soft)]">{today.tithi.name} ({today.tithi.group})</span>

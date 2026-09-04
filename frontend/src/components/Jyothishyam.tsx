@@ -9,7 +9,7 @@ import { chatUnlimited, useAccount } from "@/lib/account";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import type { ChartV1 } from "@/lib/types";
-import { resolveTiming } from "@/lib/locations";
+import { resolveTimingLabeled } from "@/lib/locations";
 
 const INTERESTS = ["career", "relationship", "health", "finance", "education", "spiritual"];
 
@@ -44,6 +44,7 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
   const { account, signedIn } = useAccount();
   const [interests, setInterests] = useState<string[]>([]);
   const [residence, setResidence] = useState<string | null>(null);
+  const [placeLabel, setPlaceLabel] = useState("");
   const [fc, setFc] = useState<Forecast | null>(null);
   const [busy, setBusy] = useState(false);
   const [view, setView] = useState<"today" | "week">("today");
@@ -64,7 +65,8 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
     if (!premium) return;
     setBusy(true);
     try {
-      const loc = resolveTiming(residence);
+      const loc = resolveTimingLabeled(residence);
+      setPlaceLabel(loc.label + (loc.source === "device" ? " · auto" : ""));
       const res = await fetch("/api/jyothishyam", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chart, interests: ints, tz: loc.tz,
@@ -145,6 +147,12 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
 
   return (
     <div className="space-y-4">
+      {placeLabel && (
+        <div className="flex items-center justify-between rounded-lg border border-[var(--line-soft)] bg-[var(--gold)]/6 px-3 py-2 text-xs">
+          <span className="text-[var(--ink-soft)]">📍 {t("jyo_times_for")} <b className="text-[var(--gold)]">{placeLabel}</b></span>
+          <a href="/profile" className="text-[var(--gold)] underline">{t("jyo_change")}</a>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex gap-1 rounded-lg border border-[var(--line)] p-0.5 text-xs">
           {(["today", "week"] as const).map((v) => (
