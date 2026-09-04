@@ -26,20 +26,48 @@ const ITEMS: { href: string; key: string; icon: IconName }[] = [
 const ADMIN_ITEM: { href: string; key: string; icon: IconName } =
   { href: "/admin", key: "nav_admin", icon: "shield" };
 
-function useIsOwner(): boolean {
-  const [owner, setOwner] = useState(false);
+/** Owner detection + live count of registrations awaiting approval, so new
+ *  signups surface to the admin (badge on the Admin nav item) without opening
+ *  the page. Re-checks periodically and when the tab regains focus. */
+function useAdminStatus(): { isOwner: boolean; pending: number } {
+  const [isOwner, setIsOwner] = useState(false);
+  const [pending, setPending] = useState(0);
   useEffect(() => {
     const sb = supabase();
     if (!sb) return;
-    sb.auth.getUser().then(({ data }) => {
-      setOwner((data.user?.email ?? "").toLowerCase() === OWNER_EMAIL);
-    });
-    const { data: sub } = sb.auth.onAuthStateChange((_e, session) => {
-      setOwner((session?.user?.email ?? "").toLowerCase() === OWNER_EMAIL);
-    });
-    return () => sub.subscription.unsubscribe();
+    let cancelled = false;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const refreshCount = async () => {
+      const { data } = await sb.rpc("pending_signups").then((r) => r, () => ({ data: null }));
+      if (!cancelled) setPending(Array.isArray(data) ? data.length : 0);
+    };
+    const apply = (email?: string | null) => {
+      const owner = (email ?? "").toLowerCase() === OWNER_EMAIL;
+      if (cancelled) return;
+      setIsOwner(owner);
+      if (owner) {
+        refreshCount();
+        if (!timer) timer = setInterval(refreshCount, 60_000);
+      } else {
+        setPending(0);
+        if (timer) { clearInterval(timer); timer = null; }
+      }
+    };
+
+    sb.auth.getUser().then(({ data }) => apply(data.user?.email));
+    const { data: sub } = sb.auth.onAuthStateChange((_e, session) => apply(session?.user?.email));
+    const onFocus = () => { if (isOwner) refreshCount(); };
+    window.addEventListener("focus", onFocus);
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
+      sub.subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return owner;
+  return { isOwner, pending };
 }
 
 function NavFooter() {
@@ -56,12 +84,13 @@ function NavFooter() {
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { t } = useLang();
-  const isOwner = useIsOwner();
+  const { isOwner, pending } = useAdminStatus();
   const items = isOwner ? [...ITEMS, ADMIN_ITEM] : ITEMS;
   return (
     <nav className="flex flex-col gap-1">
       {items.map((it) => {
         const active = pathname === it.href;
+        const badge = it.href === "/admin" && pending > 0 ? pending : 0;
         return (
           <Link key={it.href} href={it.href} onClick={onNavigate}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
@@ -71,6 +100,11 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                 }`}>
             <Icon name={it.icon} className={`h-[18px] w-[18px] shrink-0 ${active ? "text-[var(--gold)]" : "text-[var(--ink-faint)]"}`} />
             {t(it.key)}
+            {badge > 0 && (
+              <span className="ml-auto min-w-[1.25rem] rounded-full bg-[var(--warn)] px-1.5 py-0.5 text-center text-[10px] font-bold text-[var(--on-gold)]">
+                {badge}
+              </span>
+            )}
           </Link>
         );
       })}
