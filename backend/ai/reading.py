@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 
 from .client import call_ai
-from .guardrails import PROMPT_RULES, scrub
+from .guardrails import PROMPT_RULES, sanitize
 from .presentation import reading_page
 from .retrieval import archetypes_for_chart, dictums_for_chart
 
@@ -156,7 +156,7 @@ def generate_reading(chart: dict, section: str, language: str = "en") -> dict:
     result = call_ai(_SYSTEM, prompt, temperature=0.65)
     if result.get("_error"):
         return result
-    cleaned = scrub(result["text"])
+    cleaned = sanitize(result["text"], facts_text=prompt)
     return {
         "section": section,
         "language": language,
@@ -185,6 +185,6 @@ def generate_match_narrative(milan: dict, language: str = "en") -> dict:
     result = call_ai(_SYSTEM, prompt, temperature=0.6)
     if result.get("_error"):
         return result
-    cleaned = scrub(result["text"])
+    cleaned = sanitize(result["text"], facts_text=prompt)
     return {"text": cleaned["text"], "violations_removed": cleaned["violations"],
             "language": language, "prompt_version": PROMPT_VERSION}

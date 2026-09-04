@@ -172,7 +172,10 @@ def dasha_timeline(chart: dict) -> dict:
     now_maha = cur.get("maha")
     bands = []
     marker = None
-    for m in v.get("mahadashas", []):
+    # Display one lifetime (the first vimshottari cycle = 9 mahadashas ≈ 120y);
+    # the engine now holds a second cycle for current-period resolution beyond
+    # that, but a 240-year on-screen timeline would be noise.
+    for m in v.get("mahadashas", [])[:9]:
         band = {"lord": m["lord"], "start": m["start"][:10], "end": m["end"][:10],
                 "years": m["years"], "current": m["lord"] == now_maha}
         if band["current"] and cur.get("maha_end"):

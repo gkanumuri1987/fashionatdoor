@@ -72,7 +72,7 @@ class VimshottariInfo(BaseModel):
     system: Literal["vimshottari"]
     moon_nakshatra: str
     balance_at_birth_years: float
-    mahadashas: list[MahadashaInfo] = Field(min_length=9, max_length=9)
+    mahadashas: list[MahadashaInfo] = Field(min_length=9, max_length=18)
 
 
 class ChartInput(BaseModel):

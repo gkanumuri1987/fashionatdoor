@@ -18,7 +18,7 @@ import json
 from jyotish.chart import transit_report
 
 from .client import call_ai
-from .guardrails import PROMPT_RULES, scrub
+from .guardrails import PROMPT_RULES, refuse_topic, sanitize
 from .presentation import reading_page
 
 _SYSTEM = f"""You are a warm, experienced Jyotish counselor in a CHAT with the
@@ -52,6 +52,13 @@ Reply in the requested language. No headings; conversational prose.
 def answer_question(chart: dict, question: str, language: str = "en",
                     history: list[dict] | None = None) -> dict:
     """One chat turn. history: [{"role": "user"|"assistant", "text": ...}]."""
+    # Hard input refusal BEFORE any model call — death/lifespan, medical, or
+    # financial asks are never sent to the LLM (primary safety net; sanitize()
+    # on the output is defense-in-depth).
+    refusal = refuse_topic(question or "")
+    if refusal:
+        return {"answer": refusal, "violations_removed": ["refused: forbidden topic"],
+                "language": language, "refused": True}
     page = reading_page(chart, language)
     try:
         transits = transit_report(chart)
@@ -101,7 +108,10 @@ def answer_question(chart: dict, question: str, language: str = "en",
     result = call_ai(_SYSTEM, prompt, temperature=0.6)
     if result.get("_error"):
         return result
-    cleaned = scrub(result["text"])
+    # Anti-hallucination: the prompt (with every permitted date/fact) is the
+    # grounding source — any year or degree in the answer that isn't in it is a
+    # fabrication and its sentence is dropped.
+    cleaned = sanitize(result["text"], facts_text=prompt)
     return {"answer": cleaned["text"],
             "violations_removed": cleaned["violations"],
             "language": language}

@@ -117,3 +117,50 @@ def test_palm_sweep(tmp_path, monkeypatch):
 def test_invalid_token_rejected():
     assert palm_sessions.get_session("../../etc/passwd") is None
     assert palm_sessions.get_session("zzz") is None
+
+
+# ── Guardrails: broadened lexicon, grounding tripwire, input refusal ─────────
+
+def test_scrub_removes_broadened_death_and_medical_claims():
+    text = ("You will have a long career. Your life will end in a fatal accident. "
+            "You will develop kidney failure soon. Put your savings into gold now. "
+            "Venus blesses your marriage.")
+    out = guardrails.scrub(text)
+    joined = out["text"].lower()
+    assert "fatal accident" not in joined
+    assert "kidney failure" not in joined
+    assert "savings into gold" not in joined
+    assert "venus blesses your marriage" in joined  # benign sentence kept
+    assert len(out["violations"]) >= 3
+
+
+def test_verify_grounding_redacts_ungrounded_dates_and_degrees():
+    facts = '{"timeline": {"next_change": "2027-03-14"}}'
+    text = ("A bright window opens in 2027. Trouble strikes in 2045. "
+            "Saturn sits at 12°34' Capricorn.")
+    out = guardrails.verify_grounding(text, facts_text=facts)
+    assert "2027" in out["text"]              # present in facts → kept
+    assert "2045" not in out["text"]          # fabricated year → removed
+    assert "12" not in out["text"] or "°" not in out["text"]  # degree sentence removed
+    assert any("2045" in v for v in out["violations"])
+    assert any("degree" in v for v in out["violations"])
+
+
+def test_sanitize_combines_grounding_and_topical():
+    facts = '{"dasha": "2030-2036", "peak": "2033"}'
+    text = ("Prosperity grows through 2033. Trouble arrives in 2050. "
+            "You will develop cancer.")
+    out = guardrails.sanitize(text, facts_text=facts)
+    assert "2033" in out["text"]              # present in facts → kept
+    assert "2050" not in out["text"]          # fabricated date → grounding removes it
+    assert "cancer" not in out["text"].lower()  # medical claim → scrub removes it
+    assert len(out["violations"]) >= 2        # one from each layer
+
+
+def test_refuse_topic_covers_lifespan_medical_financial():
+    assert guardrails.refuse_topic("how long will I live?") is not None
+    assert guardrails.refuse_topic("when will I die") is not None
+    assert guardrails.refuse_topic("what is my longevity") is not None
+    assert guardrails.refuse_topic("will I get any disease") is not None
+    assert guardrails.refuse_topic("should I buy this stock") is not None
+    assert guardrails.refuse_topic("when will I marry?") is None  # allowed topic

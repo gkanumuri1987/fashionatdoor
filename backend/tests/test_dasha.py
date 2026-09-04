@@ -8,10 +8,28 @@ from jyotish.dasha import current_period, pratyantardashas, vimshottari
 JD0 = 2451545.0  # J2000 — arbitrary anchor for synthetic tests
 
 
-def test_total_is_120_years():
+def test_first_cycle_is_120_years():
     d = vimshottari(moon_lon=100.0, birth_jd_ut=JD0)
-    total_days = d["mahadashas"][-1]["end_jd"] - d["mahadashas"][0]["start_jd"]
+    # First full vimshottari cycle = 9 mahadashas = 120 years.
+    first_cycle = d["mahadashas"][:9]
+    total_days = first_cycle[-1]["end_jd"] - first_cycle[0]["start_jd"]
     assert total_days == pytest.approx(120 * DASHA_YEAR_DAYS, abs=1e-6)
+
+
+def test_two_cycles_generated_by_default():
+    d = vimshottari(moon_lon=100.0, birth_jd_ut=JD0)
+    assert len(d["mahadashas"]) == 18  # two repeating cycles ≈ 240 years
+    # The cycle repeats: maha 9 has the same lord as maha 0.
+    assert d["mahadashas"][9]["lord"] == d["mahadashas"][0]["lord"]
+
+
+def test_current_period_resolves_for_elderly_and_future():
+    from jyotish.dasha import current_period
+    d = vimshottari(moon_lon=0.0, birth_jd_ut=JD0)  # 0° Aries → full 7y Ketu balance
+    # 100 years after birth would fall outside a single 120y-from-back-dated-start
+    # sequence for many charts; with two cycles it always resolves.
+    at = JD0 + 100 * DASHA_YEAR_DAYS
+    assert current_period(d, at) is not None
 
 
 def test_ashwini_start_is_ketu():
@@ -35,7 +53,7 @@ def test_order_follows_vimshottari_cycle():
     # Moon in Rohini (4th nakshatra, lord Moon) → sequence starts moon, mars, rahu...
     rohini_mid = 3 * (360.0 / 27.0) + 5.0
     d = vimshottari(moon_lon=rohini_mid, birth_jd_ut=JD0)
-    lords = [m["lord"] for m in d["mahadashas"]]
+    lords = [m["lord"] for m in d["mahadashas"][:9]]  # first cycle
     start = DASHA_ORDER.index("moon")
     assert lords == [DASHA_ORDER[(start + i) % 9] for i in range(9)]
 

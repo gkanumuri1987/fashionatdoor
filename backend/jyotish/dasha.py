@@ -16,11 +16,18 @@ def _iso(jd: float) -> str:
     return jd_to_utc(jd).isoformat()
 
 
-def vimshottari(moon_lon: float, birth_jd_ut: float) -> dict:
-    """Full maha-dasha sequence (with antardashas) covering 120 years.
+def vimshottari(moon_lon: float, birth_jd_ut: float, cycles: int = 2) -> dict:
+    """Full maha-dasha sequence (with antardashas).
 
     The first maha began BEFORE birth: its start is back-dated so that the
     balance remaining at birth equals (1 - fraction_elapsed) * lord_years.
+
+    ``cycles`` maha-dasha cycles are generated (default 2 = 18 mahadashas ≈ 240
+    years). One cycle only covers ``120 - elapsed_first_lord`` years AFTER birth,
+    so a single cycle runs out for elderly charts or any future-dated query and
+    ``current_period`` would return None — the vimshottari cycle repeats, so we
+    generate a second cycle to keep the active period resolvable across a full
+    lifetime and beyond.
     """
     nak = nakshatra_of(moon_lon)
     first_lord = nak["lord"]
@@ -33,7 +40,7 @@ def vimshottari(moon_lon: float, birth_jd_ut: float) -> dict:
 
     mahas = []
     cursor = seq_start_jd
-    for i in range(9):
+    for i in range(9 * max(1, cycles)):
         lord = DASHA_ORDER[(start_idx + i) % 9]
         length_days = DASHA_YEARS[lord] * DASHA_YEAR_DAYS
         maha = {
