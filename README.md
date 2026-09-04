@@ -16,8 +16,8 @@ and a shareable palmistry photo-analysis flow.
 
 ## Stack
 
-- **Backend:** FastAPI (Python 3.13), Swiss Ephemeris via `pyswisseph`
-- **Frontend:** Next.js 16 (App Router), Tailwind
+- **Backend:** FastAPI (Python 3.12), Swiss Ephemeris via `pyswisseph`
+- **Frontend:** Next.js 15 (App Router), Tailwind
 - **DB/Auth:** Supabase
 - **AI:** Gemini (interpretation + palm vision only — never chart math)
 
