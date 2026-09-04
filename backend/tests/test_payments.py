@@ -29,13 +29,22 @@ def test_config_dormant_without_keys(monkeypatch):
 
 
 def test_stripe_webhook_signature(monkeypatch):
+    import time as _t
     monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", "whsec_test")
     payload = b'{"type":"ping"}'
-    t = "1700000000"
+    t = str(int(_t.time()))  # fresh timestamp (within the 5-min replay window)
     good = hmac.new(b"whsec_test", f"{t}.".encode() + payload,
                     hashlib.sha256).hexdigest()
     assert payments.stripe_webhook(payload, f"t={t},v1={good}") == {"received": True}
+    # A bad signature is rejected.
     assert "error" in payments.stripe_webhook(payload, f"t={t},v1=deadbeef")
+    # Multiple v1 candidates (Stripe rotates secrets) — one valid is enough.
+    assert payments.stripe_webhook(payload, f"t={t},v1=deadbeef,v1={good}") == {"received": True}
+    # Replay protection: a stale timestamp is refused even with a valid signature.
+    stale = "1700000000"  # Nov 2023
+    stale_sig = hmac.new(b"whsec_test", f"{stale}.".encode() + payload,
+                         hashlib.sha256).hexdigest()
+    assert "error" in payments.stripe_webhook(payload, f"t={stale},v1={stale_sig}")
 
 
 def test_razorpay_signature(monkeypatch):

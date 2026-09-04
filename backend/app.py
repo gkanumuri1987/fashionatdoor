@@ -36,6 +36,51 @@ app.add_middleware(
 )
 
 
+# ── Best-effort in-memory rate limiting ──────────────────────────────────────
+# The paid AI + geocode endpoints are unauthenticated compute; without a limit a
+# direct caller can burn the AI budget / get the app IP banned by Nominatim.
+# Keyed by the real client IP (first X-Forwarded-For hop behind the Next.js and
+# Railway proxies, else the socket peer). Single-process, best-effort — it caps
+# abuse without a Redis dependency; generous windows avoid false positives.
+import threading as _threading
+import time as _rl_time
+from collections import defaultdict as _defaultdict, deque as _deque
+
+from fastapi import Depends
+
+_rl_lock = _threading.Lock()
+_rl_hits: dict[str, _deque] = _defaultdict(_deque)
+
+
+def _client_ip(request: Request) -> str:
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def rate_limiter(bucket: str, limit: int, window: float = 60.0):
+    """FastAPI dependency factory: at most `limit` calls per `window` seconds
+    per client IP for this bucket. Raises 429 when exceeded."""
+    def _dep(request: Request) -> None:
+        ip = _client_ip(request)
+        key = f"{bucket}:{ip}"
+        now = _rl_time.time()
+        with _rl_lock:
+            dq = _rl_hits[key]
+            while dq and now - dq[0] > window:
+                dq.popleft()
+            if len(dq) >= limit:
+                raise HTTPException(status_code=429,
+                                    detail="Too many requests — please slow down and try again shortly.")
+            dq.append(now)
+            # Opportunistic cleanup so the map can't grow unbounded.
+            if len(_rl_hits) > 10000:
+                for k in [k for k, d in list(_rl_hits.items()) if not d]:
+                    _rl_hits.pop(k, None)
+    return _dep
+
+
 class ChartRequest(BaseModel):
     date: str = Field(description="Birth date, YYYY-MM-DD")
     time: str = Field(description="Birth time, HH:MM or HH:MM:SS (local)")
@@ -58,6 +103,20 @@ class ChartRequest(BaseModel):
     def _valid_time(cls, v: str) -> str:
         _time.fromisoformat(v)
         return v
+
+
+@app.on_event("startup")
+def _sweep_palm_sessions_on_startup() -> None:
+    """Drop expired palm-session artifacts at boot. The store also sweeps on
+    create, but a quiet period would otherwise let biometric-derived JSON linger
+    past its 48h TTL, contradicting the user-facing retention promise."""
+    try:
+        from store import palm_sessions
+        n = palm_sessions.sweep_expired()
+        if n:
+            logger.info("startup: swept %d expired palm session(s)", n)
+    except Exception as exc:  # never block boot
+        logger.warning("palm sweep on startup failed: %s", exc)
 
 
 @app.get("/health")
@@ -109,11 +168,11 @@ def _save_geo_cache() -> None:
         logger.warning("geocode cache write failed: %s", exc)
 
 
-@app.get("/api/geocode")
+@app.get("/api/geocode", dependencies=[Depends(rate_limiter("geocode", 60))])
 def geocode(q: str):
     """Place search via Nominatim (OpenStreetMap), file-cached so repeat
     cities never re-hit the API. Returns [{name, lat, lng}]."""
-    q = q.strip().lower()
+    q = q.strip().lower()[:120]  # bound length — cache key + Nominatim query
     if len(q) < 2:
         return []
     cache = _load_geo_cache()
@@ -193,7 +252,7 @@ class ReadingRequest(BaseModel):
     language: str = Field(default="en", pattern="^(en|te|hi)$")
 
 
-@app.post("/api/reading")
+@app.post("/api/reading", dependencies=[Depends(rate_limiter("reading", 40))])
 def reading(body: ReadingRequest):
     from ai.reading import generate_reading
     result = generate_reading(body.chart, body.section, body.language)
@@ -207,7 +266,7 @@ class MatchNarrativeRequest(BaseModel):
     language: str = Field(default="en", pattern="^(en|te|hi)$")
 
 
-@app.post("/api/match/narrative")
+@app.post("/api/match/narrative", dependencies=[Depends(rate_limiter("match_narrative", 40))])
 def match_narrative(body: MatchNarrativeRequest):
     from ai.reading import generate_match_narrative
     result = generate_match_narrative(body.milan, body.language)
@@ -235,7 +294,7 @@ def palm_get(token: str):
     return s
 
 
-@app.post("/api/palm/sessions/{token}/upload")
+@app.post("/api/palm/sessions/{token}/upload", dependencies=[Depends(rate_limiter("palm_upload", 20))])
 async def palm_upload(token: str, request: Request,
                       language: str = "en"):
     """Accepts multipart images (fields named photo/photo2 or any files).
@@ -248,9 +307,17 @@ async def palm_upload(token: str, request: Request,
     form = await request.form()
     images: list[bytes] = []
     problems: list[str] = []
+    # A palm reading uses at most two hands. Cap how many file parts we ever
+    # decode so a request with hundreds of 30 MB parts can't exhaust memory/CPU,
+    # and stop as soon as we have the two images we need.
+    _MAX_PARTS = 6
+    seen = 0
     for value in form.values():
         if not hasattr(value, "read"):
             continue
+        seen += 1
+        if seen > _MAX_PARTS or len(images) >= 2:
+            break
         raw = await value.read()
         if not raw:
             continue
@@ -349,7 +416,7 @@ _VASTU_DIRECTIONS = {"N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
                      "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"}
 
 
-@app.post("/api/vastu")
+@app.post("/api/vastu", dependencies=[Depends(rate_limiter("vastu", 20))])
 async def vastu_analyze(plan: UploadFile = File(...),
                         top_direction: str = Form("N"),
                         language: str = Form("en")):
@@ -428,7 +495,7 @@ class RectifyRequest(BaseModel):
     step_minutes: int = Field(default=2, ge=1, le=30)
 
 
-@app.post("/api/rectify")
+@app.post("/api/rectify", dependencies=[Depends(rate_limiter("rectify", 15))])
 def rectify_endpoint(body: RectifyRequest):
     from jyotish.rectify import rectify
     try:
@@ -446,7 +513,7 @@ class ReadingPageRequest(BaseModel):
     language: str = Field(default="en", pattern="^(en|te|hi)$")
 
 
-@app.post("/api/reading-page")
+@app.post("/api/reading-page", dependencies=[Depends(rate_limiter("reading_page", 40))])
 def reading_page_endpoint(body: ReadingPageRequest):
     """ReadingPageV1: strength bars, receipted claims, resolved verdicts,
     dasha timeline, glosses, uncertainty — all computed, none written by AI."""
@@ -504,7 +571,7 @@ class ChatRequest(BaseModel):
     history: list[dict] | None = None
 
 
-@app.post("/api/chat")
+@app.post("/api/chat", dependencies=[Depends(rate_limiter("chat", 30))])
 def jaathakam_chat(body: ChatRequest):
     from ai.chat import answer_question
     result = answer_question(body.chart, body.question, body.language,
@@ -591,7 +658,7 @@ class ForecastRequest(BaseModel):
     lng: float | None = None
 
 
-@app.post("/api/jyothishyam")
+@app.post("/api/jyothishyam", dependencies=[Depends(rate_limiter("jyothishyam", 30))])
 def jyothishyam(body: ForecastRequest):
     from jyotish.forecast import personal_forecast
     try:

@@ -72,7 +72,10 @@ def _activate_plan(user_id: str, plan: str, gateway: str, payment_ref: str) -> b
     if period == "monthly":
         expires = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() + 32 * 86400))
     headers = {"apikey": key, "Authorization": f"Bearer {key}",
-               "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates"}
+               "Content-Type": "application/json",
+               # return=representation so we can VERIFY a row was actually
+               # written (a silent 0-row upsert would otherwise log success).
+               "Prefer": "resolution=merge-duplicates,return=representation"}
     try:
         r = httpx.post(f"{url}/rest/v1/user_flags?on_conflict=user_id", headers=headers,
                        json={"user_id": user_id, "is_premium": True, "plan": plan,
@@ -83,6 +86,16 @@ def _activate_plan(user_id: str, plan: str, gateway: str, payment_ref: str) -> b
         ok = r.status_code in (200, 201, 204)
         if not ok:
             logger.error("activation write failed %s: %s", r.status_code, r.text[:300])
+        elif r.status_code != 204:
+            # Confirm the upsert affected a row (guards the "RLS silently blocks
+            # writes / no-op upsert" trap — success status but nothing persisted).
+            try:
+                body = r.json()
+                if isinstance(body, list) and not body:
+                    logger.error("activation wrote 0 rows (no-op) user=%s plan=%s", user_id, plan)
+                    ok = False
+            except Exception:
+                pass
         # Mark the latest matching request active (best-effort).
         httpx.patch(f"{url}/rest/v1/subscription_requests"
                     f"?user_id=eq.{user_id}&plan=eq.{plan}&status=eq.pending",
@@ -129,10 +142,18 @@ def stripe_webhook(payload: bytes, sig_header: str) -> dict:
     if not secret:
         return {"error": "webhook secret not configured"}
     try:
-        parts = dict(kv.split("=", 1) for kv in sig_header.split(","))
-        signed = f"{parts['t']}.".encode() + payload
+        items = [kv.split("=", 1) for kv in (sig_header or "").split(",") if "=" in kv]
+        t = next((v for k, v in items if k == "t"), None)
+        v1s = [v for k, v in items if k == "v1"]  # may be several; check them all
+        if not t or not v1s:
+            return {"error": "bad signature header"}
+        # Replay protection: reject events whose timestamp is outside a 5-minute
+        # window (a captured valid webhook must not be replayable indefinitely).
+        if abs(time.time() - int(t)) > 300:
+            return {"error": "timestamp outside tolerance"}
+        signed = f"{t}.".encode() + payload
         expected = hmac.new(secret.encode(), signed, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(expected, parts.get("v1", "")):
+        if not any(hmac.compare_digest(expected, v1) for v1 in v1s):
             return {"error": "bad signature"}
     except Exception:
         return {"error": "bad signature header"}
