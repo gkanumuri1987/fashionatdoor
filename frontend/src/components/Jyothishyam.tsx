@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { chatUnlimited, useAccount } from "@/lib/account";
+import { toDDMM } from "@/lib/date";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import type { ChartV1 } from "@/lib/types";
@@ -104,7 +105,7 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
     <div className={`card p-4 ${big ? "" : "text-xs"}`}>
       <div className="flex items-baseline justify-between">
         <span className={`font-display font-semibold ${big ? "text-xl" : "text-sm"} text-[var(--gold)]`}>
-          {d.weekday} · {d.date.slice(5)}
+          {d.weekday} · {toDDMM(d.date)}
         </span>
         <span className="text-[10px] text-[var(--ink-faint)]">{d.vara_deity}</span>
       </div>
@@ -198,10 +199,10 @@ export default function Jyothishyam({ chart }: { chart: ChartV1 }) {
             )}
             <div className="mt-2 flex flex-wrap gap-3 text-xs">
               {fc.week_highlights.good_days.length > 0 && (
-                <span className="text-[var(--good)]">✓ {t("jyo_best")}: {fc.week_highlights.good_days.map((d) => d.slice(5)).join(", ")}</span>
+                <span className="text-[var(--good)]">✓ {t("jyo_best")}: {fc.week_highlights.good_days.map((d) => toDDMM(d)).join(", ")}</span>
               )}
               {fc.week_highlights.careful_days.length > 0 && (
-                <span className="text-[var(--bad)]">⚠ {t("jyo_careful")}: {fc.week_highlights.careful_days.map((d) => d.slice(5)).join(", ")}</span>
+                <span className="text-[var(--bad)]">⚠ {t("jyo_careful")}: {fc.week_highlights.careful_days.map((d) => toDDMM(d)).join(", ")}</span>
               )}
             </div>
           </div>

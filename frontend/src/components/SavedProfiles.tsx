@@ -1,5 +1,7 @@
 "use client";
 
+import { toDDMMYYYY } from "@/lib/date";
+
 import { useCallback, useEffect, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
@@ -186,7 +188,7 @@ export default function SavedProfiles({
               <button onClick={() => onLoad(p)} className="text-left hover:text-[var(--gold)]">
                 <span className="font-medium">{p.name}</span>{" "}
                 <span className="text-[var(--ink-muted)]">
-                  {p.birth_date} {p.birth_time.slice(0, 5)} · {p.place_name.split(",")[0]}
+                  {toDDMMYYYY(p.birth_date)} {p.birth_time.slice(0, 5)} · {p.place_name.split(",")[0]}
                 </span>
               </button>
               <button
@@ -212,7 +214,7 @@ export default function SavedProfiles({
                 <button onClick={() => loadHistory(h)}
                         className="w-full text-left hover:text-[var(--gold)]">
                   <span className="text-[var(--ink-soft)]">
-                    {h.person_name || "—"} · {h.birth_date} {h.birth_time.slice(0, 5)}
+                    {h.person_name || "—"} · {toDDMMYYYY(h.birth_date)} {h.birth_time.slice(0, 5)}
                     {" · "}{h.place_name.split(",")[0]}
                   </span>
                   {h.lagna_sign && (

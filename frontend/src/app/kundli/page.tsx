@@ -300,7 +300,7 @@ export default function Home() {
               {" · "}{chart.input.tz} (UTC{chart.input.utc_offset_hours >= 0 ? "+" : ""}{chart.input.utc_offset_hours})
               {" · "}{t("ayanamsa")} {chart.ayanamsa_value.toFixed(4)}°
             </div>
-            <nav className="flex gap-1 rounded-lg border border-[var(--line)] p-1 text-sm">
+            <nav className="flex gap-1 overflow-x-auto rounded-lg border border-[var(--line)] p-1 text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {TABS.map((tb) => (
                 <button key={tb} onClick={() => setTab(tb)}
                         className={`pill ${tab === tb ? "pill-active" : ""}`}>

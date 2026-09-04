@@ -1,5 +1,7 @@
 "use client";
 
+import { toDDMMYYYY } from "@/lib/date";
+
 /** Panchanga & Festival Calendar — tradition + timezone aware, printable.
  *  Every cell: tithi (with local end time), nakshatra, festivals; Tamil mode
  *  shows solar month/day. "Download PDF" uses the print stylesheet; "Add to
@@ -194,7 +196,7 @@ export default function CalendarPage() {
                      onClick={() => setSelected(d)}
                      onKeyDown={(e) => e.key === "Enter" && setSelected(d)}
                      style={{ boxShadow: `inset 3px 0 0 ${masaColor}` }}
-                     className={`card min-h-[8.5rem] cursor-pointer p-2 text-[11px] leading-tight transition-transform hover:-translate-y-0.5 print:min-h-[7rem] print:rounded print:p-1.5 ${
+                     className={`card min-h-[6.5rem] cursor-pointer p-1.5 text-[11px] leading-tight transition-transform hover:-translate-y-0.5 sm:min-h-[8.5rem] sm:p-2 print:min-h-[7rem] print:rounded print:p-1.5 ${
                        festive ? "border-[var(--line-gold)] shadow-[0_0_18px_-8px_rgba(217,171,46,0.5)]" : ""}`}>
                   <div className="flex items-baseline justify-between">
                     <span className={`font-display text-lg font-semibold ${
@@ -275,7 +277,7 @@ export default function CalendarPage() {
                 {selected.moon_phase === "new" && " 🌑"}
               </div>
               <div className="mt-1 text-sm text-[var(--ink-soft)]">
-                {selected.vara_local ?? selected.vara} · {selected.date}
+                {selected.vara_local ?? selected.vara} · {toDDMMYYYY(selected.date)}
               </div>
               <div className="text-xs text-[var(--gold)]">
                 {tradition === "tamil"

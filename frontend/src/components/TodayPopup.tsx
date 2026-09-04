@@ -83,7 +83,7 @@ export default function TodayPopup() {
           <span className="text-[var(--ink-muted)]">New ventures</span>
           <span className={today.new_ventures === "favourable" ? "text-[var(--good)]"
                            : today.new_ventures === "avoid" ? "text-[var(--bad)]" : "text-[var(--warn)]"}>
-            {t(`jyo_${today.new_ventures}`)}
+            {t(`jyo_${today.new_ventures.replace(" ", "_")}`)}
           </span>
         </div>
         {today.cautions.length > 0 && (
